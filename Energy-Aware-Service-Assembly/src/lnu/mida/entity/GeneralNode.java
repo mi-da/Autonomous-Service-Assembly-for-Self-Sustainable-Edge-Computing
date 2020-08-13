@@ -58,30 +58,6 @@ private long ID;
 // green energy generation rate of the node
 private double G;
 
-/** Sigle request cost I,E **/
-private double I_comp;
-
-private double E_comp;
-
-private double I_comm;
-
-private double E_comm;
-
-
-/** Lambda dependent I,E **/
-
-// individual computation energy consumption of S (dependent of lambda)
-private double I_comp_lambda;
-
-// overall computation energy consumption associated with a service S (must be recursively calculated, dependent of lambda)
-private double E_comp_lambda;
-
-// individual communication energy consumption of S (calculated as receiving cost and sending cost, dependet on lambda)
-private double I_comm_lambda;
-
-// overall communication energy consumption associated with a service S (must be recursively calculated)
-private double E_comm_lambda;
-
 
 
 // Receiving costs 1 unit of energy = Eelect
@@ -103,19 +79,6 @@ private double CPUCost= 0.04;
 public GeneralNode(String prefix) {
 	location = (Location) Configuration.getInstance(prefix + "." + "loc_impl");
 	String[] names = Configuration.getNames(PAR_PROT);
-	
-	// in theory this is known in advance
-	setI_comp(0);
-	
-	setE_comp(0);
-	setI_comm(0);
-	setE_comm(0);
-	
-	
-	setI_comp_lambda(0);
-	setE_comp_lambda(0);
-	setI_comm_lambda(0);
-	setE_comm_lambda(0);
 	
 	CommonState.setNode(this);
 	ID=nextID();
@@ -276,46 +239,6 @@ public void setG(double g) {
 	G = g;
 }
 
-
-public double getI_comp_lambda() {
-	return I_comp_lambda;
-}
-
-
-public void setI_comp_lambda(double i_comp) {
-	I_comp_lambda = i_comp;
-}
-
-
-public double getE_comp_lambda() {
-	return E_comp_lambda;
-}
-
-
-public void setE_comp_lambda(double e_comp) {
-	E_comp_lambda = e_comp;
-}
-
-
-public double getI_comm_lambda() {
-	return I_comm_lambda;
-}
-
-
-public void setI_comm_lambda(double i_comm) {
-	I_comm_lambda = i_comm;
-}
-
-
-public double getE_comm_lambda() {
-	return E_comm_lambda;
-}
-
-
-public void setE_comm_lambda(double e_comm) {
-	E_comm_lambda = e_comm;
-}
-
 // returns individual CPU energy consumption
 public double getConsumedIndividualCPUEnergy(double lambda_CPU) {
 	
@@ -325,6 +248,11 @@ public double getConsumedIndividualCPUEnergy(double lambda_CPU) {
 
 // retursn consumed individual communication energy consumption for sending
 public double getConsumedIndividualCommEnergySending(double lambda, double latency) {
+	
+	// No communication involved for services on the same node
+	if(latency==0)
+		return 0;	
+	
 	// Sending energy =  K(E_{elect} + E_{amp} l_{S,S'}^2)
 	double sendingEnergy = lambda*(Eelect+(Eamp*Math.pow(latency,2)));
 	
@@ -345,45 +273,6 @@ public double  getConsumedIndividualCommEnergyReceiving(double lambda) {
 	return receivingEnergy;	
 }
 
-
-public double getI_comp() {
-	return I_comp;
-}
-
-
-public void setI_comp(double i_comp) {
-	I_comp = i_comp;
-}
-
-
-public double getE_comp() {
-	return E_comp;
-}
-
-
-public void setE_comp(double e_comp) {
-	E_comp = e_comp;
-}
-
-
-public double getI_comm() {
-	return I_comm;
-}
-
-
-public void setI_comm(double i_comm) {
-	I_comm = i_comm;
-}
-
-
-public double getE_comm() {
-	return E_comm;
-}
-
-
-public void setE_comm(double e_comm) {
-	E_comm = e_comm;
-}
 
 }
 

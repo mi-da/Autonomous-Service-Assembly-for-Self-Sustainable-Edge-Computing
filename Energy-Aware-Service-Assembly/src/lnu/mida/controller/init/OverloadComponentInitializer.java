@@ -17,8 +17,13 @@
 
 package lnu.mida.controller.init;
 
+import java.util.ArrayList;
+import java.util.Random;
+
+import com.sun.tools.javac.util.ArrayUtils;
 import lnu.mida.entity.GeneralNode;
 import lnu.mida.entity.QOSReputation;
+import lnu.mida.entity.Service;
 import lnu.mida.entityl.transferfunction.CustomTransferFunction;
 import lnu.mida.entityl.transferfunction.TransferFunction;
 import lnu.mida.entityl.transferfunction.UnityTransferFunction;
@@ -27,157 +32,180 @@ import lnu.mida.protocol.OverloadComponentAssembly;
 import peersim.config.*;
 import peersim.core.*;
 
-/**
- * I am an initialiizer which sets the type of the first two node to 0
- * and the others to 1,2,3,4...
- */
 public class OverloadComponentInitializer implements Control {
 
-    // ------------------------------------------------------------------------
-    // Parameters
-    // ------------------------------------------------------------------------
+	// ------------------------------------------------------------------------
+	// Parameters
+	// ------------------------------------------------------------------------
 
-	/**
-	 * The component assambly protocol.
-	 */
 	private static final String COMP_PROT = "comp_prot";
-	
+
 	private static final String APPL_PROT = "appl_prot";
-	
-	/**
-	 * The maximum number of service types (default: 10)
-	 */
-	private static final String PAR_TYPES = "types";
 
 
-    // ------------------------------------------------------------------------
-    // Fields
-    // ------------------------------------------------------------------------
-   	
+	// ------------------------------------------------------------------------
+	// Fields
+	// ------------------------------------------------------------------------
+
 	private final int component_assembly_pid;
 	private final int application_assembly_pid;
-	
-    public static int lastTypeInjected;
-    
-    private int max_types;
+
+	public static int lastTypeInjected;
 
 
-    // ------------------------------------------------------------------------
-    // Initialization
-    // ------------------------------------------------------------------------
-    /**
-     * Standard constructor that reads the configuration parameters. Invoked by
-     * the simulation engine.
-     * 
-     * @param prefix
-     *            the configuration prefix for this class.
-     */
-    public OverloadComponentInitializer(String prefix) {
-    	component_assembly_pid = Configuration.getPid(prefix + "." + COMP_PROT);
-    	application_assembly_pid = Configuration.getPid(prefix + "." + APPL_PROT);
-    	lastTypeInjected = 0;
-    	max_types = Configuration.getInt(prefix + "." + PAR_TYPES, 10);
-    }
+	// ------------------------------------------------------------------------
+	// Initialization
+	// ------------------------------------------------------------------------
+	/**
+	 * Standard constructor that reads the configuration parameters. Invoked by the
+	 * simulation engine.
+	 * 
+	 * @param prefix the configuration prefix for this class.
+	 */
+	public OverloadComponentInitializer(String prefix) {
+		component_assembly_pid = Configuration.getPid(prefix + "." + COMP_PROT);
+		application_assembly_pid = Configuration.getPid(prefix + "." + APPL_PROT);
+		lastTypeInjected = 0;
+	}
 
-    // ------------------------------------------------------------------------
-    // Methods
-    // ------------------------------------------------------------------------
+	// ------------------------------------------------------------------------
+	// Methods
+	// ------------------------------------------------------------------------
 
-    @Override
+	@Override
 	public boolean execute() {
 
-    	int m = Configuration.getInt("M",50000);
-    	
-    	int types = Configuration.getInt("TYPES",0);
-    	
-    	int max_num_per_type = Network.size()/types;
+		int m = Configuration.getInt("M", 50000);
+		QOSReputation.setM(m); // set the parameter m for the learner
 
-    	
-    	QOSReputation.setM(m); // set the parameter m for the learner
-    	
-    	int current_type = 0;
-		// types setting
-    	int num_per_type = 0;
-    	
-    	
-		for(int i=0;i<Network.size();i++) {
-					
+		int types = Configuration.getInt("TYPES", 0);
+		int services_per_node = Configuration.getInt("SERVICES_PER_NODE", 0);
+		
+		int max_services_per_type = Network.size()*services_per_node/ types;
+		
+		
+		System.out.println("types="+types+" max_services_per_type="+max_services_per_type);
+		
+		
+		ArrayList<Integer> availableTypes = new ArrayList<Integer>();
+		for (int i = 0; i < types; i++) {
+			availableTypes.add(max_services_per_type);
+		}
+		
 
-			GeneralNode n = (GeneralNode)Network.get(i);			
-		    OverloadComponentAssembly ca = (OverloadComponentAssembly)n.getProtocol(component_assembly_pid);
-		    
-		    OverloadApplication appl = (OverloadApplication)n.getProtocol(application_assembly_pid);
-		    appl.reset();
-		    
-		    
-		    /**
-		     * Energy parameters
-		     */
-		    
-		    // set green energy generation rate	(for Journal)    
-		    n.setG(2+2*Math.random()); // n.setG(2);
-		    
-		    	    
-		    ca.setTransfer_func_CPU(new CustomTransferFunction(Math.random()));
-		    
-		    /**
-		     * Quality parameters
-		     */
-		    	    
-		    // queue parameter
-			ca.setQueueParameter(Math.random());
+		for (int i = 0; i < Network.size(); i++) {
+
+			GeneralNode n = (GeneralNode) Network.get(i);
+			OverloadComponentAssembly ca = (OverloadComponentAssembly) n.getProtocol(component_assembly_pid);
+			OverloadApplication appl = (OverloadApplication) n.getProtocol(application_assembly_pid);
 			
-            // curve parameter between 0.2 and 1
-			double curveParameter = (Math.random()*0.8)+0.2;	// double curveParameter = (Math.random()*0.8)+0.2;		
-			ca.setCurveParameter(curveParameter);
-			
-			// declared utility
-			ca.setDeclared_utility(1);
-			
+			appl.reset();
+			ca.reset();
+
+			// Initialize the number of services with max_types
+			for (int j = 0; j < services_per_node; j++) {
+
+				Service s = new Service(types,application_assembly_pid);
+
+				// set type of service
+				int randomType = getRandomType(availableTypes);
+				
+				s.setType(randomType);
+				s.setNode_id((int) n.getID());
+				        
+
+				// sigma: type 0 get requests from external users
+				if (randomType == 0) {
+					s.setSigma(1.0);
+					s.setLambda_t(1.0);
+				}
+				
+				
+				s.setTransfer_func_CPU(new CustomTransferFunction(Math.random()));
+
+				/**
+				 * Quality parameters
+				 */
+
+				// queue parameter
+				s.setQueueParameter(Math.random());
+
+				// curve parameter between 0.2 and 1
+				double curveParameter = (Math.random() * 0.8) + 0.2; // double curveParameter = (Math.random()*0.8)+0.2;
+				s.setCurveParameter(curveParameter);
+
+				// declared utility
+				s.setDeclared_utility(1);
+				
+				// setup transfer functions
+				TransferFunction transfer_func[] = s.getTransferFunctions();
+				for (int k = 0; k < types; k++) {
+					transfer_func[k] = new CustomTransferFunction(Math.random()); // transfer_func[j] = new
+																				  // CustomTransferFunction(0.2);
+                                                                                  // transfer_func[j] = new UnityTransferFunction();
+				}
+				
+				// add service to list of services in the node
+				ca.getServices().add(s);
+
+			}
+	
+
+			/**
+			 * Energy parameters
+			 */
+
+			// set green energy generation rate (for Journal)
+			n.setG(2 + 2 * Math.random()); // n.setG(2);
+
+
 //			if(Math.random()<0.5) {
 //				ca.setDeclared_utility(0.99+(0.01*Math.random()));
 //			}
-			
-			// setup transfer functions
-			TransferFunction transfer_func[] = ca.getTransferFunctions();
-			for (int j = 0; j < max_types; j++) {				
-					transfer_func[j] = new CustomTransferFunction(Math.random()); // transfer_func[j] = new CustomTransferFunction(0.2);
-//				    transfer_func[j] = new UnityTransferFunction();
-			}	
-				
-			
-		    /**
-		     * Construct parameters
-		     */
-			
+
+
+			/**
+			 * Construct parameters
+			 */
+
 			// mette randomicamente servizi non affidabili con una certa percentuale
 //		    if(Math.random()<0.3) { // old was 0.3
 //				ca.setQueueParameter(0.2);
 //				ca.setCurveParameter(0.2);
 //		    }
-		
 
-		    
-		    // type		
-		    ca.setType(current_type);
-		    ca.setId((int) n.getID());
-		    
-		    num_per_type++;
-		    
-		    // sigma: type 0 get requests from external users
-		    if(current_type==0) {
-		    	ca.setSigma(1.0);
-		    	ca.setLambda_t(1.0);
-		    }		    
-		    
-	        if(num_per_type == max_num_per_type) { // num_per_type==100	        	
-	        	num_per_type=0;
-	        	current_type++;
-	        }
- 
 		}
-
-		return false;
-    }
+		
+		// Prints nodes and services allocation
+		for (int i = 0; i < Network.size(); i++) {
+			
+			GeneralNode n = (GeneralNode) Network.get(i);
+			OverloadComponentAssembly ca = (OverloadComponentAssembly) n.getProtocol(component_assembly_pid);
+			OverloadApplication appl = (OverloadApplication) n.getProtocol(application_assembly_pid);
+			
+			ArrayList<Service> services = ca.getServices();
+			
+			System.out.println("On node "+n.getID());
+			for (Service service : services) {
+				System.out.println("Node= "+service.getNode_id()+" service="+service.getService_id()+" type="+service.getType());
+			}
+			System.out.println();			
+		}
+		
+//		System.exit(0);
     
+		return false;
+	}
+
+	public static int getRandomType(ArrayList<Integer> list) {
+		int rnd = new Random().nextInt(list.size());
+		
+		if(list.get(rnd)==0)
+			return getRandomType(list);
+		
+		else
+			list.set(rnd, list.get(rnd)-1);
+	    return rnd;
+	}
+
 }

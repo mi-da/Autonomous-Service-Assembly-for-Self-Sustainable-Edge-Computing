@@ -24,43 +24,43 @@ public class OverloadNewNodeInitializer implements NodeInitializer {
 	@Override
 	public void initialize(Node n) {
 		
-		System.out.println("CHECK INITIALIZED: OverloadNewNodeInitializer");
-		System.exit(0);
-		
-		// new peer
-		OverloadComponentAssembly comp = (OverloadComponentAssembly)n.getProtocol(component_assembly_pid);
-		comp.setId((int) n.getID());
-		
-	    // queue parameter
-		comp.setQueueParameter(1);
-		
-        // curve parameter between 0.2 and 1
-		double curveParameter = (Math.random()*0.8)+0.2;		
-		comp.setCurveParameter(curveParameter);
-		
-		// declared utility
-		comp.setDeclared_utility(1);			
-		
-		// mette randomicamente servizi non affidabili con una certa percentuale
-	    if(Math.random()<0.3) {
-	    	comp.setQueueParameter(0.2);
-	    	comp.setCurveParameter(0.2);
-	    }	
-	
-		
-		// random type 0...max types
-		Random rand = new Random();		
-		int type = rand.nextInt(comp.getTypes());		
-		comp.setType(type);
-		
-		// random dependencies
-		double prob = ProbDependencyInitializer.getProb();
-		
-		for (int t = comp.getType() + 1; t < comp.getTypes(); ++t) {
-			double val = CommonState.r.nextDouble();
-			if (val <= prob)
-				comp.setDependencyType(t);
-		}
+//		System.out.println("CHECK INITIALIZED: OverloadNewNodeInitializer");
+//		System.exit(0);
+//		
+//		// new peer
+//		OverloadComponentAssembly comp = (OverloadComponentAssembly)n.getProtocol(component_assembly_pid);
+//		comp.setId((int) n.getID());
+//		
+//	    // queue parameter
+//		comp.setQueueParameter(1);
+//		
+//        // curve parameter between 0.2 and 1
+//		double curveParameter = (Math.random()*0.8)+0.2;		
+//		comp.setCurveParameter(curveParameter);
+//		
+//		// declared utility
+//		comp.setDeclared_utility(1);			
+//		
+//		// mette randomicamente servizi non affidabili con una certa percentuale
+//	    if(Math.random()<0.3) {
+//	    	comp.setQueueParameter(0.2);
+//	    	comp.setCurveParameter(0.2);
+//	    }	
+//	
+//		
+//		// random type 0...max types
+//		Random rand = new Random();		
+//		int type = rand.nextInt(comp.getTypes());		
+//		comp.setType(type);
+//		
+//		// random dependencies
+//		double prob = ProbDependencyInitializer.getProb();
+//		
+//		for (int t = comp.getType() + 1; t < comp.getTypes(); ++t) {
+//			double val = CommonState.r.nextDouble();
+//			if (val <= prob)
+//				comp.setDependencyType(t);
+//		}
 
 	}
 

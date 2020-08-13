@@ -1,6 +1,9 @@
 package lnu.mida.controller.observer;
 
+import java.util.ArrayList;
+
 import lnu.mida.entity.GeneralNode;
+import lnu.mida.entity.Service;
 import lnu.mida.protocol.OverloadComponentAssembly;
 import peersim.config.*;
 import peersim.core.Control;
@@ -85,44 +88,40 @@ public class QualityEnergyObserver implements Control {
 		IncrementalStats quality = new IncrementalStats();
 		IncrementalStats energy = new IncrementalStats();
 
-
-
 		int fully_resolved = 0;
 
 		for (int i = 0; i < Network.size(); i++) {
 
 			GeneralNode node = (GeneralNode) Network.get(i);
 			OverloadComponentAssembly n = (OverloadComponentAssembly) node.getProtocol(pid);
+			
+			ArrayList<Service> services = n.getServices();
+			
+			for (Service service : services) {
+				
+				if (service.isFullyResolved()) {
+					fully_resolved++;
+				}
 
-			if (n.isFullyResolved()) {
-				fully_resolved++;
+				// recursive quality calculation
+				quality.add(service.getEffectiveCU());
+				
+
+				/**  Green Energy goes in Journal **/
+//				double energyBalance = node.getG() - (node.getI_comp() + node.getI_comm());
+//				energy.add(Math.min(0, energyBalance));
+				
+				energy.add(service.getI_comp_lambda() + service.getI_comm_lambda());
+				
+
+//				if(node.getG()-(node.getI_comp()+node.getI_comm())<0) {
+//					System.err.println(node.getG()-(node.getI_comp()+node.getI_comm())+"--> energia consumate piu' di quella prodotta per nodo "+node.getID());
+//					System.exit(1);
+//				}
+
+//				System.out.println("node "+node.getID()+" type="+n.getType()+" I_comp="+node.getI_comp()+" E_comp="+node.getE_comp()+" I_comm="+node.getI_comm()+" E_comm="+node.getE_comm()+" lambda="+n.getLambda_t());	
+				
 			}
-
-			// recursive quality calculation
-			quality.add(n.getEffectiveCU());
-			
-			
-			// recursive calculation of overall communication and computation cost (lamda)
-			node.setE_comp(n.calculateOverallCPUEnergy());
-			node.setE_comm(n.calculateOverallCommunicationEnergy());
-
-			// recursive calculation of overall communication and computation cost (lamda)
-			node.setE_comp_lambda(n.calculateOverallCPUEnergyLambda());
-			node.setE_comm_lambda(n.calculateOverallCommunicationEnergyLambda());
-
-			/**  Green Energy goes in Journal **/
-//			double energyBalance = node.getG() - (node.getI_comp() + node.getI_comm());
-//			energy.add(Math.min(0, energyBalance));
-			
-			energy.add(node.getI_comp_lambda() + node.getI_comm_lambda());
-			
-
-//			if(node.getG()-(node.getI_comp()+node.getI_comm())<0) {
-//				System.err.println(node.getG()-(node.getI_comp()+node.getI_comm())+"--> energia consumate piu' di quella prodotta per nodo "+node.getID());
-//				System.exit(1);
-//			}
-
-//			System.out.println("node "+node.getID()+" type="+n.getType()+" I_comp="+node.getI_comp()+" E_comp="+node.getE_comp()+" I_comm="+node.getI_comm()+" E_comm="+node.getE_comm()+" lambda="+n.getLambda_t());	
 
 		}
 

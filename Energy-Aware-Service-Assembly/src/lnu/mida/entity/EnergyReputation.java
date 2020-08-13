@@ -3,20 +3,19 @@ package lnu.mida.entity;
 public class EnergyReputation implements Cloneable  {
 	
 	
-	// node id for which the experience is evaluated
-	private int nodeID;
+	// service id for which the experience is evaluated
+	private int serviceID;
+	
 	// number of time the experience is done
 	private int k;
-
-	
 	// window period of the learner
 	private static int M;
 	
 	// approach to challenge
 	private double ee;
 	
-	public EnergyReputation(int nodeId) {
-		this.nodeID=nodeId;
+	public EnergyReputation(int serviceId) {
+		this.setServiceID(serviceId);
 		k=0;
 		ee=0;
 	}
@@ -64,9 +63,13 @@ public class EnergyReputation implements Cloneable  {
 	public double getEe() {
 		return ee;
 	}
-	
-	public int getNodeID() {
-		return nodeID;
+
+	public int getServiceID() {
+		return serviceID;
+	}
+
+	public void setServiceID(int serviceID) {
+		this.serviceID = serviceID;
 	}
 
 }

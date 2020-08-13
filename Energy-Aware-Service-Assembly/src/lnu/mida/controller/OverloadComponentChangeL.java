@@ -57,20 +57,21 @@ public class OverloadComponentChangeL implements Control {
 	@Override
 	public boolean execute() {
 
-		int i;
-		// long time = CommonState.getTime();
-		for (i = 0; i < num; ++i) {
-
-			int j = CommonState.r.nextInt(Network.size());
-			Node n = Network.get(j);
-			OverloadComponentAssembly comp = (OverloadComponentAssembly) n.getProtocol(component_assembly_pid);
-
-			// queue parameter
-			comp.setDeclared_utility(1);
-			comp.setQueueParameter(0.1);
-			comp.setCurveParameter(0.1);			
-
-		}
+//		int i;
+//		// long time = CommonState.getTime();
+//		for (i = 0; i < num; ++i) {
+//
+//			int j = CommonState.r.nextInt(Network.size());
+//			Node n = Network.get(j);
+//			OverloadComponentAssembly comp = (OverloadComponentAssembly) n.getProtocol(component_assembly_pid);
+//
+//			// queue parameter
+//			comp.setDeclared_utility(1);
+//			comp.setQueueParameter(0.1);
+//			comp.setCurveParameter(0.1);			
+//
+//		}
+		
 		return false;
 
 	}

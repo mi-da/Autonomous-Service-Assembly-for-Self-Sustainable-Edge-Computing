@@ -3,6 +3,10 @@ package lnu.mida.controller.init;
 import peersim.config.*;
 import peersim.core.*;
 
+import java.util.ArrayList;
+
+import lnu.mida.entity.GeneralNode;
+import lnu.mida.entity.Service;
 import lnu.mida.protocol.OverloadComponentAssembly;
 
 /**
@@ -76,37 +80,36 @@ public class ProbDependencyInitializer implements Control {
 
 		OverloadComponentAssembly comp;
 
-		// prob. dependency
+		// for each node
+		
 		for (int i = 0; i < Network.size(); ++i) {
 			
 			comp = (OverloadComponentAssembly) Network.get(i).getProtocol(protocolID);
+			ArrayList<Service> services = comp.getServices();
 			
-            int dep_num = 0;
-            
-			for (int t = comp.getType() + 1; t < comp.getTypes(); ++t) {
-				double val = CommonState.r.nextDouble();
-				if (val <= prob) {
-					comp.setDependencyType(t);
-					dep_num++;					
-					if(t==comp.getType()) {
-						System.err.println("Cannot set recursive dependencies");
-						System.exit(0);
-					}					
+			// for each service inside a node
+			for (Service service : services) {
+				
+	            int dep_num = 0;
+	            
+				for (int t = service.getType() + 1; t < comp.getTypes(); ++t) {
+					double val = CommonState.r.nextDouble();
+					if (val <= prob) {
+						service.setDependencyType(t);
+						dep_num++;					
+						if(t==service.getType()) {
+							System.err.println("Cannot set recursive dependencies");
+							System.exit(0);
+						}					
+					}
 				}
+				service.setDep_num(dep_num);				
+				
 			}
-			
-			comp.setDep_num(dep_num);
+								
 		}
 
-//		// 0-1-2-3-4-5-6-7-8-9
-//		for (int i = 0; i < Network.size(); ++i) {
-//			comp = (OverloadComponentAssembly) Network.get(i).getProtocol(protocolID);
-//			if(comp.getType()!=9) {
-//				comp.setDependencyType(comp.getType() + 1);
-//				comp.setDep_num(1);
-//			}
-//			
-//		}
+
 
 		return false;
 	}

@@ -7,6 +7,7 @@ import com.lajv.location.Location;
 import lnu.mida.entity.EnergyReputation;
 import lnu.mida.entity.GeneralNode;
 import lnu.mida.entity.QOSReputation;
+import lnu.mida.entity.Service;
 import peersim.cdsim.CDProtocol;
 import peersim.config.Configuration;
 import peersim.core.Cleanable;
@@ -54,16 +55,15 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 		energyReputations = new ArrayList<EnergyReputation>();
 	}
 
-	public void addQoSHistoryExperience(OverloadComponentAssembly node, double experienced_utility, double declared_utility) {		
-		int index = (int) node.getId();
+	public void addQoSHistoryExperience(Service service, double experienced_utility, double declared_utility) {		
+		int index = (int) service.getService_id();
 		QOSReputation reputation = getOrCreateQOSReputation(index);
 		reputation.setDeclared_utility(declared_utility);
 		reputation.addExperiencedUtility(experienced_utility);
 	}
 	
-	public void addEnergyHistoryExperience(OverloadComponentAssembly node, double declared_energy) {
-		
-		int index = (int) node.getId();
+	public void addEnergyHistoryExperience(Service service, double declared_energy) {	
+		int index = (int) service.getService_id();
 		EnergyReputation reputation = getOrCreateEnergyReputation(index);
 		reputation.addDeclaredEnergy(declared_energy);
 	}
@@ -91,7 +91,7 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 	}
 
 	// returns true if comp > old
-	public boolean chooseByStrategy(OverloadComponentAssembly comp, OverloadComponentAssembly old, OverloadComponentAssembly ca) {
+	public boolean chooseByStrategy(Service comp, Service old, GeneralNode node) {
 
 		// default composition strategy (best actual value)
 		if (STRATEGY.equals("greedy")) {
@@ -107,23 +107,23 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 		}
 		// future expected utility
 		if (STRATEGY.equals("emergent")) {
-			return chooseByFutureExpectedUtility(comp, old, ca);
+			return chooseByFutureExpectedUtility(comp, old, node);
 		}
 		// approach to challenge
 		if (STRATEGY.equals("shaerf")) {
 			return chooseByChallengeStrategy(comp, old);
 		}
 		// individual energy
-		if (STRATEGY.equals("individual_energy")) {
-			return chooseByIndividualEnergyStrategy(comp, old, ca);
+		if (STRATEGY.equals("local_energy")) {
+			return chooseByLocalEnergyStrategy(comp, old, node);
 		}
 		// overall energy
 		if (STRATEGY.equals("overall_energy")) {
-			return chooseByOverallEnergyStrategy(comp, old, ca);
+			return chooseByOverallEnergyStrategy(comp, old);
 		}
 		// fair energy
 		if (STRATEGY.equals("fair_energy")) {
-			return chooseByFairEnergyStrategy(comp, old, ca);
+			return chooseByFairEnergyStrategy(comp, old);
 		}
 		// exception is raised if a strategy is not selected
 		else {
@@ -138,7 +138,7 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 	}
 
 	// returns true if comp > old
-	private boolean chooseByDefaultStrategy(OverloadComponentAssembly comp, OverloadComponentAssembly old) {
+	private boolean chooseByDefaultStrategy(Service comp, Service old) {
 
 		if (comp.getDeclaredUtility() >= old.getDeclaredUtility())
 			return true;
@@ -148,7 +148,7 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 	}
 
 	// chooses a random component
-	private boolean chooseByRandomStrategy(OverloadComponentAssembly comp, OverloadComponentAssembly old) {
+	private boolean chooseByRandomStrategy(Service comp, Service old) {
 		if (Math.random() < 0.5)
 			return true;
 		else
@@ -156,10 +156,10 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 	}
 
 	// returns true if Avg(comp) > Avg(old)
-	private boolean chooseByAverageStrategy(OverloadComponentAssembly comp, OverloadComponentAssembly old) {
+	private boolean chooseByAverageStrategy(Service comp, Service old) {
 
-		QOSReputation compReputation = getOrCreateQOSReputation((int) comp.getId());
-		QOSReputation oldReputation = getOrCreateQOSReputation((int) old.getId());
+		QOSReputation compReputation = getOrCreateQOSReputation((int) comp.getService_id());
+		QOSReputation oldReputation = getOrCreateQOSReputation((int) old.getService_id());
 
 		if (compReputation.getK() == 0)
 			compReputation.setQk(comp.getCompoundUtility());
@@ -175,11 +175,11 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 	}
 
 	// future expected utility: two layer of reinforcement learning
-	private boolean chooseByFutureExpectedUtility(OverloadComponentAssembly comp, OverloadComponentAssembly old, OverloadComponentAssembly ca) {
+	private boolean chooseByFutureExpectedUtility(Service comp, Service old, GeneralNode node) {
 
-		QOSReputation compReputation = getOrCreateQOSReputation((int) comp.getId());
-		QOSReputation oldReputation = getOrCreateQOSReputation((int) old.getId());
-
+		QOSReputation compReputation = getOrCreateQOSReputation((int) comp.getService_id());
+		QOSReputation oldReputation = getOrCreateQOSReputation((int) old.getService_id());
+		
 		double compTrust = compReputation.getTk();
 		double oldTrust = oldReputation.getTk();
 
@@ -212,7 +212,7 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 		
 		
 		if (compFEU == oldFEU)
-			return chooseByIndividualEnergyStrategy(comp, old, ca);
+			return chooseByLocalEnergyStrategy(comp, old, node);
 		
 		// greedy selection
 		if (compFEU > oldFEU) {
@@ -224,10 +224,10 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 	}
 
 	// approach to challenge Shaerf
-	private boolean chooseByChallengeStrategy(OverloadComponentAssembly comp, OverloadComponentAssembly old) {
+	private boolean chooseByChallengeStrategy(Service comp, Service old) {
 
-		QOSReputation compReputation = getOrCreateQOSReputation((int) comp.getId());
-		QOSReputation oldReputation = getOrCreateQOSReputation((int) old.getId());
+		QOSReputation compReputation = getOrCreateQOSReputation((int) comp.getService_id());
+		QOSReputation oldReputation = getOrCreateQOSReputation((int) old.getService_id());
 
 		if (compReputation.getK() == 0 || oldReputation.getK() == 0)
 			return chooseByRandomStrategy(comp, old);
@@ -276,56 +276,75 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 			return false;
 	}
 
-	// individual energy strategy
-	private boolean chooseByIndividualEnergyStrategy(OverloadComponentAssembly comp, OverloadComponentAssembly old, OverloadComponentAssembly ca) {
+	// local energy strategy
+	private boolean chooseByLocalEnergyStrategy(Service comp, Service old, GeneralNode node) {
 
+		Location thisLoc = node.getLocation();
 		
-		GeneralNode nodeThis = GeneralNode.getNode(ca.getId());
+		// calc. for old
+		GeneralNode nodeOld = GeneralNode.getNode(old.getNode_id());
+			
+		double energyOld = 0;
+        
+		if(node.getID()==nodeOld.getID()) {	
+			energyOld+= comp.getL_comp();
+			
+			// per il modello energetico adottato ad ECSA L_comm non dipende dal nodo in ricezione (i.e., node)
+			energyOld+= comp.getL_comm();
+		}
+		else {
+			Location oldLoc = nodeOld.getLocation();
+			double oldLatency = thisLoc.latency(oldLoc);
+			
+			energyOld+= node.getConsumedIndividualCommEnergySending(1, oldLatency);
+		}
 		
-		GeneralNode nodeComp = GeneralNode.getNode(comp.getId());
-		GeneralNode nodeOld = GeneralNode.getNode(old.getId());
-
-
-//      double IndividualEnergyConsumption_COMP = nodeComp.getG() - (nodeComp.getI_comp() + nodeComp.getI_comm());
-//      double IndividualEnergyConsumption_OLD =  nodeOld.getG() - (nodeOld.getI_comp() + nodeOld.getI_comm());
-
-		Location thisLoc = nodeThis.getLocation();
-		Location compLoc = nodeComp.getLocation();
-		Location oldLoc = nodeOld.getLocation();
+		// calc. for comp
+		GeneralNode nodeComp = GeneralNode.getNode(comp.getNode_id());		
 		
-		double oldLatency = thisLoc.latency(oldLoc);
-		double newLatency = thisLoc.latency(compLoc);
+		double energyComp = 0;
+        
+		if(node.getID()==nodeComp.getID()) {	
+			energyComp+= comp.getL_comp();
+			
+			// per il modello energetico adottato ad ECSA L_comm non dipende dal nodo in ricezione (i.e., node)
+			energyComp+= comp.getL_comm();
+		}
+		else {
+			Location compLoc = nodeComp.getLocation();
+			double newLatency = thisLoc.latency(compLoc);
+			
+			energyComp+= node.getConsumedIndividualCommEnergySending(1, newLatency);
+		}		
 		
-		if(newLatency<oldLatency)
+		// Choose the service causing the least local energy consumption for the node
+		if(energyComp<energyOld)
 			return true;
-		return false;
-		
+		else return false;	
 	}
 	
+	
 	// overall energy strategy
-	private boolean chooseByOverallEnergyStrategy(OverloadComponentAssembly comp, OverloadComponentAssembly old, OverloadComponentAssembly ca) {
+	private boolean chooseByOverallEnergyStrategy(Service comp, Service old) {
 		
 		// at round 1 the overal energy is not known
-
-		GeneralNode nodeComp = GeneralNode.getNode(comp.getId());
-		GeneralNode nodeOld = GeneralNode.getNode(old.getId());
 				
-		double energyComp = nodeComp.getE_comp() + nodeComp.getE_comm();
-		double energyOld =  nodeOld.getE_comp() + nodeOld.getE_comm();
+		double energyComp = comp.getE_comp() + comp.getE_comm();
+		double energyOld =  old.getE_comp() + old.getE_comm();
 		
 		if(energyComp==energyOld)
 			chooseByRandomStrategy(comp, old);
 		
 		if(energyComp<energyOld)
 			return true;
-		return false;		
+		else return false;		
 	}
 	
 	// greedy fair energy strategy using Shaerf
-	private boolean chooseByFairEnergyStrategy(OverloadComponentAssembly comp, OverloadComponentAssembly old, OverloadComponentAssembly ca) {		
+	private boolean chooseByFairEnergyStrategy(Service comp, Service old) {		
 
-		EnergyReputation compReputation = getOrCreateEnergyReputation((int) comp.getId());
-		EnergyReputation oldReputation = getOrCreateEnergyReputation((int) old.getId());
+		EnergyReputation compReputation = getOrCreateEnergyReputation((int) comp.getService_id());
+		EnergyReputation oldReputation = getOrCreateEnergyReputation((int) old.getService_id());
 		
 		if (compReputation.getK() == 0 && oldReputation.getK() == 0)
 			return chooseByRandomStrategy(comp, old);
@@ -378,30 +397,27 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 
 	@Override
 	public void nextCycle(Node node, int protocolID) {
-
-
 	}
 	
-	
 
-	private QOSReputation getOrCreateQOSReputation(int nodeId) {
+	private QOSReputation getOrCreateQOSReputation(int serviceId) {
 		for (QOSReputation reputation : qosReputations) {
-			if (reputation.getNodeID() == nodeId) {
+			if (reputation.getServiceID() == serviceId) {
 				return reputation;
 			}
 		}
-		QOSReputation newReputation = new QOSReputation(nodeId);
+		QOSReputation newReputation = new QOSReputation(serviceId);
 		qosReputations.add(newReputation);
 		return newReputation;
 	}
 	
-	private EnergyReputation getOrCreateEnergyReputation(int nodeId) {
+	private EnergyReputation getOrCreateEnergyReputation(int serviceId) {
 		for (EnergyReputation reputation : energyReputations) {
-			if (reputation.getNodeID() == nodeId) {
+			if (reputation.getServiceID() == serviceId) {
 				return reputation;
 			}
 		}
-		EnergyReputation newReputation = new EnergyReputation(nodeId);
+		EnergyReputation newReputation = new EnergyReputation(serviceId);
 		energyReputations.add(newReputation);
 		return newReputation;
 	}
@@ -414,7 +430,5 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 		qosReputations = new ArrayList<QOSReputation>();
 		energyReputations = new ArrayList<EnergyReputation>();
 	}
-	
-	
 
 }

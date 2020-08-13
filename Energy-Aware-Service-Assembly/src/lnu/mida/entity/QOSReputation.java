@@ -3,8 +3,10 @@ package lnu.mida.entity;
 public class QOSReputation implements Cloneable  {
 	
 	
-	// node id for which the experience is evaluated
-	private int nodeID;
+	// service id for which the experience is evaluated
+	private int serviceID;
+	
+	
 	// last declared utility
 	private double declared_utility;
 	// number of time the experience is done
@@ -20,8 +22,8 @@ public class QOSReputation implements Cloneable  {
 	// approach to challenge
 	private double ee;
 	
-	public QOSReputation(int nodeId) {
-		this.nodeID=nodeId;
+	public QOSReputation(int serviceId) {
+		this.setServiceID(serviceId);
 		declared_utility=-1;
 		k=0;
 		Qk=1; // was 0
@@ -132,9 +134,13 @@ public class QOSReputation implements Cloneable  {
 	public double getEe() {
 		return ee;
 	}
-	
-	public int getNodeID() {
-		return nodeID;
+
+	public int getServiceID() {
+		return serviceID;
+	}
+
+	public void setServiceID(int serviceID) {
+		this.serviceID = serviceID;
 	}
 
 }

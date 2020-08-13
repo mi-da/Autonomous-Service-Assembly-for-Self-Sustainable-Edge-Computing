@@ -18,6 +18,9 @@
 
 package lnu.mida.controller;
 
+import java.util.ArrayList;
+
+import lnu.mida.entity.Service;
 import lnu.mida.protocol.OverloadApplication;
 import lnu.mida.protocol.OverloadComponentAssembly;
 import peersim.config.*;
@@ -84,8 +87,11 @@ public class OverloadReset implements Control {
 		for (int i = 0; i < Network.size(); i++) {		
 			OverloadComponentAssembly ca = (OverloadComponentAssembly) Network.get(i).getProtocol(component_assembly_pid);		
 			OverloadApplication appl = (OverloadApplication)  Network.get(i).getProtocol(application_pid);	
-			// reset the node
-			ca.reset();	
+			// reset the services
+			ArrayList<Service> services = ca.getServices();
+			for (Service service : services) {
+				service.reset();	
+			}
 //			appl.reset();
 		}
 		

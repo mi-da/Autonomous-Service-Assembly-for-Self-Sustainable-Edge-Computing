@@ -18,7 +18,10 @@
 
 package lnu.mida.controller;
 
+import java.util.ArrayList;
+
 import lnu.mida.entity.GeneralNode;
+import lnu.mida.entity.Service;
 import lnu.mida.protocol.OverloadApplication;
 import lnu.mida.protocol.OverloadComponentAssembly;
 import peersim.config.*;
@@ -99,65 +102,62 @@ public class OverloadCompositionController implements Control {
 			GeneralNode node = (GeneralNode) Network.get(i);
 			OverloadComponentAssembly ca = (OverloadComponentAssembly) node.getProtocol(component_assembly_pid);
 			OverloadApplication appl = (OverloadApplication) node.getProtocol(application_pid);
-	
+			
+			ArrayList<Service> services = ca.getServices();
+			
+			for (Service service : services) {
+				double experiencedCU = 1;
 
-			double experiencedCU = 1;
+				if (!service.isFullyResolved()) {
+					experiencedCU = 0;
+					notResolved++;
+				} else {
 
-			if (!ca.isFullyResolved()) {
-				experiencedCU = 0;
-				notResolved++;
-			} else {
-
-				OverloadComponentAssembly[] listDepObj = ca.getDependencies_obj();
-				boolean[] listDep = ca.getDependencies();
-
-				for (int j = 0; j < listDep.length; j++) {
+					Service[] listDepObj = service.getDependencies_obj();
+					boolean[] listDep = service.getDependencies();
 					
-					boolean dep = listDep[j];
-					if (dep == true) {
+					// recursive calculation of L and E for comm and comp
+					service.setL_comp(service.calculateL_comp());
+					service.setL_comm(service.calculateL_comp());
+					service.setE_comp(service.calculateE_comp());
+					service.setE_comm(service.calculateE_comm());
+					
 
-						OverloadComponentAssembly depObj = listDepObj[j];
+					for (int j = 0; j < listDep.length; j++) {
 						
-						// should not happen
-						if(ca.getType()==depObj.getType()) {
-							System.err.println("Cannot have dependency on same type: OverloadComponentAssembly");
-							System.exit(0);
+						boolean dep = listDep[j];
+						if (dep == true) {
+
+							Service depObj = listDepObj[j];
+							
+							// should not happen
+							if(service.getType()==depObj.getType()) {
+								System.err.println("Cannot have dependency on same type: OverloadComponentAssembly");
+								System.exit(0);
+							}
+
+							// updates lambda
+							depObj.updateLambdaTot();
+
+							double experienced_utility = depObj.getRealUtility(service);
+
+							appl.addQoSHistoryExperience(depObj, experienced_utility, depObj.getDeclaredUtility());
+							
+							// learning learning
+							appl.addEnergyHistoryExperience(depObj, depObj.getI_comp_lambda()+depObj.getI_comm_lambda());
+
+							experiencedCU = experiencedCU * experienced_utility; // Experienced Compound Utility (multiplication of all dependencies)				
 						}
-
-						// updates lambda
- 						//if(depObj.getLambda_t()==0)
-						depObj.updateLambdaTot();
-
-						double experienced_utility = depObj.getRealUtility(ca);
-
-						appl.addQoSHistoryExperience(depObj, experienced_utility, depObj.getDeclaredUtility());
-						
-						
-						GeneralNode depNode = GeneralNode.getNode(depObj.getId());
-						
-						// added individual energy lambda
-						appl.addEnergyHistoryExperience(depObj, depNode.getI_comp_lambda()+depNode.getI_comm_lambda());
-
-						experiencedCU = experiencedCU * experienced_utility; // Experienced Compound Utility (multiplication of all dependencies)				
 					}
 				}
-			}
 
-			ca.setExperiencedCU(experiencedCU);
+				service.setExperiencedCU(experiencedCU);
+
+			}
+	
 
 		}
-		
-		// set new declared utilities
-//		for (int i = 0; i < Network.size(); i++) {
-//
-//			if (!Network.get(i).isUp()) {
-//				continue;
-//			}
-//			GeneralNode node = (GeneralNode) Network.get(i);
-//			OverloadComponentAssembly ca = (OverloadComponentAssembly) node.getProtocol(component_assembly_pid);
-//			ca.setDeclared_utility(ca.getUtilityFromLambda());
-//		}
-	
+			
 
 		return false;
 	}
