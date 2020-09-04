@@ -197,10 +197,16 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 			int n = 0;
 			int sum = 0;
 			for (QOSReputation reputation : qosReputations) {
-				double qk = reputation.getQk();
+				if(reputation.getK()>0) {
+					double qk = reputation.getQk();
 					sum += qk;
 					n++;
+				}
 			}
+			
+			if(n==0)
+				return chooseByLocalEnergyStrategy(comp, old, node);
+			
 			compFEU = sum / n;
 		}
 
@@ -208,13 +214,18 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 			int n = 0;
 			int sum = 0;
 			for (QOSReputation reputation : qosReputations) {
-				double qk = reputation.getQk();
+				if(reputation.getK()>0) {
+					double qk = reputation.getQk();
 					sum += qk;
 					n++;
+				}			
 			}
+			
+			if(n==0)
+				return chooseByLocalEnergyStrategy(comp, old, node);
+
 			oldFEU = sum / n;
-		}
-		
+		}		
 		
 		if (compFEU == oldFEU)
 			return chooseByLocalEnergyStrategy(comp, old, node);
@@ -242,11 +253,11 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 		// if no experiences do the average
 		if (compReputation.getK() == 0) {
 			int n = 0;
-			int sum = 0;
+			int sum = 0; // to modify
 			for (QOSReputation reputation : qosReputations) {
 				double ee = reputation.getEe();
 				if (ee != 0) {
-					sum += ee;
+					sum += ee; // to modify
 					n++;
 				}
 			}
@@ -274,7 +285,6 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 		double comp_probl = comp_probl1 / sigma;
 		double old_probl = old_probl1 / sigma;
 
-		// opposto?
 		if (old_probl < comp_probl)
 			return true;
 		else
@@ -351,8 +361,6 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 		EnergyReputation compReputation = getOrCreateEnergyReputation((int) comp.getService_id());
 		EnergyReputation oldReputation = getOrCreateEnergyReputation((int) old.getService_id());
 		
-		if ((compReputation.getK() == 0 && energyReputations.isEmpty()) || (oldReputation.getK() == 0 && energyReputations.isEmpty()))
-			return chooseByRandomStrategy(comp, old);
 
 		double comp_ee = compReputation.getEe();
 		double old_ee = oldReputation.getEe();
@@ -360,36 +368,48 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 		// if no experiences do the average
 		if (compReputation.getK() == 0) {
 			int n = 0;
-			int sum = 0;
+			double sum = 0;
 			for (EnergyReputation reputation : energyReputations) {
-				double ee = reputation.getEe();
+				if(reputation.getK()>0) {
+					double ee = reputation.getEe();
 					sum += ee;
 					n++;
+				}
 			}
-			comp_ee = sum / n;
+			
+			if(n==0)
+				chooseByRandomStrategy(comp, old);
+			
+			comp_ee = sum / n;		
 		}
 
 		if (oldReputation.getK() == 0) {
 			int n = 0;
-			int sum = 0;
+			double sum = 0;
 			for (EnergyReputation reputation : energyReputations) {
-				double ee = reputation.getEe();
+				if(reputation.getK()>0) {
+					double ee = reputation.getEe();
 					sum += ee;
 					n++;
+				}
 			}
+			
+			if(n==0)
+				chooseByRandomStrategy(comp, old);
+			
 			old_ee = sum / n;
 		}
 		
 		
 		// lower is better --> negative exponent
-		double comp_probl1 = Math.pow(comp_ee, -25);
-		double old_probl1 = Math.pow(old_ee, -25);
+		double comp_probl1 = Math.pow(comp_ee, -10);
+		double old_probl1 = Math.pow(old_ee, -10);
 		
 
 		double sigma = comp_probl1 + old_probl1;
 
 		double comp_probl = comp_probl1 / sigma;
-		double old_probl = old_probl1 / sigma;
+//		double old_probl = old_probl1 / sigma;
 		
 		double random = Math.random();
 
@@ -397,22 +417,20 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 			return true;
 		else return false;
 
-//		if (comp_probl > old_probl)
-//			return true;
-//		else
-//			return false;
 	}
 	
 	
 	// Balance quality and energy
 	private boolean chooseByQualityFairEnergyStrategy(Service comp, Service old, GeneralNode node) {	
 		
+
 		//
 		// ENERGY PART
         //
 		
 		EnergyReputation energy_compReputation = getOrCreateEnergyReputation((int) comp.getService_id());
 		EnergyReputation energy_oldReputation = getOrCreateEnergyReputation((int) old.getService_id());
+		
 		
 		double sigma;
 		
@@ -422,40 +440,51 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 
 		// if no experiences do the average
 		if (energy_compReputation.getK() == 0) {
+			
 			int n = 0;
-			int sum = 0;
+			double sum = 0;
+			
 			for (EnergyReputation reputation : energyReputations) {
-				double ee = reputation.getEe();
+				if(reputation.getK()!=0) {
+					double ee = reputation.getEe();
 					sum += ee;
 					n++;
+				}
 			}
+			
+			if(n==0)
+				chooseByRandomStrategy(comp, old);
+			
 			energy_comp_ee = sum / n;
+					
 		}
 
 		if (energy_oldReputation.getK() == 0) {
 			int n = 0;
-			int sum = 0;
+			double sum = 0;
 			for (EnergyReputation reputation : energyReputations) {
-				double ee = reputation.getEe();
+				if(reputation.getK()>0) {
+				    double ee = reputation.getEe();
 					sum += ee;
 					n++;
+				}
 			}
+			
+			if(n==0)
+				chooseByRandomStrategy(comp, old);
+			
 			energy_old_ee = sum / n;
 		}
 
-		double comp_probl1 = Math.pow(energy_comp_ee, -1);
-		double old_probl1 = Math.pow(energy_old_ee, -1);
+		double comp_probl1 = Math.pow(energy_comp_ee, -10);
+		double old_probl1 = Math.pow(energy_old_ee, -10);
 
 		sigma = comp_probl1 + old_probl1;
-
+		
 
 		double energy_comp_probl = comp_probl1 / sigma;
 		double energy_old_probl = old_probl1 / sigma;
-		
-		if (energy_compReputation.getK() == 0 && energy_oldReputation.getK() == 0) {
-			energy_comp_probl=0;
-			energy_old_probl=0;
-		}
+	
 		
 		//
 		// QUALITY PART
@@ -463,6 +492,12 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 		
 		QOSReputation quality_compReputation = getOrCreateQOSReputation((int) comp.getService_id());
 		QOSReputation quality_oldReputation = getOrCreateQOSReputation((int) old.getService_id());
+		
+		
+//		if (quality_compReputation.getK() == 0 && quality_oldReputation.getK() == 0) {
+//			chooseByFairEnergyStrategy(comp, old, node);
+//			System.out.println("asd");
+//		}
 		
 		double compTrust = quality_compReputation.getTk();
 		double oldTrust = quality_oldReputation.getTk();
@@ -474,23 +509,36 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 		// if no experiences do the average
 		if (quality_compReputation.getK() == 0) {
 			int n = 0;
-			int sum = 0;
+			double sum = 0;
 			for (QOSReputation reputation : qosReputations) {
-				double qk = reputation.getQk();
+				if(reputation.getK()>0) {
+					double qk = reputation.getQk();
 					sum += qk;
 					n++;
+				}
+				
 			}
+			
+			if(n==0)
+				return chooseByRandomStrategy(comp, old);
+			
 			compFEU = sum / n;
 		}
 
 		if (quality_oldReputation.getK() == 0) {
 			int n = 0;
-			int sum = 0;
+			double sum = 0;
 			for (QOSReputation reputation : qosReputations) {
-				double qk = reputation.getQk();
+				if(reputation.getK()>0) {
+					double qk = reputation.getQk();
 					sum += qk;
 					n++;
+				}
 			}
+			
+			if(n==0)
+				return chooseByRandomStrategy(comp, old);
+			
 			oldFEU = sum / n;
 		}
 
@@ -506,14 +554,11 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 		double w_e=0.5;
 		double w_q=0.5;
 		
-		if (quality_compReputation.getK() == 0 && quality_oldReputation.getK() == 0) {
-			quality_comp_probl=0;
-			quality_old_probl=0;
-		}
-		
 		
 		double saw_comp_probl1 = Math.pow(w_e*energy_comp_probl + w_q*quality_comp_probl,20);
 		double saw_old_probl1 = Math.pow(w_e*energy_old_probl + w_q*quality_old_probl,20);
+		
+//		System.out.println(energy_comp_probl+" "+quality_comp_probl);
 		
 		sigma = saw_comp_probl1 + saw_old_probl1;
 
@@ -568,6 +613,15 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 		EnergyReputation newReputation = new EnergyReputation(serviceId);
 		energyReputations.add(newReputation);
 		return newReputation;
+	}
+	
+	private EnergyReputation getEnergyReputation(int serviceId) {
+		for (EnergyReputation reputation : energyReputations) {
+			if (reputation.getServiceID() == serviceId) {
+				return reputation;
+			}
+		}
+		return null;
 	}
 	
 	public ArrayList<QOSReputation> getQoSReputations(){

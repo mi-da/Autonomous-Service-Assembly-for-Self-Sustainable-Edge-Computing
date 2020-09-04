@@ -20,7 +20,7 @@ package lnu.mida.controller.init;
 import java.util.ArrayList;
 import java.util.Random;
 
-import com.sun.tools.javac.util.ArrayUtils;
+//import com.sun.tools.javac.util.ArrayUtils;
 import lnu.mida.entity.GeneralNode;
 import lnu.mida.entity.QOSReputation;
 import lnu.mida.entity.Service;

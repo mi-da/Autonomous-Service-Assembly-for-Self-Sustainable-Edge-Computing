@@ -23,7 +23,7 @@ public class PreprocessWithSimpleMovingAverage {
 
 	public static void main(String[] args) {				
 		
-		convert("exp_assembly_quality_fair_1599126076403");
+		convert("exp_assembly_quality_fair_1599222462525");
 
 	}
 

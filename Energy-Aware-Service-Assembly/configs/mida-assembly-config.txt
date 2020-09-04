@@ -2,8 +2,8 @@
 ## Configuration file
 ##
 
-simulation.cycles 600*3
-simulation.experiments 2 #10
+simulation.cycles 200*3
+simulation.experiments 10 #10
 NETWORK_SIZE 100
 
 SERVICES_PER_NODE 5 #number of services per node
