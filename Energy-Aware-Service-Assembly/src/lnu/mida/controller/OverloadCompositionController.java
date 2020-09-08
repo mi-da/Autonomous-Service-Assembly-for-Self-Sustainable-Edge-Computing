@@ -143,7 +143,7 @@ public class OverloadCompositionController implements Control {
 
 							appl.addQoSHistoryExperience(depObj, experienced_utility, depObj.getDeclaredUtility());
 							
-							// learning learning
+							// learning
 							appl.addEnergyHistoryExperience(depObj, depObj.getI_comp_lambda()+depObj.getI_comm_lambda());
 
 							experiencedCU = experiencedCU * experienced_utility; // Experienced Compound Utility (multiplication of all dependencies)				
@@ -154,7 +154,7 @@ public class OverloadCompositionController implements Control {
 				service.setExperiencedCU(experiencedCU);
 
 			}
-	
+
 
 		}
 			

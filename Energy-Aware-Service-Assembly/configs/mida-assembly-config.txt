@@ -2,8 +2,8 @@
 ## Configuration file
 ##
 
-simulation.cycles 200*3
-simulation.experiments 10 #10
+simulation.cycles 100*3
+simulation.experiments 10 
 NETWORK_SIZE 100
 
 SERVICES_PER_NODE 5 #number of services per node
@@ -169,5 +169,5 @@ control.vivo.threshold 0.0
 control.shf Shuffle
 
 include.init wire loci vivs ci pdi fi
-include.control shf compctr enectr qeC FinalutilC reset idctr
+include.control shf enectr compctr qeC FinalutilC reset idctr
 include.protocol lnk vivp ca appl

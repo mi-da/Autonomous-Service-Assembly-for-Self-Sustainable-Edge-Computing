@@ -55,14 +55,14 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 		energyReputations = new ArrayList<EnergyReputation>();
 	}
 
-	public void addQoSHistoryExperience(Service service, double experienced_utility, double declared_utility) {		
+	public void addQoSHistoryExperience(Service service, double experienced_utility, double declared_utility) {
 		int index = (int) service.getService_id();
 		QOSReputation reputation = getOrCreateQOSReputation(index);
 		reputation.setDeclared_utility(declared_utility);
 		reputation.addExperiencedUtility(experienced_utility);
 	}
-	
-	public void addEnergyHistoryExperience(Service service, double declared_energy) {	
+
+	public void addEnergyHistoryExperience(Service service, double declared_energy) {
 		int index = (int) service.getService_id();
 		EnergyReputation reputation = getOrCreateEnergyReputation(index);
 		reputation.addDeclaredEnergy(declared_energy);
@@ -129,7 +129,7 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 		if (STRATEGY.equals("quality_fair")) {
 			return chooseByQualityFairEnergyStrategy(comp, old, node);
 		}
-		
+
 		// exception is raised if a strategy is not selected
 		else {
 			try {
@@ -184,29 +184,29 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 
 		QOSReputation compReputation = getOrCreateQOSReputation((int) comp.getService_id());
 		QOSReputation oldReputation = getOrCreateQOSReputation((int) old.getService_id());
-		
+
 		double compTrust = compReputation.getTk();
 		double oldTrust = oldReputation.getTk();
 
-		double compFEU = compTrust * comp.getDeclaredUtility() + ((1.0 - compTrust) * compReputation.getWindowAverage());
+		double compFEU = compTrust * comp.getDeclaredUtility()
+				+ ((1.0 - compTrust) * compReputation.getWindowAverage());
 		double oldFEU = oldTrust * old.getDeclaredUtility() + ((1.0 - oldTrust) * oldReputation.getWindowAverage());
-	
-		
+
 		// if no experiences do the average
 		if (compReputation.getK() == 0) {
 			int n = 0;
 			int sum = 0;
 			for (QOSReputation reputation : qosReputations) {
-				if(reputation.getK()>0) {
+				if (reputation.getK() > 0) {
 					double qk = reputation.getQk();
 					sum += qk;
 					n++;
 				}
 			}
-			
-			if(n==0)
+
+			if (n == 0)
 				return chooseByLocalEnergyStrategy(comp, old, node);
-			
+
 			compFEU = sum / n;
 		}
 
@@ -214,26 +214,25 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 			int n = 0;
 			int sum = 0;
 			for (QOSReputation reputation : qosReputations) {
-				if(reputation.getK()>0) {
+				if (reputation.getK() > 0) {
 					double qk = reputation.getQk();
 					sum += qk;
 					n++;
-				}			
+				}
 			}
-			
-			if(n==0)
+
+			if (n == 0)
 				return chooseByLocalEnergyStrategy(comp, old, node);
 
 			oldFEU = sum / n;
-		}		
-		
+		}
+
 		if (compFEU == oldFEU)
 			return chooseByLocalEnergyStrategy(comp, old, node);
-		
+
 		if (compFEU > oldFEU) {
-				return true;
-		}
-		else {
+			return true;
+		} else {
 			return false;
 		}
 	}
@@ -277,7 +276,7 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 			old_ee = sum / n;
 		}
 
-		double comp_probl1 = Math.pow(comp_ee, 3); 
+		double comp_probl1 = Math.pow(comp_ee, 3);
 		double old_probl1 = Math.pow(old_ee, 3);
 
 		double sigma = comp_probl1 + old_probl1;
@@ -295,72 +294,72 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 	private boolean chooseByLocalEnergyStrategy(Service comp, Service old, GeneralNode node) {
 
 		Location thisLoc = node.getLocation();
-		
+
 		// calc. for old
 		GeneralNode nodeOld = GeneralNode.getNode(old.getNode_id());
-			
+
 		double energyOld = 0;
-        
-		if(node.getID()==nodeOld.getID()) {	
-			energyOld+= comp.getL_comp();
-			
-			// per il modello energetico adottato ad ECSA L_comm non dipende dal nodo in ricezione (i.e., node)
-			energyOld+= comp.getL_comm();
-		}
-		else {
+
+		if (node.getID() == nodeOld.getID()) {
+			energyOld += comp.getL_comp();
+
+			// per il modello energetico adottato ad ECSA L_comm non dipende dal nodo in
+			// ricezione (i.e., node)
+			energyOld += comp.getL_comm();
+		} else {
 			Location oldLoc = nodeOld.getLocation();
 			double oldLatency = thisLoc.latency(oldLoc);
-			
-			energyOld+= node.getConsumedIndividualCommEnergySending(1, oldLatency);
+
+			energyOld += node.getConsumedIndividualCommEnergySending(1, oldLatency);
 		}
-		
+
 		// calc. for comp
-		GeneralNode nodeComp = GeneralNode.getNode(comp.getNode_id());		
-		
+		GeneralNode nodeComp = GeneralNode.getNode(comp.getNode_id());
+
 		double energyComp = 0;
-        
-		if(node.getID()==nodeComp.getID()) {	
-			energyComp+= comp.getL_comp();
-			
-			// per il modello energetico adottato ad ECSA L_comm non dipende dal nodo in ricezione (i.e., node)
-			energyComp+= comp.getL_comm();
-		}
-		else {
+
+		if (node.getID() == nodeComp.getID()) {
+			energyComp += comp.getL_comp();
+
+			// per il modello energetico adottato ad ECSA L_comm non dipende dal nodo in
+			// ricezione (i.e., node)
+			energyComp += comp.getL_comm();
+		} else {
 			Location compLoc = nodeComp.getLocation();
 			double newLatency = thisLoc.latency(compLoc);
-			
-			energyComp+= node.getConsumedIndividualCommEnergySending(1, newLatency);
-		}		
-		
+
+			energyComp += node.getConsumedIndividualCommEnergySending(1, newLatency);
+		}
+
 		// Choose the service causing the least local energy consumption for the node
-		if(energyComp<energyOld)
+		if (energyComp < energyOld)
 			return true;
-		else return false;	
+		else
+			return false;
 	}
-	
-	
+
 	// overall energy strategy
 	private boolean chooseByOverallEnergyStrategy(Service comp, Service old) {
-		
+
 		// at round 1 the overal energy is not known
-				
+
 		double energyComp = comp.getE_comp() + comp.getE_comm();
-		double energyOld =  old.getE_comp() + old.getE_comm();
-		
-		if(energyComp==energyOld)
+		double energyOld = old.getE_comp() + old.getE_comm();
+
+		if (energyComp == energyOld)
 			chooseByRandomStrategy(comp, old);
-		
-		if(energyComp<energyOld)
+
+		if (energyComp < energyOld)
 			return true;
-		else return false;		
+		else
+			return false;
 	}
-	
+
 	// greedy fair energy strategy using Shaerf
-	private boolean chooseByFairEnergyStrategy(Service comp, Service old,GeneralNode node) {
-		
+	private boolean chooseByFairEnergyStrategy(Service comp, Service old, GeneralNode node) {
+
 		EnergyReputation compReputation = getOrCreateEnergyReputation((int) comp.getService_id());
 		EnergyReputation oldReputation = getOrCreateEnergyReputation((int) old.getService_id());
-		
 
 		double comp_ee = compReputation.getEe();
 		double old_ee = oldReputation.getEe();
@@ -370,158 +369,92 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 			int n = 0;
 			double sum = 0;
 			for (EnergyReputation reputation : energyReputations) {
-				if(reputation.getK()>0) {
+				if (reputation.getK() > 0) {
 					double ee = reputation.getEe();
 					sum += ee;
 					n++;
 				}
 			}
-			
-			if(n==0)
-				chooseByRandomStrategy(comp, old);
-			
-			comp_ee = sum / n;		
+
+			if (n == 0)
+				return chooseByRandomStrategy(comp, old);
+
+			comp_ee = sum / n;
 		}
 
 		if (oldReputation.getK() == 0) {
 			int n = 0;
 			double sum = 0;
 			for (EnergyReputation reputation : energyReputations) {
-				if(reputation.getK()>0) {
+				if (reputation.getK() > 0) {
 					double ee = reputation.getEe();
 					sum += ee;
 					n++;
 				}
 			}
-			
-			if(n==0)
-				chooseByRandomStrategy(comp, old);
-			
+
+			if (n == 0)
+				return chooseByRandomStrategy(comp, old);
+
 			old_ee = sum / n;
+
 		}
-		
-		
+
+		if (comp_ee == old_ee) {
+			return chooseByRandomStrategy(comp, old);
+		}
+
 		// lower is better --> negative exponent
 		double comp_probl1 = Math.pow(comp_ee, -10);
 		double old_probl1 = Math.pow(old_ee, -10);
-		
 
 		double sigma = comp_probl1 + old_probl1;
 
 		double comp_probl = comp_probl1 / sigma;
-//		double old_probl = old_probl1 / sigma;
-		
+		double old_probl = old_probl1 / sigma;
+
 		double random = Math.random();
 
-		if(comp_probl>random)
+		if (comp_probl > random)
 			return true;
-		else return false;
-
+		else
+			return false;
 	}
-	
-	
+
 	// Balance quality and energy
-	private boolean chooseByQualityFairEnergyStrategy(Service comp, Service old, GeneralNode node) {	
-		
+	private boolean chooseByQualityFairEnergyStrategy(Service comp, Service old, GeneralNode node) {
 
-		//
-		// ENERGY PART
-        //
-		
-		EnergyReputation energy_compReputation = getOrCreateEnergyReputation((int) comp.getService_id());
-		EnergyReputation energy_oldReputation = getOrCreateEnergyReputation((int) old.getService_id());
-		
-		
-		double sigma;
-		
-
-		double energy_comp_ee = energy_compReputation.getEe();
-		double energy_old_ee = energy_oldReputation.getEe();
-
-		// if no experiences do the average
-		if (energy_compReputation.getK() == 0) {
-			
-			int n = 0;
-			double sum = 0;
-			
-			for (EnergyReputation reputation : energyReputations) {
-				if(reputation.getK()!=0) {
-					double ee = reputation.getEe();
-					sum += ee;
-					n++;
-				}
-			}
-			
-			if(n==0)
-				chooseByRandomStrategy(comp, old);
-			
-			energy_comp_ee = sum / n;
-					
-		}
-
-		if (energy_oldReputation.getK() == 0) {
-			int n = 0;
-			double sum = 0;
-			for (EnergyReputation reputation : energyReputations) {
-				if(reputation.getK()>0) {
-				    double ee = reputation.getEe();
-					sum += ee;
-					n++;
-				}
-			}
-			
-			if(n==0)
-				chooseByRandomStrategy(comp, old);
-			
-			energy_old_ee = sum / n;
-		}
-
-		double comp_probl1 = Math.pow(energy_comp_ee, -10);
-		double old_probl1 = Math.pow(energy_old_ee, -10);
-
-		sigma = comp_probl1 + old_probl1;
-		
-
-		double energy_comp_probl = comp_probl1 / sigma;
-		double energy_old_probl = old_probl1 / sigma;
-	
-		
 		//
 		// QUALITY PART
-        //
-		
+		//
+
 		QOSReputation quality_compReputation = getOrCreateQOSReputation((int) comp.getService_id());
 		QOSReputation quality_oldReputation = getOrCreateQOSReputation((int) old.getService_id());
-		
-		
-//		if (quality_compReputation.getK() == 0 && quality_oldReputation.getK() == 0) {
-//			chooseByFairEnergyStrategy(comp, old, node);
-//			System.out.println("asd");
-//		}
-		
+
 		double compTrust = quality_compReputation.getTk();
 		double oldTrust = quality_oldReputation.getTk();
 
-		double compFEU = compTrust * comp.getDeclaredUtility() + ((1.0 - compTrust) * quality_compReputation.getWindowAverage());
-		double oldFEU = oldTrust * old.getDeclaredUtility() + ((1.0 - oldTrust) * quality_oldReputation.getWindowAverage());
-	
-		
+		double compFEU = compTrust * comp.getDeclaredUtility()
+				+ ((1.0 - compTrust) * quality_compReputation.getWindowAverage());
+		double oldFEU = oldTrust * old.getDeclaredUtility()
+				+ ((1.0 - oldTrust) * quality_oldReputation.getWindowAverage());
+
 		// if no experiences do the average
 		if (quality_compReputation.getK() == 0) {
 			int n = 0;
 			double sum = 0;
 			for (QOSReputation reputation : qosReputations) {
-				if(reputation.getK()>0) {
+				if (reputation.getK() > 0) {
 					double qk = reputation.getQk();
 					sum += qk;
 					n++;
 				}
-				
+
 			}
-			
-			if(n==0)
+
+			if (n == 0)
 				return chooseByRandomStrategy(comp, old);
-			
+
 			compFEU = sum / n;
 		}
 
@@ -529,59 +462,112 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 			int n = 0;
 			double sum = 0;
 			for (QOSReputation reputation : qosReputations) {
-				if(reputation.getK()>0) {
+				if (reputation.getK() > 0) {
 					double qk = reputation.getQk();
 					sum += qk;
 					n++;
 				}
 			}
-			
-			if(n==0)
+
+			if (n == 0)
 				return chooseByRandomStrategy(comp, old);
-			
+
 			oldFEU = sum / n;
 		}
+		
+		double comp_probl1 = Math.pow(compFEU, 20);
+		double old_probl1 = Math.pow(oldFEU, 20);
 
-		sigma = compFEU + oldFEU;
-		
-		double quality_comp_probl = compFEU/sigma;
-		double quality_old_probl = oldFEU/sigma;
-		
+		double sigma = compFEU + oldFEU;
+
+		double quality_comp_probl = comp_probl1 / sigma;
+		double quality_old_probl = old_probl1 / sigma;
+
+		//
+		// ENERGY PART
+		//
+
+		EnergyReputation energy_compReputation = getOrCreateEnergyReputation((int) comp.getService_id());
+		EnergyReputation energy_oldReputation = getOrCreateEnergyReputation((int) old.getService_id());
+
+		double energy_comp_ee = energy_compReputation.getEe();
+		double energy_old_ee = energy_oldReputation.getEe();
+
+		// if no experiences do the average
+		if (energy_compReputation.getK() == 0) {
+
+			int n = 0;
+			double sum = 0;
+
+			for (EnergyReputation reputation : energyReputations) {
+				if (reputation.getK() > 0) {
+					double ee = reputation.getEe();
+					sum += ee;
+					n++;
+				}
+			}
+
+			if (n == 0)
+				return chooseByRandomStrategy(comp, old);
+
+			energy_comp_ee = sum / n;
+
+		}
+
+		if (energy_oldReputation.getK() == 0) {
+			int n = 0;
+			double sum = 0;
+			for (EnergyReputation reputation : energyReputations) {
+				if (reputation.getK() > 0) {
+					double ee = reputation.getEe();
+					sum += ee;
+					n++;
+				}
+			}
+
+			if (n == 0)
+				return chooseByRandomStrategy(comp, old);
+
+			energy_old_ee = sum / n;
+		}
+
+		comp_probl1 = Math.pow(energy_comp_ee, -20);
+		old_probl1 = Math.pow(energy_old_ee, -20);
+
+		sigma = comp_probl1 + old_probl1;
+
+		double energy_comp_probl = comp_probl1 / sigma;
+		double energy_old_probl = old_probl1 / sigma;
+
 		//
 		// SAW on probabilities
 		//
+
+		double w_e = 0.5;
+		double w_q = 0.5;
+
+		double saw_comp_probl1 = Math.pow(w_e * energy_comp_probl + w_q * quality_comp_probl, 20);
+		double saw_old_probl1 = Math.pow(w_e * energy_old_probl + w_q * quality_old_probl, 20);
 		
-		double w_e=0.5;
-		double w_q=0.5;
-		
-		
-		double saw_comp_probl1 = Math.pow(w_e*energy_comp_probl + w_q*quality_comp_probl,20);
-		double saw_old_probl1 = Math.pow(w_e*energy_old_probl + w_q*quality_old_probl,20);
-		
-//		System.out.println(energy_comp_probl+" "+quality_comp_probl);
-		
+
 		sigma = saw_comp_probl1 + saw_old_probl1;
 
-		double saw_comp_probl = saw_comp_probl1/sigma;
-		double saw_old_probl = saw_old_probl1/sigma;
-		
+		double saw_comp_probl = saw_comp_probl1 / sigma;
+		double saw_old_probl = saw_old_probl1 / sigma;
+
+
 		if (saw_comp_probl == saw_old_probl) {
 			return chooseByRandomStrategy(comp, old);
-		}		
-		
-		
+		}
+
 		double random = Math.random();
 
-		if(saw_comp_probl>random)
+		if (saw_comp_probl > random)
 			return true;
-		else return false;
-		
-//		if (saw_old_probl < saw_comp_probl)
-//			return true;
-//		else
-//			return false;
+		else
+			return false;
+
 	}
-	
 
 	@Override
 	public void onKill() {
@@ -591,7 +577,6 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 	@Override
 	public void nextCycle(Node node, int protocolID) {
 	}
-	
 
 	private QOSReputation getOrCreateQOSReputation(int serviceId) {
 		for (QOSReputation reputation : qosReputations) {
@@ -603,7 +588,7 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 		qosReputations.add(newReputation);
 		return newReputation;
 	}
-	
+
 	private EnergyReputation getOrCreateEnergyReputation(int serviceId) {
 		for (EnergyReputation reputation : energyReputations) {
 			if (reputation.getServiceID() == serviceId) {
@@ -614,7 +599,7 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 		energyReputations.add(newReputation);
 		return newReputation;
 	}
-	
+
 	private EnergyReputation getEnergyReputation(int serviceId) {
 		for (EnergyReputation reputation : energyReputations) {
 			if (reputation.getServiceID() == serviceId) {
@@ -623,11 +608,11 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 		}
 		return null;
 	}
-	
-	public ArrayList<QOSReputation> getQoSReputations(){
+
+	public ArrayList<QOSReputation> getQoSReputations() {
 		return qosReputations;
 	}
-	
+
 	public void reset() {
 		qosReputations = new ArrayList<QOSReputation>();
 		energyReputations = new ArrayList<EnergyReputation>();
