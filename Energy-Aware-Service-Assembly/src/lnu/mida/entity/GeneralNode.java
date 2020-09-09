@@ -64,7 +64,7 @@ private double G;
 private double Eelect = 0.02;
 // Sending a message costs on average 2 times of Eelect: this leads to the definition of Eamp (average distance is 90 meters)
 private double Eamp  = Eelect/Math.pow(90, 2);
-// The cost of a CPU operation is equal to the maximum cost of sending a message
+// The standard cost of a CPU operation is equal to the maximum cost of sending a message
 private double CPUCost= 0.04;
 
 // ================ constructor and initialization =================
@@ -239,10 +239,13 @@ public void setG(double g) {
 	G = g;
 }
 
+public void setCPUCost(double ampFactor) {
+	this.CPUCost = CPUCost*ampFactor;
+}
+
 // returns individual CPU energy consumption
-public double getConsumedIndividualCPUEnergy(double lambda_CPU) {
-	
-//	System.out.println("node "+this.getID()+" lambda cpu "+lambda_CPU);
+public double getConsumedIndividualCPUEnergy(double lambda_CPU) {	
+//	System.out.println("cpu cost "+ lambda_CPU*CPUCost+" "+CPUCost);
 	return lambda_CPU*CPUCost;			
 }
 
@@ -269,7 +272,6 @@ public double  getConsumedIndividualCommEnergyReceiving(double lambda) {
 	
 //	System.out.println("lambda "+lambda);
 //	System.out.println("receiving energy "+receivingEnergy);
-
 	return receivingEnergy;	
 }
 

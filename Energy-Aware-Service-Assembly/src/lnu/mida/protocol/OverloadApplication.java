@@ -377,7 +377,7 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 			}
 
 			if (n == 0)
-				return chooseByRandomStrategy(comp, old);
+				return chooseByLocalEnergyStrategy(comp, old, node);
 
 			comp_ee = sum / n;
 		}
@@ -394,19 +394,19 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 			}
 
 			if (n == 0)
-				return chooseByRandomStrategy(comp, old);
+				return chooseByLocalEnergyStrategy(comp, old, node);
 
 			old_ee = sum / n;
 
 		}
 
 		if (comp_ee == old_ee) {
-			return chooseByRandomStrategy(comp, old);
+			return chooseByLocalEnergyStrategy(comp, old, node);
 		}
 
 		// lower is better --> negative exponent
-		double comp_probl1 = Math.pow(comp_ee, -10);
-		double old_probl1 = Math.pow(old_ee, -10);
+		double comp_probl1 = Math.pow(comp_ee, -20);
+		double old_probl1 = Math.pow(old_ee, -20);
 
 		double sigma = comp_probl1 + old_probl1;
 
@@ -424,6 +424,63 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 	// Balance quality and energy
 	private boolean chooseByQualityFairEnergyStrategy(Service comp, Service old, GeneralNode node) {
 
+
+		//
+		// ENERGY PART
+		//
+
+		EnergyReputation energy_compReputation = getOrCreateEnergyReputation((int) comp.getService_id());
+		EnergyReputation energy_oldReputation = getOrCreateEnergyReputation((int) old.getService_id());
+
+		double energy_comp_ee = energy_compReputation.getEe();
+		double energy_old_ee = energy_oldReputation.getEe();
+
+		// if no experiences do the average
+		if (energy_compReputation.getK() == 0) {
+
+			int n = 0;
+			double sum = 0;
+
+			for (EnergyReputation reputation : energyReputations) {
+				if (reputation.getK() > 0) {
+					double ee = reputation.getEe();
+					sum += ee;
+					n++;
+				}
+			}
+
+			if (n == 0)
+				return chooseByLocalEnergyStrategy(comp, old, node);
+
+			energy_comp_ee = sum / n;
+		}
+
+		if (energy_oldReputation.getK() == 0) {
+			int n = 0;
+			double sum = 0;
+			for (EnergyReputation reputation : energyReputations) {
+				if (reputation.getK() > 0) {
+					double ee = reputation.getEe();
+					sum += ee;
+					n++;
+				}
+			}
+
+			if (n == 0)
+				return chooseByRandomStrategy(comp, old);
+
+			energy_old_ee = sum / n;
+		}
+
+		double comp_probl1 = Math.pow(energy_comp_ee, -20);
+		double old_probl1 = Math.pow(energy_old_ee, -20);
+
+		double sigma = comp_probl1 + old_probl1;
+
+		double energy_comp_probl = comp_probl1 / sigma;
+		double energy_old_probl = old_probl1 / sigma;
+		
+		
 		//
 		// QUALITY PART
 		//
@@ -453,7 +510,7 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 			}
 
 			if (n == 0)
-				return chooseByRandomStrategy(comp, old);
+				return chooseByLocalEnergyStrategy(comp, old, node);
 
 			compFEU = sum / n;
 		}
@@ -470,74 +527,18 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 			}
 
 			if (n == 0)
-				return chooseByRandomStrategy(comp, old);
+				return chooseByLocalEnergyStrategy(comp, old, node);
 
 			oldFEU = sum / n;
 		}
 		
-		double comp_probl1 = Math.pow(compFEU, 20);
-		double old_probl1 = Math.pow(oldFEU, 20);
-
-		double sigma = compFEU + oldFEU;
-
-		double quality_comp_probl = comp_probl1 / sigma;
-		double quality_old_probl = old_probl1 / sigma;
-
-		//
-		// ENERGY PART
-		//
-
-		EnergyReputation energy_compReputation = getOrCreateEnergyReputation((int) comp.getService_id());
-		EnergyReputation energy_oldReputation = getOrCreateEnergyReputation((int) old.getService_id());
-
-		double energy_comp_ee = energy_compReputation.getEe();
-		double energy_old_ee = energy_oldReputation.getEe();
-
-		// if no experiences do the average
-		if (energy_compReputation.getK() == 0) {
-
-			int n = 0;
-			double sum = 0;
-
-			for (EnergyReputation reputation : energyReputations) {
-				if (reputation.getK() > 0) {
-					double ee = reputation.getEe();
-					sum += ee;
-					n++;
-				}
-			}
-
-			if (n == 0)
-				return chooseByRandomStrategy(comp, old);
-
-			energy_comp_ee = sum / n;
-
-		}
-
-		if (energy_oldReputation.getK() == 0) {
-			int n = 0;
-			double sum = 0;
-			for (EnergyReputation reputation : energyReputations) {
-				if (reputation.getK() > 0) {
-					double ee = reputation.getEe();
-					sum += ee;
-					n++;
-				}
-			}
-
-			if (n == 0)
-				return chooseByRandomStrategy(comp, old);
-
-			energy_old_ee = sum / n;
-		}
-
-		comp_probl1 = Math.pow(energy_comp_ee, -20);
-		old_probl1 = Math.pow(energy_old_ee, -20);
+		comp_probl1 = Math.pow(compFEU, 20);
+		old_probl1 = Math.pow(oldFEU, 20);
 
 		sigma = comp_probl1 + old_probl1;
 
-		double energy_comp_probl = comp_probl1 / sigma;
-		double energy_old_probl = old_probl1 / sigma;
+		double quality_comp_probl = comp_probl1/sigma;
+		double quality_old_probl = old_probl1/sigma;
 
 		//
 		// SAW on probabilities
@@ -557,7 +558,7 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 
 
 		if (saw_comp_probl == saw_old_probl) {
-			return chooseByRandomStrategy(comp, old);
+			return chooseByLocalEnergyStrategy(comp, old,node);
 		}
 
 		double random = Math.random();
@@ -566,7 +567,6 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 			return true;
 		else
 			return false;
-
 	}
 
 	@Override

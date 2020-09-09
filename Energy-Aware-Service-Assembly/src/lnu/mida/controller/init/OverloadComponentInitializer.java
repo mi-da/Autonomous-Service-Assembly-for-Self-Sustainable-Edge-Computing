@@ -156,14 +156,11 @@ public class OverloadComponentInitializer implements Control {
 			 */
 
 			// set green energy generation rate (for Journal)
-			n.setG(2 + 2 * Math.random()); // n.setG(2);
+			// n.setG(2 + 2 * Math.random()); // n.setG(2);
 
 
-//			if(Math.random()<0.5) {
-//				ca.setDeclared_utility(0.99+(0.01*Math.random()));
-//			}
-
-
+			n.setCPUCost(0.5+(1.5*Math.random()));
+			
 			/**
 			 * Construct parameters
 			 */
