@@ -23,7 +23,7 @@ public class PreprocessWithSimpleMovingAverage {
 
 	public static void main(String[] args) {				
 		
-		convert("exp_assembly_fair_energy_1599669023315");
+		convert("exp_assembly_random_1599671807023");
 
 	}
 
