@@ -182,37 +182,39 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 	// future expected utility: two layer of reinforcement learning
 	private boolean chooseByFutureExpectedUtility(Service comp, Service old, GeneralNode node) {
 
-		QOSReputation compReputation = getOrCreateQOSReputation((int) comp.getService_id());
-		QOSReputation oldReputation = getOrCreateQOSReputation((int) old.getService_id());
+		QOSReputation quality_compReputation = getOrCreateQOSReputation((int) comp.getService_id());
+		QOSReputation quality_oldReputation = getOrCreateQOSReputation((int) old.getService_id());
 
-		double compTrust = compReputation.getTk();
-		double oldTrust = oldReputation.getTk();
+		double compTrust = quality_compReputation.getTk();
+		double oldTrust = quality_oldReputation.getTk();
 
 		double compFEU = compTrust * comp.getDeclaredUtility()
-				+ ((1.0 - compTrust) * compReputation.getWindowAverage());
-		double oldFEU = oldTrust * old.getDeclaredUtility() + ((1.0 - oldTrust) * oldReputation.getWindowAverage());
+				+ ((1.0 - compTrust) * quality_compReputation.getWindowAverage());
+		double oldFEU = oldTrust * old.getDeclaredUtility()
+				+ ((1.0 - oldTrust) * quality_oldReputation.getWindowAverage());
 
 		// if no experiences do the average
-		if (compReputation.getK() == 0) {
+		if (quality_compReputation.getK() == 0) {
 			int n = 0;
-			int sum = 0;
+			double sum = 0;
 			for (QOSReputation reputation : qosReputations) {
 				if (reputation.getK() > 0) {
 					double qk = reputation.getQk();
 					sum += qk;
 					n++;
 				}
+
 			}
 
 			if (n == 0)
-				return chooseByLocalEnergyStrategy(comp, old, node);
+				return chooseByRandomStrategy(comp, old);
 
 			compFEU = sum / n;
 		}
 
-		if (oldReputation.getK() == 0) {
+		if (quality_oldReputation.getK() == 0) {
 			int n = 0;
-			int sum = 0;
+			double sum = 0;
 			for (QOSReputation reputation : qosReputations) {
 				if (reputation.getK() > 0) {
 					double qk = reputation.getQk();
@@ -226,15 +228,21 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 
 			oldFEU = sum / n;
 		}
+		
+		double comp_probl1 = Math.pow(compFEU, 40);
+		double old_probl1 = Math.pow(oldFEU, 40);
 
-		if (compFEU == oldFEU)
+		double sigma = comp_probl1 + old_probl1;
+
+		double quality_comp_probl = comp_probl1/sigma;
+		double quality_old_probl = old_probl1/sigma;
+		
+		if(quality_comp_probl==quality_old_probl)
 			return chooseByLocalEnergyStrategy(comp, old, node);
-
-		if (compFEU > oldFEU) {
+		
+		else if(quality_comp_probl>quality_old_probl)
 			return true;
-		} else {
-			return false;
-		}
+		else return false;
 	}
 
 	// approach to challenge Shaerf
@@ -377,7 +385,9 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 			}
 
 			if (n == 0)
-				return chooseByLocalEnergyStrategy(comp, old, node);
+		//		return chooseByLocalEnergyStrategy(comp, old, node);
+				return chooseByRandomStrategy(comp, old);
+
 
 			comp_ee = sum / n;
 		}
@@ -394,19 +404,20 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 			}
 
 			if (n == 0)
-				return chooseByLocalEnergyStrategy(comp, old, node);
+			//	return chooseByLocalEnergyStrategy(comp, old, node);
 
 			old_ee = sum / n;
 
 		}
 
 		if (comp_ee == old_ee) {
-			return chooseByLocalEnergyStrategy(comp, old, node);
+		//	return chooseByLocalEnergyStrategy(comp, old, node);
+			return chooseByRandomStrategy(comp, old);
 		}
 
 		// lower is better --> negative exponent
-		double comp_probl1 = Math.pow(comp_ee, -20);
-		double old_probl1 = Math.pow(old_ee, -20);
+		double comp_probl1 = Math.pow(comp_ee, -60);
+		double old_probl1 = Math.pow(old_ee, -60);
 
 		double sigma = comp_probl1 + old_probl1;
 
@@ -532,8 +543,8 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 			oldFEU = sum / n;
 		}
 		
-		comp_probl1 = Math.pow(compFEU, 20);
-		old_probl1 = Math.pow(oldFEU, 20);
+		comp_probl1 = Math.pow(compFEU, 40);
+		old_probl1 = Math.pow(oldFEU, 40);
 
 		sigma = comp_probl1 + old_probl1;
 

@@ -63,7 +63,7 @@ private double G;
 // Receiving costs 1 unit of energy = Eelect
 private double Eelect = 0.02;
 // Sending a message costs on average 2 times of Eelect: this leads to the definition of Eamp (average distance is 90 meters)
-private double Eamp  = Eelect/Math.pow(90, 2);
+private double Eamp  = 0.02/Math.pow(90, 2);
 // The standard cost of a CPU operation is equal to the maximum cost of sending a message
 private double CPUCost= 0.04;
 
@@ -239,9 +239,15 @@ public void setG(double g) {
 	G = g;
 }
 
-public void setCPUCost(double ampFactor) {
+public void setCPUConsumptionFactor(double ampFactor) {
 	this.CPUCost = CPUCost*ampFactor;
 }
+
+public void setCommunicationConsumptionFactor(double ampFactor) {
+	this.Eelect = Eelect*ampFactor;
+	this.Eamp = Eamp*ampFactor;
+}
+
 
 // returns individual CPU energy consumption
 public double getConsumedIndividualCPUEnergy(double lambda_CPU) {	
