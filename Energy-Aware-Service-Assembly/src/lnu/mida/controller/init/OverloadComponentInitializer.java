@@ -18,7 +18,6 @@
 package lnu.mida.controller.init;
 
 import java.util.ArrayList;
-import java.util.Random;
 
 //import com.sun.tools.javac.util.ArrayUtils;
 import lnu.mida.entity.GeneralNode;
@@ -31,6 +30,7 @@ import lnu.mida.protocol.OverloadApplication;
 import lnu.mida.protocol.OverloadComponentAssembly;
 import peersim.config.*;
 import peersim.core.*;
+import peersim.util.ExtendedRandom;
 
 public class OverloadComponentInitializer implements Control {
 
@@ -128,10 +128,11 @@ public class OverloadComponentInitializer implements Control {
 				 */
 
 				// queue parameter
-				s.setQueueParameter(Math.random());
+				s.setQueueParameter(CommonState.r.nextDouble());
+				
 
 				// curve parameter between 0.2 and 1
-				double curveParameter = (Math.random() * 0.8) + 0.2; // double curveParameter = (Math.random()*0.8)+0.2;
+				double curveParameter = (CommonState.r.nextDouble() * 0.8) + 0.2; // double curveParameter = (Math.random()*0.8)+0.2;
 				s.setCurveParameter(curveParameter);
 
 				// declared utility
@@ -140,7 +141,7 @@ public class OverloadComponentInitializer implements Control {
 				// setup transfer functions
 				TransferFunction transfer_func[] = s.getTransferFunctions();
 				for (int k = 0; k < types; k++) {
-					transfer_func[k] = new CustomTransferFunction(Math.random()); // transfer_func[j] = new
+					transfer_func[k] = new CustomTransferFunction(CommonState.r.nextDouble()); // transfer_func[j] = new
 																				  // CustomTransferFunction(0.2);
                                                                                   // transfer_func[j] = new UnityTransferFunction();
 				}
@@ -156,17 +157,17 @@ public class OverloadComponentInitializer implements Control {
 			 */
 
 			// set green energy generation rate (for Journal)
-			// n.setG(2 + 2 * Math.random()); // n.setG(2);
+			// n.setG(2 + 2 * CommonState.r.nextDouble()); // n.setG(2);
 
-			n.setCPUConsumptionFactor(0.5+(1.5*Math.random()));
-			n.setCommunicationConsumptionFactor(0.5+(1.5*Math.random()));
+			n.setCPUConsumptionFactor(0.5+(1.5*CommonState.r.nextDouble()));
+			n.setCommunicationConsumptionFactor(0.5+(1.5*CommonState.r.nextDouble()));
 			
 			/**
 			 * Construct parameters
 			 */
 
 			// mette randomicamente servizi non affidabili con una certa percentuale
-//		    if(Math.random()<0.3) { // old was 0.3
+//		    if(CommonState.r.nextDouble()<0.3) { // old was 0.3
 //				ca.setQueueParameter(0.2);
 //				ca.setCurveParameter(0.2);
 //		    }
@@ -195,7 +196,8 @@ public class OverloadComponentInitializer implements Control {
 	}
 
 	public static int getRandomType(ArrayList<Integer> list) {
-		int rnd = new Random().nextInt(list.size());
+
+		int rnd = CommonState.r.nextInt(list.size());
 		
 		if(list.get(rnd)==0)
 			return getRandomType(list);

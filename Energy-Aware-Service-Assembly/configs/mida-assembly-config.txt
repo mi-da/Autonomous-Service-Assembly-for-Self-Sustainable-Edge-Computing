@@ -2,7 +2,7 @@
 ## Configuration file
 ##
 
-simulation.cycles 600*3
+simulation.cycles 6*3
 simulation.experiments 5 
 NETWORK_SIZE 100
 
