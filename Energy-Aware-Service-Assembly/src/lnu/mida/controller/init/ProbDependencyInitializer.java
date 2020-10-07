@@ -82,10 +82,13 @@ public class ProbDependencyInitializer implements Control {
 
 		// for each node
 		
+		int totDependencies = 0;
+		
 		for (int i = 0; i < Network.size(); ++i) {
 			
 			comp = (OverloadComponentAssembly) Network.get(i).getProtocol(protocolID);
 			ArrayList<Service> services = comp.getServices();
+			
 			
 			// for each service inside a node
 			for (Service service : services) {
@@ -95,6 +98,7 @@ public class ProbDependencyInitializer implements Control {
 				for (int t = service.getType() + 1; t < comp.getTypes(); ++t) {
 					double val = CommonState.r.nextDouble();
 					if (val <= prob) {
+						totDependencies++;
 						service.setDependencyType(t);
 						dep_num++;					
 						if(t==service.getType()) {
@@ -106,8 +110,12 @@ public class ProbDependencyInitializer implements Control {
 				service.setDep_num(dep_num);				
 				
 			}
+			
 								
 		}
+		
+//		System.out.println("totDependencies "+totDependencies);
+//		System.exit(0);
 
 		return false;
 	}
