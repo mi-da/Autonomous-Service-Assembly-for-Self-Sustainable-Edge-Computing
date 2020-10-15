@@ -2,8 +2,8 @@
 ## Configuration file
 ##
 
-simulation.cycles 6*20
-simulation.experiments 5 
+simulation.cycles 6*300
+simulation.experiments 5
 NETWORK_SIZE 100
 
 SERVICES_PER_NODE 5 #number of services per node
@@ -12,13 +12,13 @@ TYPES 10
 
 DEGREE 6
 
-STRATEGY greedy  # 6 strategies: 1) emergent, 2) random, 3) greedy, 4) shaerf, 5) local_energy, 5) overall_energy, 6) fair_energy, 7) quality_fair
+STRATEGY emergent  # 6 strategies: 1) emergent, 2) random, 3) greedy, 4) shaerf, 5) local_energy, 5) overall_energy, 6) fair_energy, 7) quality_fair
 
 M 5 # period of the learner
 
 COMPOSITION_STEPS 6 # the system runs a composition step every 6 simulation cycles
 
-random.seed 1234654322
+random.seed 1234654321
 
 simulation.logtime 1000
 

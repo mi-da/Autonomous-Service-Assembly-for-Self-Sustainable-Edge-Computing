@@ -108,10 +108,10 @@ public class QualityEnergyObserver implements Control {
 				
 
 				/**  Green Energy goes in Journal **/
-//				double energyBalance = node.getG() - (node.getI_comp() + node.getI_comm());
+				double energyBalance = node.getG() - (service.getI_comp_lambda() + service.getI_comm_lambda());
 //				energy.add(Math.min(0, energyBalance));
 				
-				energy.add(service.getI_comp_lambda() + service.getI_comm_lambda());
+				energy.add(energyBalance); // energy.add(service.getI_comp_lambda() + service.getI_comm_lambda());
 				
 
 //				if(node.getG()-(node.getI_comp()+node.getI_comm())<0) {
@@ -133,14 +133,17 @@ public class QualityEnergyObserver implements Control {
 		FinalUtilityObserver.quality.get(index).add(quality.getAverage());
 		IncrementalStats quality_jain_is = FinalUtilityObserver.quality_jain.get(index);
 		// calculates the jain's fairness for quality
-		double quality_jain_fairness = Math.pow(quality.getSum(), 2) / (quality.getN() * quality.getSqrSum());
+		 double quality_jain_fairness =1-(2*quality.getStD()); // double quality_jain_fairness = Math.pow(quality.getSum(), 2) / (quality.getN() * quality.getSqrSum());
+		
 		quality_jain_is.add(quality_jain_fairness);
 
 		// Energy
 		FinalUtilityObserver.energy.get(index).add(energy.getAverage());
 		IncrementalStats energy_jain_is = FinalUtilityObserver.energy_jain.get(index);
+		
 		// calculates the jain's fairness for energy
 		double energy_jain_fairness = Math.pow(energy.getSum(), 2) / (energy.getN() * energy.getSqrSum());
+		
 		energy_jain_is.add(energy_jain_fairness);
 
 		return false;

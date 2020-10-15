@@ -207,7 +207,7 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 			}
 
 			if (n == 0)
-				return chooseByRandomStrategy(comp, old);
+				return chooseByLocalEnergyStrategy(comp, old, node);
 
 			compFEU = sum / n;
 		}
@@ -363,7 +363,7 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 			return false;
 	}
 
-	// greedy fair energy strategy using Shaerf
+	// greedy fair energy strategy (using Shaerf) if we change to energy balance "greedy parameter n" must be positive
 	private boolean chooseByFairEnergyStrategy(Service comp, Service old, GeneralNode node) {
 
 		EnergyReputation compReputation = getOrCreateEnergyReputation((int) comp.getService_id());
@@ -405,6 +405,7 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 
 			if (n == 0)
 			//	return chooseByLocalEnergyStrategy(comp, old, node);
+				return chooseByRandomStrategy(comp, old);
 
 			old_ee = sum / n;
 
@@ -461,7 +462,7 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 			}
 
 			if (n == 0)
-				return chooseByLocalEnergyStrategy(comp, old, node);
+				return chooseByRandomStrategy(comp, old);
 
 			energy_comp_ee = sum / n;
 		}

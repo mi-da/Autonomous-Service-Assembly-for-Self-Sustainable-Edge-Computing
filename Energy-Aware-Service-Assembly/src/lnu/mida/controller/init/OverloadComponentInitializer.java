@@ -157,7 +157,8 @@ public class OverloadComponentInitializer implements Control {
 			 */
 
 			// set green energy generation rate (for Journal)
-			// n.setG(2 + 2 * CommonState.r.nextDouble()); // n.setG(2);
+			n.setG(0.5 + 0.5 * CommonState.r.nextDouble());
+			
 
 			n.setCPUConsumptionFactor(0.5+(1.5*CommonState.r.nextDouble()));
 			n.setCommunicationConsumptionFactor(0.5+(1.5*CommonState.r.nextDouble()));
