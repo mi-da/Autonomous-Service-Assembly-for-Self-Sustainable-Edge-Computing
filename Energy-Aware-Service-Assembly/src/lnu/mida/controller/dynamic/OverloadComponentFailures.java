@@ -1,7 +1,17 @@
-package lnu.mida.controller;
+package lnu.mida.controller.dynamic;
 
+import java.util.ArrayList;
+
+import lnu.mida.entity.GeneralNode;
+import lnu.mida.entity.Service;
+import lnu.mida.protocol.OverloadApplication;
+import lnu.mida.protocol.OverloadComponentAssembly;
 import peersim.config.Configuration;
-import peersim.core.*;
+import peersim.core.CommonState;
+import peersim.core.Control;
+import peersim.core.Network;
+import peersim.core.Node;
+
 
 /**
  * This class removes randomly chosen nodes from the network.
@@ -56,14 +66,32 @@ public class OverloadComponentFailures implements Control {
 	@Override
 	public boolean execute() {
 
-		int i;
 
-		for (i = 0; i < num; ++i) {
+		for (int k = 0; k < num;k++) {
 			int j = CommonState.r.nextInt(Network.size());
-			Node n = Network.get(j);
-			Network.remove(j);
+			
+			GeneralNode node = (GeneralNode) Network.remove(j);			
+			OverloadComponentAssembly ca = (OverloadComponentAssembly) node.getProtocol(component_assembly_pid);
+			OverloadApplication appl = (OverloadApplication) node.getProtocol(application_pid);		
+			appl.reset();
 		}
-		return false;
+		
+		// reset the dependencies
+//		for (int i = 0; i < Network.size(); i++) {			
+//			GeneralNode n = (GeneralNode) Network.get(i);		
+//			OverloadComponentAssembly ca = (OverloadComponentAssembly) n.getProtocol(component_assembly_pid);		
+//			OverloadApplication appl = (OverloadApplication)  n.getProtocol(application_pid);	
+//			// reset the services
+//			ArrayList<Service> services = ca.getServices();
+//			for (Service service : services) {
+//				service.reset();	
+//			}
+//						
+//		}
+		
+
+		
+		return false;				
 		
 	}
 

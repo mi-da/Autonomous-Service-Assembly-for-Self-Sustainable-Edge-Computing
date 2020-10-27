@@ -7,6 +7,7 @@ import lnu.mida.entity.Service;
 import lnu.mida.protocol.OverloadComponentAssembly;
 import peersim.config.*;
 import peersim.core.Control;
+import peersim.core.Fallible;
 import peersim.core.Network;
 import peersim.util.*;
 
@@ -87,8 +88,10 @@ public class QualityEnergyObserver implements Control {
 
 		IncrementalStats quality = new IncrementalStats();
 		IncrementalStats energy = new IncrementalStats();
+		
+		IncrementalStats energy_deed = new IncrementalStats();
 
-		int fully_resolved = 0;
+		// int fully_resolved = 0;
 
 		for (int i = 0; i < Network.size(); i++) {
 
@@ -97,32 +100,29 @@ public class QualityEnergyObserver implements Control {
 			
 			ArrayList<Service> services = n.getServices();
 			
+			
 			for (Service service : services) {
 				
-				if (service.isFullyResolved()) {
-					fully_resolved++;
-				}
+//				if (service.isFullyResolved()) {
+//					fully_resolved++;
+//				}
 
 				// recursive quality calculation
 				quality.add(service.getEffectiveCU());
-				
 
-				/**  Green Energy goes in Journal **/
-				double energyBalance = node.getG() - (service.getI_comp_lambda() + service.getI_comm_lambda());
-//				energy.add(Math.min(0, energyBalance));
-				
-				energy.add(energyBalance); // energy.add(service.getI_comp_lambda() + service.getI_comm_lambda());
-				
-
-//				if(node.getG()-(node.getI_comp()+node.getI_comm())<0) {
-//					System.err.println(node.getG()-(node.getI_comp()+node.getI_comm())+"--> energia consumate piu' di quella prodotta per nodo "+node.getID());
-//					System.exit(1);
-//				}
-
-//				System.out.println("node "+node.getID()+" type="+n.getType()+" I_comp="+node.getI_comp()+" E_comp="+node.getE_comp()+" I_comm="+node.getI_comm()+" E_comm="+node.getE_comm()+" lambda="+n.getLambda_t());	
-				
 			}
+						
+			double energyBalance = node.getG() - node.getR();
+			
+			double greenDeed = Math.min(node.getG(),node.getR())/node.getR();
+			
+			// battery discharge				
+			 node.setBattery(node.getBattery() - energyBalance);
 
+			
+			energy.add(greenDeed);
+					 
+			energy_deed.add(greenDeed);
 		}
 
 //		System.out.println("fully resolved "+fully_resolved);
@@ -133,7 +133,7 @@ public class QualityEnergyObserver implements Control {
 		FinalUtilityObserver.quality.get(index).add(quality.getAverage());
 		IncrementalStats quality_jain_is = FinalUtilityObserver.quality_jain.get(index);
 		// calculates the jain's fairness for quality
-		 double quality_jain_fairness =1-(2*quality.getStD()); // double quality_jain_fairness = Math.pow(quality.getSum(), 2) / (quality.getN() * quality.getSqrSum());
+		double quality_jain_fairness =1-(2*quality.getStD()); // double quality_jain_fairness = Math.pow(quality.getSum(), 2) / (quality.getN() * quality.getSqrSum());
 		
 		quality_jain_is.add(quality_jain_fairness);
 
@@ -142,9 +142,16 @@ public class QualityEnergyObserver implements Control {
 		IncrementalStats energy_jain_is = FinalUtilityObserver.energy_jain.get(index);
 		
 		// calculates the jain's fairness for energy
-		double energy_jain_fairness = Math.pow(energy.getSum(), 2) / (energy.getN() * energy.getSqrSum());
+		double energy_jain_fairness =  1-(2*energy_deed.getStD());     
+
 		
+		// double energy_jain_fairness = Math.pow(energy.getSum(), 2) / (energy.getN() * energy.getSqrSum());
 		energy_jain_is.add(energy_jain_fairness);
+		
+		
+		// Network		
+		FinalUtilityObserver.networkSize.get(index).add(Network.size());
+
 
 		return false;
 	}

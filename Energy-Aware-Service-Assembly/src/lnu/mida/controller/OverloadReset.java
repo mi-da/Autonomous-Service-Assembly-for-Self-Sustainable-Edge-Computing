@@ -20,11 +20,13 @@ package lnu.mida.controller;
 
 import java.util.ArrayList;
 
-import lnu.mida.entity.Service;
+import lnu.mida.entity.*;
+import lnu.mida.entity.GeneralNode;
 import lnu.mida.protocol.OverloadApplication;
 import lnu.mida.protocol.OverloadComponentAssembly;
 import peersim.config.*;
 import peersim.core.*;
+
 
 /**
  * I am an observer that observe
@@ -82,18 +84,31 @@ public class OverloadReset implements Control {
 
 	@Override
 	public boolean execute() {
+		
+		//System.err.println("-------- RESET CONTROLLER --------");
 				
 		// reset the dependencies for the new round of composition
-		for (int i = 0; i < Network.size(); i++) {		
-			OverloadComponentAssembly ca = (OverloadComponentAssembly) Network.get(i).getProtocol(component_assembly_pid);		
-			OverloadApplication appl = (OverloadApplication)  Network.get(i).getProtocol(application_pid);	
+		for (int i = 0; i < Network.size(); i++) {	
+			
+			GeneralNode n = (GeneralNode) Network.get(i);		
+			OverloadComponentAssembly ca = (OverloadComponentAssembly) n.getProtocol(component_assembly_pid);		
+			OverloadApplication appl = (OverloadApplication)  n.getProtocol(application_pid);	
 			// reset the services
 			ArrayList<Service> services = ca.getServices();
 			for (Service service : services) {
 				service.reset();	
 			}
-//			appl.reset();
+						
 		}
+		
+		// Nodes with no battery die
+//		for (int i = 0; i < Network.size(); i++) {	
+//			GeneralNode n = (GeneralNode) Network.get(i);
+//			if(n.getBattery()<0)
+//				Network.remove(i);
+//		}
+		
+//		System.out.println("Network size="+Network.size());
 		
 		return false;
 	}

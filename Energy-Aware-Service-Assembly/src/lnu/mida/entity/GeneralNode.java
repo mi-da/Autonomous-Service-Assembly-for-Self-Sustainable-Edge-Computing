@@ -58,6 +58,11 @@ private long ID;
 // green energy generation rate of the node
 private double G;
 
+// consumption rate of the node
+private double R;
+
+// battery 
+private double Battery;
 
 
 // Receiving costs 1 unit of energy = Eelect
@@ -280,6 +285,25 @@ public double  getConsumedIndividualCommEnergyReceiving(double lambda) {
 //	System.out.println("receiving energy "+receivingEnergy);
 	return receivingEnergy;	
 }
+
+public double getBattery() {
+	return Battery;
+}
+
+public void setBattery(double battery) {
+	Battery = battery;
+}
+
+
+public double getR() {
+	return R;
+}
+
+
+public void setR(double r) {
+	R = r;
+}
+
 
 
 }

@@ -57,6 +57,8 @@ public class OverloadFileInitializer implements Control {
 			// Energy
 			FinalUtilityObserver.energy = new ArrayList<>();
 			FinalUtilityObserver.energy_jain = new ArrayList<>();
+			// Network			
+			FinalUtilityObserver.networkSize = new ArrayList<>();
 
 
 			for(int i=0;i<((cycles/comp_step));i++) {
@@ -66,6 +68,8 @@ public class OverloadFileInitializer implements Control {
 				// Energy
 				FinalUtilityObserver.energy.add(new IncrementalStats());
 				FinalUtilityObserver.energy_jain.add(new IncrementalStats());
+				// Network
+				FinalUtilityObserver.networkSize.add(new IncrementalStats());
 			}
 		}
 		

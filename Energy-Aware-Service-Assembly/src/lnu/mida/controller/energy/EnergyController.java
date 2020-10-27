@@ -115,6 +115,8 @@ public class EnergyController implements Control {
 			ArrayList<Service> services = ca.getServices();
 					
 			
+			double R=0;
+			
 			// Navigates all the services hosted on a node
 			for (Service service : services) {
 							
@@ -166,7 +168,7 @@ public class EnergyController implements Control {
 							}
 
 							if (service.getNode_id() != node.getID()) {
-								System.err.println("Service-nodeId and Node must have same ID");
+								System.err.println("Service-node Id and Node must have same ID "+service.getNode_id()+" "+node.getID());
 								System.exit(0);
 							}
 
@@ -213,9 +215,17 @@ public class EnergyController implements Control {
 					// lambda dependent
 					service.setI_comp_lambda(I_comp_lambda);
 					service.setI_comm_lambda(I_comm_lambda);
+					
+					R+= I_comp_lambda+I_comm_lambda;
 				}		
 				
 			}
+			
+			// set the energy consumption rate of node
+			node.setR(R);
+			
+			// battery discharge				
+			node.setBattery(node.getBattery() - (node.getG() - node.getR()));
 
 		}
 		return false;

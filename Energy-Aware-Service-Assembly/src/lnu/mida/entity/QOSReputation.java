@@ -4,7 +4,7 @@ public class QOSReputation implements Cloneable  {
 	
 	
 	// service id for which the experience is evaluated
-	private int serviceID;
+	private long serviceID;
 	
 	
 	// last declared utility
@@ -22,8 +22,8 @@ public class QOSReputation implements Cloneable  {
 	// approach to challenge
 	private double ee;
 	
-	public QOSReputation(int serviceId) {
-		this.setServiceID(serviceId);
+	public QOSReputation(long id) {
+		this.setServiceID(id);
 		declared_utility=-1;
 		k=0;
 		Qk=1; // was 0
@@ -68,11 +68,11 @@ public class QOSReputation implements Cloneable  {
 		
 		double ee_new = W*experienced_utility + ( (1-W)*ee );	
 		
-//		System.out.println(W);
 		
 		ee = ee_new;
 		
 		k++;
+		
 	}
 	
 	public double getWindowAverage() {
@@ -95,9 +95,6 @@ public class QOSReputation implements Cloneable  {
 		return k;
 	}
 	
-	public void setK(int k) {
-		this.k=k;
-	}
 
 	public static int getM() {
 		return M;
@@ -135,11 +132,11 @@ public class QOSReputation implements Cloneable  {
 		return ee;
 	}
 
-	public int getServiceID() {
+	public long getServiceID() {
 		return serviceID;
 	}
 
-	public void setServiceID(int serviceID) {
+	public void setServiceID(long serviceID) {
 		this.serviceID = serviceID;
 	}
 

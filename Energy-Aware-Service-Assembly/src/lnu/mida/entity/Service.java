@@ -142,8 +142,7 @@ public class Service implements Cleanable {
 		dependencies_obj = new Service[max_types];
 		Arrays.fill(dependencies_obj, null);
 		my_type = -1;
-		is_fully_resolved = true; // this service initially has no dependencies set, therefore it is fully
-									// resolved
+		is_fully_resolved = true; // this service initially has no dependencies set, therefore it is fully resolved
 		observers = new LinkedList();
 		cache = new LinkedList();
 		has_changed = false;
@@ -687,12 +686,8 @@ public class Service implements Cleanable {
 		observers = o;
 	}
 
-	public void resetDependencies() {
-		dependencies_obj = new Service[max_types];
-		Arrays.fill(dependencies_obj, null);
-	}
-
 	public void reset() {
+		dependencies_obj = new Service[max_types];
 		Arrays.fill(dependencies_obj, null);
 		observers = new LinkedList<>();
 		// update utilities

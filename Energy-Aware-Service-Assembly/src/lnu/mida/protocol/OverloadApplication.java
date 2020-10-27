@@ -11,6 +11,7 @@ import lnu.mida.entity.Service;
 import peersim.cdsim.CDProtocol;
 import peersim.config.Configuration;
 import peersim.core.Cleanable;
+import peersim.core.Network;
 import peersim.core.Node;
 
 public class OverloadApplication implements CDProtocol, Cleanable {
@@ -62,10 +63,10 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 		reputation.addExperiencedUtility(experienced_utility);
 	}
 
-	public void addEnergyHistoryExperience(Service service, double declared_energy) {
-		int index = (int) service.getService_id();
+	public void addEnergyHistoryExperience(GeneralNode generalNode, double nodeBalance) {
+		int index = (int) generalNode.getID();
 		EnergyReputation reputation = getOrCreateEnergyReputation(index);
-		reputation.addDeclaredEnergy(declared_energy);
+		reputation.addDeclaredEnergy(nodeBalance);
 	}
 
 //	public ArrayList<QOSReputation> getHistories() {
@@ -182,8 +183,11 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 	// future expected utility: two layer of reinforcement learning
 	private boolean chooseByFutureExpectedUtility(Service comp, Service old, GeneralNode node) {
 
-		QOSReputation quality_compReputation = getOrCreateQOSReputation((int) comp.getService_id());
-		QOSReputation quality_oldReputation = getOrCreateQOSReputation((int) old.getService_id());
+//		QOSReputation quality_compReputation = getOrCreateQOSReputation((int) comp.getService_id());
+//		QOSReputation quality_oldReputation = getOrCreateQOSReputation((int) old.getService_id());
+		
+		QOSReputation quality_compReputation = qosReputations.get((int) comp.getService_id());
+		QOSReputation quality_oldReputation = qosReputations.get((int) old.getService_id());
 
 		double compTrust = quality_compReputation.getTk();
 		double oldTrust = quality_oldReputation.getTk();
@@ -195,6 +199,7 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 
 		// if no experiences do the average
 		if (quality_compReputation.getK() == 0) {
+
 			int n = 0;
 			double sum = 0;
 			for (QOSReputation reputation : qosReputations) {
@@ -228,21 +233,22 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 
 			oldFEU = sum / n;
 		}
-		
+
 		double comp_probl1 = Math.pow(compFEU, 40);
 		double old_probl1 = Math.pow(oldFEU, 40);
 
 		double sigma = comp_probl1 + old_probl1;
 
-		double quality_comp_probl = comp_probl1/sigma;
-		double quality_old_probl = old_probl1/sigma;
-		
-		if(quality_comp_probl==quality_old_probl)
+		double quality_comp_probl = comp_probl1 / sigma;
+		double quality_old_probl = old_probl1 / sigma;
+
+		if (quality_comp_probl == quality_old_probl)
 			return chooseByLocalEnergyStrategy(comp, old, node);
-		
-		else if(quality_comp_probl>quality_old_probl)
+
+		else if (quality_comp_probl > quality_old_probl)
 			return true;
-		else return false;
+		else
+			return false;
 	}
 
 	// approach to challenge Shaerf
@@ -363,11 +369,12 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 			return false;
 	}
 
-	// greedy fair energy strategy (using Shaerf) if we change to energy balance "greedy parameter n" must be positive
+	// greedy fair energy strategy (using Shaerf) - select the node with the "best" energy balance - problemi con G - R perchè negativo
 	private boolean chooseByFairEnergyStrategy(Service comp, Service old, GeneralNode node) {
 
-		EnergyReputation compReputation = getOrCreateEnergyReputation((int) comp.getService_id());
-		EnergyReputation oldReputation = getOrCreateEnergyReputation((int) old.getService_id());
+
+		EnergyReputation compReputation = getOrCreateEnergyReputation((int) comp.getNode_id());
+		EnergyReputation oldReputation = getOrCreateEnergyReputation((int) old.getNode_id());
 
 		double comp_ee = compReputation.getEe();
 		double old_ee = oldReputation.getEe();
@@ -376,6 +383,7 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 		if (compReputation.getK() == 0) {
 			int n = 0;
 			double sum = 0;
+
 			for (EnergyReputation reputation : energyReputations) {
 				if (reputation.getK() > 0) {
 					double ee = reputation.getEe();
@@ -385,12 +393,12 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 			}
 
 			if (n == 0)
-		//		return chooseByLocalEnergyStrategy(comp, old, node);
-				return chooseByRandomStrategy(comp, old);
-
+				return chooseByLocalEnergyStrategy(comp, old, node);
+				//return chooseByRandomStrategy(comp, old);
 
 			comp_ee = sum / n;
 		}
+
 
 		if (oldReputation.getK() == 0) {
 			int n = 0;
@@ -404,28 +412,31 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 			}
 
 			if (n == 0)
-			//	return chooseByLocalEnergyStrategy(comp, old, node);
-				return chooseByRandomStrategy(comp, old);
+				return chooseByLocalEnergyStrategy(comp, old, node);
+				//return chooseByRandomStrategy(comp, old);
 
 			old_ee = sum / n;
-
 		}
+
 
 		if (comp_ee == old_ee) {
-		//	return chooseByLocalEnergyStrategy(comp, old, node);
-			return chooseByRandomStrategy(comp, old);
+			return chooseByLocalEnergyStrategy(comp, old, node);
+			//return chooseByRandomStrategy(comp, old);
 		}
 
-		// lower is better --> negative exponent
-		double comp_probl1 = Math.pow(comp_ee, -60);
-		double old_probl1 = Math.pow(old_ee, -60);
+		// energy balance -> higher is better --> negative exponent
+		double comp_probl1 = Math.pow(comp_ee, 40);
+		double old_probl1 = Math.pow(old_ee, 40);
 
 		double sigma = comp_probl1 + old_probl1;
 
 		double comp_probl = comp_probl1 / sigma;
-		double old_probl = old_probl1 / sigma;
+		//double old_probl = old_probl1 / sigma;
 
-		double random = Math.random();
+		//System.out.println(comp_probl + " " + old_probl + " final");
+
+		double random = Math.random();		
+
 
 		if (comp_probl > random)
 			return true;
@@ -436,13 +447,12 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 	// Balance quality and energy
 	private boolean chooseByQualityFairEnergyStrategy(Service comp, Service old, GeneralNode node) {
 
-
 		//
 		// ENERGY PART
 		//
 
-		EnergyReputation energy_compReputation = getOrCreateEnergyReputation((int) comp.getService_id());
-		EnergyReputation energy_oldReputation = getOrCreateEnergyReputation((int) old.getService_id());
+		EnergyReputation energy_compReputation = getOrCreateEnergyReputation((int) comp.getNode_id());
+		EnergyReputation energy_oldReputation = getOrCreateEnergyReputation((int) old.getNode_id());
 
 		double energy_comp_ee = energy_compReputation.getEe();
 		double energy_old_ee = energy_oldReputation.getEe();
@@ -484,15 +494,14 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 			energy_old_ee = sum / n;
 		}
 
-		double comp_probl1 = Math.pow(energy_comp_ee, -20);
-		double old_probl1 = Math.pow(energy_old_ee, -20);
+		double comp_probl1 = Math.pow(energy_comp_ee, 15);
+		double old_probl1 = Math.pow(energy_old_ee, 15);
 
 		double sigma = comp_probl1 + old_probl1;
 
 		double energy_comp_probl = comp_probl1 / sigma;
 		double energy_old_probl = old_probl1 / sigma;
-		
-		
+
 		//
 		// QUALITY PART
 		//
@@ -522,7 +531,7 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 			}
 
 			if (n == 0)
-				return chooseByLocalEnergyStrategy(comp, old, node);
+				return chooseByRandomStrategy(comp, old);
 
 			compFEU = sum / n;
 		}
@@ -539,18 +548,18 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 			}
 
 			if (n == 0)
-				return chooseByLocalEnergyStrategy(comp, old, node);
+				return chooseByRandomStrategy(comp, old);
 
 			oldFEU = sum / n;
 		}
-		
+
 		comp_probl1 = Math.pow(compFEU, 40);
 		old_probl1 = Math.pow(oldFEU, 40);
 
 		sigma = comp_probl1 + old_probl1;
 
-		double quality_comp_probl = comp_probl1/sigma;
-		double quality_old_probl = old_probl1/sigma;
+		double quality_comp_probl = comp_probl1 / sigma;
+		double quality_old_probl = old_probl1 / sigma;
 
 		//
 		// SAW on probabilities
@@ -561,16 +570,14 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 
 		double saw_comp_probl1 = Math.pow(w_e * energy_comp_probl + w_q * quality_comp_probl, 20);
 		double saw_old_probl1 = Math.pow(w_e * energy_old_probl + w_q * quality_old_probl, 20);
-		
 
 		sigma = saw_comp_probl1 + saw_old_probl1;
 
 		double saw_comp_probl = saw_comp_probl1 / sigma;
 		double saw_old_probl = saw_old_probl1 / sigma;
 
-
 		if (saw_comp_probl == saw_old_probl) {
-			return chooseByLocalEnergyStrategy(comp, old,node);
+			return chooseByRandomStrategy(comp, old);
 		}
 
 		double random = Math.random();
@@ -590,39 +597,45 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 	public void nextCycle(Node node, int protocolID) {
 	}
 
+//	private QOSReputation getOrCreateQOSReputation(int serviceId) {
+//		for (QOSReputation reputation : qosReputations) {
+//			if (reputation.getServiceID() == serviceId) {
+//				return reputation;
+//			}
+//		}
+//		QOSReputation newReputation = new QOSReputation(serviceId);
+//		qosReputations.add(newReputation);
+//		return newReputation;
+//	}
+
+//	private EnergyReputation getOrCreateEnergyReputation(int nodeID) {
+//		for (EnergyReputation reputation : energyReputations) {
+//			if (reputation.getNodeId() == nodeID) {
+//				return reputation;
+//			}
+//		}
+//		EnergyReputation newReputation = new EnergyReputation(nodeID);
+//		energyReputations.add(newReputation);
+//		return newReputation;
+//	}
+
 	private QOSReputation getOrCreateQOSReputation(int serviceId) {
-		for (QOSReputation reputation : qosReputations) {
-			if (reputation.getServiceID() == serviceId) {
-				return reputation;
-			}
-		}
-		QOSReputation newReputation = new QOSReputation(serviceId);
-		qosReputations.add(newReputation);
-		return newReputation;
+		
+		//System.out.println(qosReputations.size());
+		
+		return qosReputations.get(serviceId);
 	}
 
-	private EnergyReputation getOrCreateEnergyReputation(int serviceId) {
-		for (EnergyReputation reputation : energyReputations) {
-			if (reputation.getServiceID() == serviceId) {
-				return reputation;
-			}
-		}
-		EnergyReputation newReputation = new EnergyReputation(serviceId);
-		energyReputations.add(newReputation);
-		return newReputation;
-	}
-
-	private EnergyReputation getEnergyReputation(int serviceId) {
-		for (EnergyReputation reputation : energyReputations) {
-			if (reputation.getServiceID() == serviceId) {
-				return reputation;
-			}
-		}
-		return null;
+	private EnergyReputation getOrCreateEnergyReputation(int nodeID) {
+		return energyReputations.get(nodeID);
 	}
 
 	public ArrayList<QOSReputation> getQoSReputations() {
 		return qosReputations;
+	}
+
+	public ArrayList<EnergyReputation> getEnergyReputations() {
+		return energyReputations;
 	}
 
 	public void reset() {

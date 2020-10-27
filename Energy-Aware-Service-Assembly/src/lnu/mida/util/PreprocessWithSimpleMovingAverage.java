@@ -19,11 +19,16 @@ public class PreprocessWithSimpleMovingAverage {
 	public static ArrayList<ArrayList<Double>> energy;
 	public static ArrayList<ArrayList<Double>> energy_fairnesses;
 	
-	public static int movingAverageFactor = 5;
+	public static int movingAverageFactor = 10;
 
 	public static void main(String[] args) {				
 		
-		convert("exp_assembly_quality_fair_1602685659596");
+		convert("exp_assembly_emergent_1603726912461");
+//		convert("exp_assembly_fair_energy_1603699084909");
+//		convert("exp_assembly_local_energy_1603698623038");
+//		convert("exp_assembly_overall_energy_1603698461875");
+//		convert("exp_assembly_quality_fair_1603700363158");
+//		convert("exp_assembly_random_1603698798924");
 
 	}
 

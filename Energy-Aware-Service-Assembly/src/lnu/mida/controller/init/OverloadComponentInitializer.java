@@ -19,6 +19,7 @@ package lnu.mida.controller.init;
 
 import java.util.ArrayList;
 
+import lnu.mida.entity.EnergyReputation;
 //import com.sun.tools.javac.util.ArrayUtils;
 import lnu.mida.entity.GeneralNode;
 import lnu.mida.entity.QOSReputation;
@@ -81,7 +82,7 @@ public class OverloadComponentInitializer implements Control {
 		int types = Configuration.getInt("TYPES", 0);
 		int services_per_node = Configuration.getInt("SERVICES_PER_NODE", 0);
 		
-		int max_services_per_type = Network.size()*services_per_node/ types;
+		int max_services_per_type = Network.size()*services_per_node/types;
 		
 		
 		System.out.println("types="+types+" max_services_per_type="+max_services_per_type);
@@ -95,10 +96,11 @@ public class OverloadComponentInitializer implements Control {
 
 		for (int i = 0; i < Network.size(); i++) {
 
+
 			GeneralNode n = (GeneralNode) Network.get(i);
 			OverloadComponentAssembly ca = (OverloadComponentAssembly) n.getProtocol(component_assembly_pid);
 			OverloadApplication appl = (OverloadApplication) n.getProtocol(application_assembly_pid);
-			
+					
 			appl.reset();
 			ca.reset();
 
@@ -106,6 +108,7 @@ public class OverloadComponentInitializer implements Control {
 			for (int j = 0; j < services_per_node; j++) {
 
 				Service s = new Service(types,application_assembly_pid);
+				
 
 				// set type of service
 				int randomType = getRandomType(availableTypes);
@@ -157,7 +160,11 @@ public class OverloadComponentInitializer implements Control {
 			 */
 
 			// set green energy generation rate (for Journal)
-			n.setG(0.5 + 0.5 * CommonState.r.nextDouble());
+			n.setG(0.5 + 2 * CommonState.r.nextDouble());
+			
+			
+	        // set the Battery 
+			n.setBattery(70);
 			
 
 			n.setCPUConsumptionFactor(0.5+(1.5*CommonState.r.nextDouble()));
@@ -166,32 +173,43 @@ public class OverloadComponentInitializer implements Control {
 			/**
 			 * Construct parameters
 			 */
+			
+			
 
-			// mette randomicamente servizi non affidabili con una certa percentuale
-//		    if(CommonState.r.nextDouble()<0.3) { // old was 0.3
-//				ca.setQueueParameter(0.2);
-//				ca.setCurveParameter(0.2);
-//		    }
+			for(long serv_num=0;serv_num<650;serv_num++)
+				appl.getQoSReputations().add(new QOSReputation(serv_num));
+			
+			for(long nodes_num=0;nodes_num<150;nodes_num++)
+				appl.getEnergyReputations().add(new EnergyReputation(nodes_num));
 
 		}
 		
 		// Prints nodes and services allocation
-		for (int i = 0; i < Network.size(); i++) {
-			
-			GeneralNode n = (GeneralNode) Network.get(i);
-			OverloadComponentAssembly ca = (OverloadComponentAssembly) n.getProtocol(component_assembly_pid);
-			OverloadApplication appl = (OverloadApplication) n.getProtocol(application_assembly_pid);
-			
-			ArrayList<Service> services = ca.getServices();
-			
-			System.out.println("On node "+n.getID());
-			for (Service service : services) {
-				System.out.println("Node= "+service.getNode_id()+" service="+service.getService_id()+" type="+service.getType());
-			}
-			System.out.println();			
-		}
+//		for (int i = 0; i < Network.size(); i++) {
+//
+//			GeneralNode n = (GeneralNode) Network.get(i);
+//			OverloadComponentAssembly ca = (OverloadComponentAssembly) n.getProtocol(component_assembly_pid);
+//			OverloadApplication appl = (OverloadApplication) n.getProtocol(application_assembly_pid);
+//
+//			
+//			ArrayList<Service> services = ca.getServices();
+//			
+//			System.out.println("On node "+n.getID());
+//			
+//			for (Service service : services) {
+//				System.out.println("Node= "+service.getNode_id()+" service="+service.getService_id()+" type="+service.getType());
+//			}
+//			if(services.size()==0)
+//				System.out.println("No services here");
+//			
+//			System.out.println("QoS rep"+appl.getQoSReputations().size());
+//			System.out.println("Ene rep"+appl.getEnergyReputations().size());
+//			
+//			System.out.println();
+//		
+//		}
 		
-//		System.exit(0);
+		// System.exit(0);
     
 		return false;
 	}

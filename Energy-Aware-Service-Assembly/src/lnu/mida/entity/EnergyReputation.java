@@ -4,7 +4,7 @@ public class EnergyReputation implements Cloneable  {
 	
 	
 	// service id for which the experience is evaluated
-	private int serviceID;
+	private long nodeID;
 	
 	// number of time the experience is done
 	private int k;
@@ -14,8 +14,8 @@ public class EnergyReputation implements Cloneable  {
 	// approach to challenge
 	private double ee;
 	
-	public EnergyReputation(int serviceId) {
-		this.setServiceID(serviceId);
+	public EnergyReputation(long nodeID) {
+		this.setNodeID(nodeID);
 		k=0;
 		ee=0;
 	}
@@ -30,6 +30,7 @@ public class EnergyReputation implements Cloneable  {
 		ee = ee_new;
 		
 		k++;
+		
 	}
 	
 	@Override
@@ -64,12 +65,12 @@ public class EnergyReputation implements Cloneable  {
 		return ee;
 	}
 
-	public int getServiceID() {
-		return serviceID;
+	public long getNodeId() {
+		return nodeID;
 	}
 
-	public void setServiceID(int serviceID) {
-		this.serviceID = serviceID;
+	public void setNodeID(long nodeID) {
+		this.nodeID = nodeID;
 	}
 
 }

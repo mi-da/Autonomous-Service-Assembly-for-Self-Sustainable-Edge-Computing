@@ -105,6 +105,9 @@ public class OverloadCompositionController implements Control {
 			
 			ArrayList<Service> services = ca.getServices();
 			
+			ArrayList<GeneralNode> interactingNodes = new ArrayList<GeneralNode>();
+			
+			
 			for (Service service : services) {
 				double experiencedCU = 1;
 
@@ -143,18 +146,36 @@ public class OverloadCompositionController implements Control {
 
 							appl.addQoSHistoryExperience(depObj, experienced_utility, depObj.getDeclaredUtility());
 							
-							// learning
-							appl.addEnergyHistoryExperience(depObj, depObj.getI_comp_lambda()+depObj.getI_comm_lambda());
+							// Energy balance learning
+							GeneralNode depNode = GeneralNode.getNode(depObj.getNode_id());
+							
+							if(!interactingNodes.contains(depNode))
+								interactingNodes.add(depNode);
 
 							experiencedCU = experiencedCU * experienced_utility; // Experienced Compound Utility (multiplication of all dependencies)				
 						}
 					}
 				}
 
-				service.setExperiencedCU(experiencedCU);
+				service.setExperiencedCU(experiencedCU);					
 
 			}
+			
+			// print interacting nodes
+			//System.out.print(node.getID()+" -->");
+		    for (GeneralNode interactingNode : interactingNodes) {
+			
+			//for (int k = 0; k < Network.size(); k++) {
 
+
+				// GeneralNode interactingNode = (GeneralNode) Network.get(k);
+							
+				// System.out.println("adding experience in "+node.getID()+" for "+interactingNode.getID());
+				 
+		    	//appl.addEnergyHistoryExperience(interactingNode, interactingNode.getG() - interactingNode.getR());
+		    	appl.addEnergyHistoryExperience(interactingNode, Math.min(interactingNode.getG(),interactingNode.getR())/interactingNode.getR());
+			}
+			// System.out.println();			
 
 		}
 			

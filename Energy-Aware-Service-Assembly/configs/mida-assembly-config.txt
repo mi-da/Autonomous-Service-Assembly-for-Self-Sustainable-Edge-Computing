@@ -3,7 +3,7 @@
 ##
 
 simulation.cycles 6*300
-simulation.experiments 5
+simulation.experiments 10
 NETWORK_SIZE 100
 
 SERVICES_PER_NODE 5 #number of services per node
@@ -18,7 +18,7 @@ M 5 # period of the learner
 
 COMPOSITION_STEPS 6 # the system runs a composition step every 6 simulation cycles
 
-random.seed 1234654321
+random.seed 1234554322
 
 simulation.logtime 1000
 
@@ -129,6 +129,8 @@ control.enectr.step COMPOSITION_STEPS
 
 # Id control reset 
 control.idctr lnu.mida.controller.OverloadIdController
+control.idctr.appl_prot appl
+control.idctr.comp_prot ca
 control.idctr.at simulation.cycles-1
 
 # Dynamic node change L
@@ -140,18 +142,20 @@ control.changel.from COMPOSITION_STEPS*10
 control.changel.step COMPOSITION_STEPS*10
 
 # Dynamic node fail
-control.failures lnu.mida.controller.OverloadComponentFailures
+control.failures lnu.mida.controller.dynamic.OverloadComponentFailures
 control.failures.appl_prot appl
 control.failures.comp_prot ca
-control.failures.num 100
-control.failures.from COMPOSITION_STEPS*10
-control.failures.step COMPOSITION_STEPS*10
+control.failures.num 20
+#control.failures.from COMPOSITION_STEPS*10
+#control.failures.step COMPOSITION_STEPS*10
+control.failures.at COMPOSITION_STEPS*150
 
 # Dynamic node join
 control.dynpeer peersim.dynamics.DynamicNetwork
-control.dynpeer.add 100
-control.dynpeer.from COMPOSITION_STEPS*10
-control.dynpeer.step COMPOSITION_STEPS*10
+control.dynpeer.add 20
+#control.dynpeer.from COMPOSITION_STEPS*10
+#control.dynpeer.step COMPOSITION_STEPS*10
+control.dynpeer.at COMPOSITION_STEPS*150
 
 control.dynpeer.init.0 RandNI
 control.dynpeer.init.0.k DEGREE
@@ -159,6 +163,7 @@ control.dynpeer.init.0.protocol lnk
 
 control.dynpeer.init.1 lnu.mida.controller.dynamic.OverloadNewNodeInitializer
 control.dynpeer.init.1.comp_prot ca
+control.dynpeer.init.1.app_prot appl
 
 # Vivaldi Observer
 control.vivo VivaldiObserver
@@ -169,5 +174,5 @@ control.vivo.threshold 0.0
 control.shf Shuffle
 
 include.init wire loci vivs ci pdi fi
-include.control shf enectr compctr qeC FinalutilC reset idctr
+include.control shf enectr compctr qeC FinalutilC reset idctr failures dynpeer
 include.protocol lnk vivp ca appl
