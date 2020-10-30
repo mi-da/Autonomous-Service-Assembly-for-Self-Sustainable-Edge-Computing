@@ -2,6 +2,10 @@ package lnu.mida.controller.dynamic;
 
 import java.util.Random;
 
+import com.lajv.location.CircleLocation;
+import com.lajv.vivaldi.VivaldiProtocol;
+import com.lajv.vivaldi.dim2d.Dim2DVivaldiCoordinate;
+
 import lnu.mida.controller.init.ProbDependencyInitializer;
 import lnu.mida.entity.EnergyReputation;
 import lnu.mida.entity.GeneralNode;
@@ -21,13 +25,16 @@ public class OverloadNewNodeInitializer implements NodeInitializer {
 
 	private static final String COMP_PROT = "comp_prot";
 	private static final String APP_PROT = "app_prot";
+	private static final String VIV_PROT = "viv_prot";
 
 	private final int component_assembly_pid;
 	private final int application_assembly_pid;
+	private final int vivaldi_assembly_pid;
 
 	public OverloadNewNodeInitializer(String prefix) {
 		component_assembly_pid = Configuration.getPid(prefix + "." + COMP_PROT);
-		application_assembly_pid = Configuration.getPid(prefix + "." + APP_PROT);
+		application_assembly_pid = Configuration.getPid(prefix + "." + APP_PROT);		
+		vivaldi_assembly_pid = Configuration.getPid(prefix + "." + VIV_PROT);
 	}
 
 	@Override
@@ -49,7 +56,7 @@ public class OverloadNewNodeInitializer implements NodeInitializer {
 		appl.reset();
 		ca.reset();
 		
-		appl.getQoSReputations().add(new QOSReputation(650));
+		appl.getQoSReputations().add(new QOSReputation(700));
 		appl.getEnergyReputations().add(new EnergyReputation(150));
 
 
@@ -140,11 +147,21 @@ public class OverloadNewNodeInitializer implements NodeInitializer {
 		 */
 				
 
-		for(long serv_num=0;serv_num<650;serv_num++)
+		for(long serv_num=0;serv_num<700;serv_num++)
 			appl.getQoSReputations().add(new QOSReputation(serv_num));
 		
 		for(long nodes_num=0;nodes_num<150;nodes_num++)
 			appl.getEnergyReputations().add(new EnergyReputation(nodes_num));
+		
+		// random location		
+		node.location.randomize();
+		
+		// stabilize location		
+		VivaldiProtocol vp1 = (VivaldiProtocol) node.getProtocol(vivaldi_assembly_pid);		
+		double actualXLocation = ((CircleLocation)node.location).getX();
+		double actualYLocation = ((CircleLocation)node.location).getY();
+		((Dim2DVivaldiCoordinate)vp1.vivCoord).setLocation(actualXLocation,actualYLocation);	
+		
 	}
 
 }

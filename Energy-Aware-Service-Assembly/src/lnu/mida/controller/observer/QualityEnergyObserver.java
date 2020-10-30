@@ -120,7 +120,7 @@ public class QualityEnergyObserver implements Control {
 			 node.setBattery(node.getBattery() - energyBalance);
 
 			
-			energy.add(greenDeed);
+			energy.add(node.getR()); // modify!
 					 
 			energy_deed.add(greenDeed);
 		}

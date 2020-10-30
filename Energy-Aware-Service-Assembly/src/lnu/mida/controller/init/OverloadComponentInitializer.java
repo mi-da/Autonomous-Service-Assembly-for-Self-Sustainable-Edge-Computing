@@ -176,7 +176,7 @@ public class OverloadComponentInitializer implements Control {
 			
 			
 
-			for(long serv_num=0;serv_num<650;serv_num++)
+			for(long serv_num=0;serv_num<1700;serv_num++)
 				appl.getQoSReputations().add(new QOSReputation(serv_num));
 			
 			for(long nodes_num=0;nodes_num<150;nodes_num++)

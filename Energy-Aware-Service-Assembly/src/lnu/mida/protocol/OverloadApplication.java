@@ -355,7 +355,7 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 	// overall energy strategy
 	private boolean chooseByOverallEnergyStrategy(Service comp, Service old) {
 
-		// at round 1 the overal energy is not known
+		// at round 1 the overall energy is not known
 
 		double energyComp = comp.getE_comp() + comp.getE_comm();
 		double energyOld = old.getE_comp() + old.getE_comm();
@@ -565,8 +565,9 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 		// SAW on probabilities
 		//
 
-		double w_e = 0.5;
 		double w_q = 0.5;
+		double w_e = 0.5;
+		
 
 		double saw_comp_probl1 = Math.pow(w_e * energy_comp_probl + w_q * quality_comp_probl, 20);
 		double saw_old_probl1 = Math.pow(w_e * energy_old_probl + w_q * quality_old_probl, 20);

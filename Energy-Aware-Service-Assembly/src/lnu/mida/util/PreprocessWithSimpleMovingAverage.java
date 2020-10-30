@@ -23,12 +23,11 @@ public class PreprocessWithSimpleMovingAverage {
 
 	public static void main(String[] args) {				
 		
-		convert("exp_assembly_emergent_1603726912461");
-//		convert("exp_assembly_fair_energy_1603699084909");
-//		convert("exp_assembly_local_energy_1603698623038");
-//		convert("exp_assembly_overall_energy_1603698461875");
-//		convert("exp_assembly_quality_fair_1603700363158");
-//		convert("exp_assembly_random_1603698798924");
+		convert("05exp_assembly_quality_fair_1603897374609");
+		convert("06exp_assembly_quality_fair_1603897473260");
+		convert("07exp_assembly_quality_fair_1603897439512");
+		convert("08exp_assembly_quality_fair_1603897507868");
+		convert("exp_assembly_emergent_1603896919885");
 
 	}
 
