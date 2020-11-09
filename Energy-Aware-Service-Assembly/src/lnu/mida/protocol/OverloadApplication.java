@@ -11,7 +11,6 @@ import lnu.mida.entity.Service;
 import peersim.cdsim.CDProtocol;
 import peersim.config.Configuration;
 import peersim.core.Cleanable;
-import peersim.core.Network;
 import peersim.core.Node;
 
 public class OverloadApplication implements CDProtocol, Cleanable {
