@@ -62,11 +62,11 @@ public class Service implements Cleanable {
 
 	/** number of dependencies */
 	private int dep_num;
-
-	/** Dependency arrays */
+	
+	/** dependencies[i] is true iff there is a dependency of type i */
 	private boolean dependencies[];
 
-	/** dependencies[i] is true iff there is a dependency of type i */
+	/** Dependency arrays */
 	private Service dependencies_obj[];
 
 	/**
@@ -257,6 +257,10 @@ public class Service implements Cleanable {
 	 */
 	public boolean isFullyResolved() {
 		return is_fully_resolved;
+	};
+	
+	public void setIsFullyResolved(boolean value) {
+		is_fully_resolved=value;
 	};
 
 	/**
@@ -688,6 +692,10 @@ public class Service implements Cleanable {
 
 	public void reset() {
 		dependencies_obj = new Service[max_types];
+		
+		//updateCompoundUtility(); // calculate if fully resolved
+		is_fully_resolved=false;
+		
 		Arrays.fill(dependencies_obj, null);
 		observers = new LinkedList<>();
 		// update utilities

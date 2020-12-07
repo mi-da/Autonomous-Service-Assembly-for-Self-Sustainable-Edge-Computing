@@ -28,21 +28,6 @@ public class QualityEnergyObserver implements Control {
 	 */
 	private static final String PAR_PROT = "protocol";
 
-	/**
-	 * Stop when the average utility is at least X%; default never stops
-	 *
-	 * @config
-	 */
-	private static final String PAR_STOPAT = "stopat";
-
-	/**
-	 * Stop when the minimum compound utility is at least this value; default never
-	 * stops
-	 *
-	 * @config
-	 */
-	private static final String PAR_MINSTOPAT = "minstopat";
-
 	// ///////////////////////////////////////////////////////////////////////
 	// Fields
 	// ///////////////////////////////////////////////////////////////////////
@@ -56,9 +41,14 @@ public class QualityEnergyObserver implements Control {
 	/** Protocol identifier, obtained from config property {@link #PAR_PROT}. */
 	private final int pid;
 
-	private final double stopat;
-
-	private final double minstopat;
+//	private double stopat;
+//	private double minstopat;
+	
+	public int resolvedAssemblies=0;
+	public int toResolveAssemblies=0;
+	
+	
+	public double minEn=0;
 
 	// ///////////////////////////////////////////////////////////////////////
 	// Constructor
@@ -73,8 +63,6 @@ public class QualityEnergyObserver implements Control {
 	public QualityEnergyObserver(String name) {
 		this.name = name;
 		pid = Configuration.getPid(name + "." + PAR_PROT);
-		stopat = Configuration.getDouble(name + "." + PAR_STOPAT, -1);
-		minstopat = Configuration.getDouble(name + "." + PAR_MINSTOPAT, -1);
 	}
 
 	// ///////////////////////////////////////////////////////////////////////
@@ -88,11 +76,13 @@ public class QualityEnergyObserver implements Control {
 
 		IncrementalStats quality = new IncrementalStats();
 		IncrementalStats energy = new IncrementalStats();
+
+
+		int fully_resolved_services = 0;
+		int to_resolve_services=0;
 		
-		IncrementalStats energy_deed = new IncrementalStats();
-
-		// int fully_resolved = 0;
-
+		toResolveAssemblies++;
+		
 		for (int i = 0; i < Network.size(); i++) {
 
 			GeneralNode node = (GeneralNode) Network.get(i);
@@ -102,30 +92,35 @@ public class QualityEnergyObserver implements Control {
 			
 			
 			for (Service service : services) {
+				to_resolve_services++;
 				
-//				if (service.isFullyResolved()) {
-//					fully_resolved++;
-//				}
+				if (service.isFullyResolved()) {
+					fully_resolved_services++;
+				}
 
 				// recursive quality calculation
 				quality.add(service.getEffectiveCU());
 
-			}
-						
-			double energyBalance = node.getG() - node.getR();
-			
-			double greenDeed = Math.min(node.getG(),node.getR())/node.getR();
+			}					
+
+
+			double energyBalance = Math.min(0,node.getG()-node.getR());
 			
 			// battery discharge				
-			 node.setBattery(node.getBattery() - energyBalance);
+			 node.setBattery(node.getBattery() + node.getG()-node.getR());
+			 
+			 
+			 if(energyBalance<minEn)
+				 minEn=energyBalance;
 
 			
-			energy.add(node.getR()); // modify!
-					 
-			energy_deed.add(greenDeed);
-		}
+			energy.add(energyBalance); 
 
-//		System.out.println("fully resolved "+fully_resolved);
+		}
+		
+		if(to_resolve_services==fully_resolved_services)
+			resolvedAssemblies++;
+
 
 		int index = (int) ((time / Configuration.getInt("COMPOSITION_STEPS", 1)));
 
@@ -142,7 +137,11 @@ public class QualityEnergyObserver implements Control {
 		IncrementalStats energy_jain_is = FinalUtilityObserver.energy_jain.get(index);
 		
 		// calculates the jain's fairness for energy
-		double energy_jain_fairness =  1-(2*energy_deed.getStD());     
+		double energy_jain_fairness =  1 - (2*energy.getStD()/8.5);   // calcola sperimentalmente il minimo che può raggiungere
+		
+//		System.out.println(minEn);
+		
+//		double energy_jain_fairness =  energy.getStD();   
 
 		
 		// double energy_jain_fairness = Math.pow(energy.getSum(), 2) / (energy.getN() * energy.getSqrSum());
@@ -151,7 +150,12 @@ public class QualityEnergyObserver implements Control {
 		
 		// Network		
 		FinalUtilityObserver.networkSize.get(index).add(Network.size());
-
+		
+		// Availability		
+		double availability = (double) resolvedAssemblies/(double) toResolveAssemblies;
+		FinalUtilityObserver.availability.get(index).add(availability);
+		
+		// System.out.println(toResolveAssemblies+" "+resolvedAssemblies);
 
 		return false;
 	}

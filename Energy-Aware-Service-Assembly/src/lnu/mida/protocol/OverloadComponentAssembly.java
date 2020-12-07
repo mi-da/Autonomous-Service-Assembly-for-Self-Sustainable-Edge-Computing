@@ -55,6 +55,9 @@ public class OverloadComponentAssembly implements CDProtocol, Cleanable {
 	 * set of services offered by the node
 	 */
 	private ArrayList<Service> services;
+	
+	
+	// servizi che il node "scopre"
 
 	/**
 	 * The application protocol id.
@@ -107,32 +110,6 @@ public class OverloadComponentAssembly implements CDProtocol, Cleanable {
 	};
 
 
-
-/**	
-	
-	@Override
-	public void nextCycle(Node node, int protocolID) {
-
-		if (dependencies == null) {
-			System.out.println("dependecies null");
-			return;
-		}
-
-		int linkableID = FastConfig.getLinkable(protocolID);
-		Linkable linkable = (Linkable) node.getProtocol(linkableID);
-
-		for (int i = 0; i < linkable.degree(); ++i) {
-			Node peer = linkable.getNeighbor(i);
-
-			if (!peer.isUp()) {
-				continue;
-			}
-			OverloadComponentAssembly comp = (OverloadComponentAssembly) peer.getProtocol(protocolID);
-			comp.interact(this);
-		}
-	}
-	
-**/
 	
 	@Override
 	public void nextCycle(Node node, int protocolID) {
@@ -168,7 +145,7 @@ public class OverloadComponentAssembly implements CDProtocol, Cleanable {
 			
 			for (Service service : services) {
 							
-				// Interact with services on other Nodes
+				// Interact with services on other Node
 				for (Service neighbourService : neighbourServices) {
 					neighbourService.interact(service);
 				}

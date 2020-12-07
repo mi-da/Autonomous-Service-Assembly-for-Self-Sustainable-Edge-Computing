@@ -86,6 +86,7 @@ public class OverloadReset implements Control {
 	public boolean execute() {
 		
 		//System.err.println("-------- RESET CONTROLLER --------");
+		
 				
 		// reset the dependencies for the new round of composition
 		for (int i = 0; i < Network.size(); i++) {	
@@ -107,7 +108,8 @@ public class OverloadReset implements Control {
 //			if(n.getBattery()<0)
 //				Network.remove(i);
 //		}
-		
+//		
+
 //		System.out.println("Network size="+Network.size());
 		
 		return false;

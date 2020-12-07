@@ -212,6 +212,7 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 
 			if (n == 0)
 				return chooseByLocalEnergyStrategy(comp, old, node);
+				//return chooseByRandomStrategy(comp, old);
 
 			compFEU = sum / n;
 		}
@@ -229,6 +230,8 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 
 			if (n == 0)
 				return chooseByLocalEnergyStrategy(comp, old, node);
+				//return chooseByRandomStrategy(comp, old);
+
 
 			oldFEU = sum / n;
 		}
@@ -241,8 +244,12 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 		double quality_comp_probl = comp_probl1 / sigma;
 		double quality_old_probl = old_probl1 / sigma;
 
+		// double random = Math.random();
+		
 		if (quality_comp_probl == quality_old_probl)
 			return chooseByLocalEnergyStrategy(comp, old, node);
+			//return chooseByRandomStrategy(comp, old);
+	
 
 		else if (quality_comp_probl > quality_old_probl)
 			return true;
@@ -422,22 +429,26 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 			return chooseByLocalEnergyStrategy(comp, old, node);
 			//return chooseByRandomStrategy(comp, old);
 		}
+		
+		// tiny translation to avoid 0 as a base of the exponent	
+		double translation = Math.pow(10,-5);
+		comp_ee-=translation;
+		old_ee-=translation;
 
 		// energy balance -> higher is better --> negative exponent
-		double comp_probl1 = Math.pow(comp_ee, 40);
-		double old_probl1 = Math.pow(old_ee, 40);
+		double comp_probl1 = Math.pow(comp_ee, -3);
+		double old_probl1 = Math.pow(old_ee, -3);	
 
 		double sigma = comp_probl1 + old_probl1;
 
 		double comp_probl = comp_probl1 / sigma;
-		//double old_probl = old_probl1 / sigma;
+		double old_probl = old_probl1 / sigma;
 
-		//System.out.println(comp_probl + " " + old_probl + " final");
+		//System.out.println(comp_ee+","+comp_probl+"  "+old_ee+","+old_probl);
 
-		double random = Math.random();		
+		//double random = Math.random();		
 
-
-		if (comp_probl > random)
+		if (comp_probl > old_probl)
 			return true;
 		else
 			return false;
@@ -471,7 +482,8 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 			}
 
 			if (n == 0)
-				return chooseByRandomStrategy(comp, old);
+				//return chooseByRandomStrategy(comp, old);
+				return chooseByLocalEnergyStrategy(comp, old, node);
 
 			energy_comp_ee = sum / n;
 		}
@@ -488,18 +500,25 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 			}
 
 			if (n == 0)
-				return chooseByRandomStrategy(comp, old);
+				//return chooseByRandomStrategy(comp, old);
+				return chooseByLocalEnergyStrategy(comp, old, node);
 
 			energy_old_ee = sum / n;
 		}
+		
+		// tiny translation to avoid 0 as a base of the exponent	
+		double translation = Math.pow(10,-5);
+		energy_comp_ee-=translation;
+		energy_old_ee-=translation;
 
-		double comp_probl1 = Math.pow(energy_comp_ee, 15);
-		double old_probl1 = Math.pow(energy_old_ee, 15);
+		double comp_probl1 = Math.pow(energy_comp_ee, -5);
+		double old_probl1 = Math.pow(energy_old_ee, -5);
 
 		double sigma = comp_probl1 + old_probl1;
 
 		double energy_comp_probl = comp_probl1 / sigma;
 		double energy_old_probl = old_probl1 / sigma;
+		
 
 		//
 		// QUALITY PART
@@ -530,7 +549,8 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 			}
 
 			if (n == 0)
-				return chooseByRandomStrategy(comp, old);
+				//return chooseByRandomStrategy(comp, old);
+				return chooseByLocalEnergyStrategy(comp, old, node);
 
 			compFEU = sum / n;
 		}
@@ -547,13 +567,13 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 			}
 
 			if (n == 0)
-				return chooseByRandomStrategy(comp, old);
+				return chooseByLocalEnergyStrategy(comp, old, node);
 
 			oldFEU = sum / n;
 		}
 
-		comp_probl1 = Math.pow(compFEU, 40);
-		old_probl1 = Math.pow(oldFEU, 40);
+		comp_probl1 = Math.pow(compFEU, 20);
+		old_probl1 = Math.pow(oldFEU, 20);
 
 		sigma = comp_probl1 + old_probl1;
 
@@ -564,20 +584,31 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 		// SAW on probabilities
 		//
 
-		double w_q = 0.5;
-		double w_e = 0.5;
-		
+		double w_q = 0.6;
+		double w_e = 0.4;
+			
 
 		double saw_comp_probl1 = Math.pow(w_e * energy_comp_probl + w_q * quality_comp_probl, 20);
 		double saw_old_probl1 = Math.pow(w_e * energy_old_probl + w_q * quality_old_probl, 20);
 
+		
+//		System.out.println(energy_comp_probl+" "+quality_comp_probl);
+//		System.out.println(energy_old_probl+" "+quality_old_probl);
+//		System.out.println();
+		
 		sigma = saw_comp_probl1 + saw_old_probl1;
 
 		double saw_comp_probl = saw_comp_probl1 / sigma;
 		double saw_old_probl = saw_old_probl1 / sigma;
+		
+		
+//		System.out.println(saw_comp_probl1+" "+saw_comp_probl);
+//		System.out.println(energy_old_probl+" "+quality_old_probl);
+//		System.out.println();
 
 		if (saw_comp_probl == saw_old_probl) {
-			return chooseByRandomStrategy(comp, old);
+			// return chooseByRandomStrategy(comp, old);
+			return chooseByLocalEnergyStrategy(comp, old, node);
 		}
 
 		double random = Math.random();

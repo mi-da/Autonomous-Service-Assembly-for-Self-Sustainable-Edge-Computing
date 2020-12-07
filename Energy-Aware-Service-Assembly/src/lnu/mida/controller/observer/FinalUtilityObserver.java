@@ -35,6 +35,9 @@ public class FinalUtilityObserver implements Control {
 	
 	// Network	
 	public static ArrayList<IncrementalStats> networkSize;
+	
+	// Availability	
+	public static ArrayList<IncrementalStats> availability;
 
 	// ///////////////////////////////////////////////////////////////////////
 	// Constructor
@@ -86,6 +89,10 @@ public class FinalUtilityObserver implements Control {
 				// Network
 				IncrementalStats nodesAlive_is = networkSize.get(index);	
 				double nodesAlive = nodesAlive_is.getAverage();
+				
+				// Availability
+				IncrementalStats avail_is = availability.get(index);	
+				double availability = avail_is.getAverage();
 
 				
 				ps.print(n+" ");
@@ -93,7 +100,8 @@ public class FinalUtilityObserver implements Control {
 				ps.print(finalQualityFairness+" ");
 				ps.print(finalEnergy+" ");
 				ps.print(finalEnergyFairness+" ");
-				ps.print(nodesAlive+"\n");
+				ps.print(nodesAlive+" ");
+				ps.print(availability+"\n");
 				
 				n+=1; // learning step
 			}						

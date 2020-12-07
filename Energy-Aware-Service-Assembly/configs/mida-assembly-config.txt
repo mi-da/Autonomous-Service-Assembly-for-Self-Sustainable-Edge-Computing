@@ -2,23 +2,25 @@
 ## Configuration file
 ##
 
-simulation.cycles 6*300
-simulation.experiments 100
+## For battery discharge: N=100 Ty=10 SperNode = 3 Exp=50
+
+simulation.cycles 6*100  # 300
+simulation.experiments 5 # 20
 NETWORK_SIZE 100
 
 SERVICES_PER_NODE 5 #number of services per node
 
-TYPES 10 
+TYPES 10
 
 DEGREE 6
 
-STRATEGY quality_fair  # 6 strategies: 1) emergent, 2) random, 3) greedy, 4) shaerf, 5) local_energy, 5) overall_energy, 6) fair_energy, 7) quality_fair
+STRATEGY random  # 6 strategies: 1) emergent, 2) random, 3) greedy, 4) shaerf, 5) local_energy, 5) overall_energy, 6) fair_energy, 7) quality_fair
 
 M 5 # period of the learner
 
 COMPOSITION_STEPS 6 # the system runs a composition step every 6 simulation cycles
 
-random.seed 1234554322
+random.seed 1234554324
 
 simulation.logtime 1000
 
@@ -175,5 +177,5 @@ control.vivo.threshold 0.0
 control.shf Shuffle
 
 include.init wire loci vivs ci pdi fi
-include.control shf enectr compctr qeC FinalutilC reset idctr
+include.control shf enectr compctr qeC FinalutilC reset idctr failures dynpeer
 include.protocol lnk vivp ca appl

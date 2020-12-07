@@ -257,7 +257,7 @@ public void setCommunicationConsumptionFactor(double ampFactor) {
 // returns individual CPU energy consumption
 public double getConsumedIndividualCPUEnergy(double lambda_CPU) {	
 //	System.out.println("cpu cost "+ lambda_CPU*CPUCost+" "+CPUCost);
-	return lambda_CPU*CPUCost;			
+	return lambda_CPU*CPUCost; // + (CPUCost/10);			
 }
 
 // retursn consumed individual communication energy consumption for sending

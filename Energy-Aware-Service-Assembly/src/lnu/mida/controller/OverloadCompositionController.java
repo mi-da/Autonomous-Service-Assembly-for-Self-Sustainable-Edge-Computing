@@ -90,9 +90,7 @@ public class OverloadCompositionController implements Control {
 		if (CommonState.getIntTime() == 0)
 			return false;
 
-		// get from every node the real quality experienced
-		int notResolved = 0;
-
+		
 		for (int i = 0; i < Network.size(); i++) {
 
 			if (!Network.get(i).isUp()) {
@@ -109,11 +107,12 @@ public class OverloadCompositionController implements Control {
 			
 			
 			for (Service service : services) {
+
+				
 				double experiencedCU = 1;
 
 				if (!service.isFullyResolved()) {
 					experiencedCU = 0;
-					notResolved++;
 				} else {
 
 					Service[] listDepObj = service.getDependencies_obj();
@@ -132,6 +131,11 @@ public class OverloadCompositionController implements Control {
 						if (dep == true) {
 
 							Service depObj = listDepObj[j];
+							
+							if(depObj==null) {
+								experiencedCU = 0;
+								continue;
+							}
 							
 							// should not happen
 							if(service.getType()==depObj.getType()) {
@@ -161,24 +165,12 @@ public class OverloadCompositionController implements Control {
 
 			}
 			
-			// print interacting nodes
-			//System.out.print(node.getID()+" -->");
 		    for (GeneralNode interactingNode : interactingNodes) {
-			
-			//for (int k = 0; k < Network.size(); k++) {
+		    	appl.addEnergyHistoryExperience(interactingNode, Math.min(0,interactingNode.getG()-interactingNode.getR()));
+		    	//appl.addEnergyHistoryExperience(interactingNode, Math.min(interactingNode.getG(),interactingNode.getR())/interactingNode.getR());
+			}	
 
-
-				// GeneralNode interactingNode = (GeneralNode) Network.get(k);
-							
-				// System.out.println("adding experience in "+node.getID()+" for "+interactingNode.getID());
-				 
-		    	//appl.addEnergyHistoryExperience(interactingNode, interactingNode.getG() - interactingNode.getR());
-		    	appl.addEnergyHistoryExperience(interactingNode, Math.min(interactingNode.getG(),interactingNode.getR())/interactingNode.getR());
-			}
-			// System.out.println();			
-
-		}
-			
+		}	
 
 		return false;
 	}
