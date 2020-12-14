@@ -389,7 +389,7 @@ public class Service implements Cleanable {
 	 * unlink a previously linked dependency). Observers are not notified, but the
 	 * changed flag is updated.
 	 */
-	protected void linkDependency(Service o) {
+	public void linkDependency(Service o) {
 		assert (this != o);
 		int t = o.getType();
 		assert (dependencies[t] == true);
@@ -404,7 +404,7 @@ public class Service implements Cleanable {
 	 * must belong to the list of dependencies. Observers are not notified, but the
 	 * changed flag is updated.
 	 */
-	protected void unlinkDependency(Service o) {
+	public void unlinkDependency(Service o) {
 		int t = o.getType();
 		assert (dependencies[t] == true);
 		assert (dependencies_obj[t] == o);
