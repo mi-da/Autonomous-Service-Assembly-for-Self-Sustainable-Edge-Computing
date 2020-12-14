@@ -633,7 +633,7 @@ public class Service implements Cleanable {
 	 * @param neighborService the selected node to talk with.
 	 */
 
-	public void interact(Service neighborService) {
+	public Service interact(Service neighborService) {
 
 //		System.out.println("Servizio "+this.getService_id()+" su Nodo "+this.getNode_id()+" interagisce con servizio "+neighborService.getService_id()+" su nodo "+neighborService.getNode_id());
 
@@ -664,18 +664,8 @@ public class Service implements Cleanable {
 
 			OverloadApplication thisApplication = (OverloadApplication) thisNode.getProtocol(application_assembly_pid);
 //			OverloadComponentAssembly thisAssembly = (OverloadComponentAssembly) thisNode.getProtocol(component_assembly_pid);
-
-			Service old = dependencies_obj[t];
-
-			if (dependencies_obj[t] == null) {
-				linkDependency(comp);
-			} else {
-
-				if (thisApplication.chooseByStrategy(comp, old, thisNode)) {
-					unlinkDependency(old);
-					linkDependency(comp);
-				}
-			}
+			return comp;
+			
 		}
 		if (hasChanged())
 			updateCompoundUtility();
