@@ -670,6 +670,8 @@ public class Service implements Cleanable {
 		if (hasChanged())
 			updateCompoundUtility();
 		notifyObservers();
+				
+		return null;
 	}
 
 	public LinkedList getObservers() {
