@@ -115,6 +115,12 @@ control.compctr.comp_prot ca
 control.compctr.from COMPOSITION_STEPS
 control.compctr.step COMPOSITION_STEPS
 
+control.linkctr lnu.mida.controller.LinkController
+control.linkctr.appl_prot appl
+control.linkctr.comp_prot ca
+control.linkctr.from COMPOSITION_STEPS
+control.linkctr.step COMPOSITION_STEPS
+
 control.reset lnu.mida.controller.OverloadReset
 control.reset.appl_prot appl
 control.reset.comp_prot ca
@@ -177,5 +183,5 @@ control.vivo.threshold 0.0
 control.shf Shuffle
 
 include.init wire loci vivs ci pdi fi
-include.control shf enectr compctr qeC FinalutilC reset idctr failures dynpeer
+include.control shf enectr linkctr compctr qeC FinalutilC reset idctr failures dynpeer
 include.protocol lnk vivp ca appl
