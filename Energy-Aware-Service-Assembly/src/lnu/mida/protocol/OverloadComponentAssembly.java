@@ -57,8 +57,12 @@ public class OverloadComponentAssembly implements CDProtocol, Cleanable {
 	private ArrayList<Service> services;
 	
 	
-	// servizi che il node "scopre"
-
+	/** 
+	 * set of services discovered by the node
+	 */
+	private ArrayList<ArrayList<Service>> candidate_services;
+	
+	
 	/**
 	 * The application protocol id.
 	 * 
@@ -68,6 +72,7 @@ public class OverloadComponentAssembly implements CDProtocol, Cleanable {
 	/** Maximum number of component types */
 	private final int max_types;
 	
+	private int services_per_node;
 
 	/**
 	 * Initialize this object by reading configuration parameters.
@@ -79,6 +84,8 @@ public class OverloadComponentAssembly implements CDProtocol, Cleanable {
 		max_types = Configuration.getInt(prefix + "." + PAR_TYPES, 10);
 		application_pid = Configuration.getPid(prefix + "." + "appl_prot");		
 		services = new ArrayList<Service>();
+		candidate_services = new ArrayList<ArrayList<Service>>();
+		services_per_node = Configuration.getInt("SERVICES_PER_NODE", 0);
 	}
 
 	/**
@@ -114,47 +121,62 @@ public class OverloadComponentAssembly implements CDProtocol, Cleanable {
 	@Override
 	public void nextCycle(Node node, int protocolID) {
 		
-
 		int linkableID = FastConfig.getLinkable(protocolID);
 		Linkable linkable = (Linkable) node.getProtocol(linkableID);
 		
-		
+		Service candidate_service; 
+
 		// Services intereact with the services on the same node
-		for (Service service : services) {			
+		for (Service service : services) {
 			for (Service otherservice : services) {
-				if(otherservice!=service)
-					otherservice.interact(service);
+				if(otherservice!=service) {
+					candidate_service = otherservice.interact(service);
+					if(candidate_service!=null) {
+						int index = (int) otherservice.getService_id()%services_per_node;
+						if(!alreadyAdded(index, candidate_service))
+							candidate_services.get(index).add(candidate_service);
+					}
+				}
 			}
 		}
+				
 
 		for (int i = 0; i < linkable.degree(); ++i) {		
 			
 			Node peer = linkable.getNeighbor(i);
 			
-//			System.out.println("node "+node.getID()+" interacts with node "+peer.getID());
-
 			if (!peer.isUp()) {
 				continue;
 			}
-			
-			OverloadComponentAssembly comp = (OverloadComponentAssembly) peer.getProtocol(protocolID);	
-			
+
+			OverloadComponentAssembly comp = (OverloadComponentAssembly) peer.getProtocol(protocolID);			
 			ArrayList<Service> neighbourServices = comp.getServices();
 					
-			
-			
 			for (Service service : services) {
-							
-				// Interact with services on other Node
+			
+				// Interact with services on other Nodes
 				for (Service neighbourService : neighbourServices) {
-					neighbourService.interact(service);
-				}
-			   
+
+					candidate_service = neighbourService.interact(service);
+					if(candidate_service!=null) {
+						int index = (int) neighbourService.getService_id()%services_per_node;
+						if(!comp.alreadyAdded(index, candidate_service))
+							comp.candidate_services.get(index).add(candidate_service);
+					}
+				}	   
 			}	
-			
-//			System.exit(0);
-			
 		}
+	}
+	
+	
+	public boolean alreadyAdded(int index, Service s) {
+
+		for(int i=0; i<candidate_services.get(index).size(); i++) {
+			Service to_check = candidate_services.get(index).get(i);
+			if(to_check==s)
+				return true;
+		}
+		return false;
 	}
 	
 	
