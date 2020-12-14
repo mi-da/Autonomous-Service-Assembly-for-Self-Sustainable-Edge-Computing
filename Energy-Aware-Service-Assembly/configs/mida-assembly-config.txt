@@ -14,7 +14,7 @@ TYPES 10
 
 DEGREE 6
 
-STRATEGY random  # 6 strategies: 1) emergent, 2) random, 3) greedy, 4) shaerf, 5) local_energy, 5) overall_energy, 6) fair_energy, 7) quality_fair
+STRATEGY random2  # 6 strategies: 1) emergent, 2) random, 3) greedy, 4) shaerf, 5) local_energy, 5) overall_energy, 6) fair_energy, 7) quality_fair
 
 M 5 # period of the learner
 
