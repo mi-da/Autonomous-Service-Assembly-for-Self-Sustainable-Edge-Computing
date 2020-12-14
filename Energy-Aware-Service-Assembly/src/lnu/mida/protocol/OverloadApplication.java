@@ -142,6 +142,24 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 		}
 	}
 
+	
+	public Service chooseByStrategy2(ArrayList<Service> candidates) {
+		// random strategy
+		if (STRATEGY.equals("random2")) {
+			return chooseByRandomStrategy2(candidates);
+		}
+		// exception is raised if a strategy is not selected
+		else {
+			try {
+				throw new Exception("Strategy not selected");
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			System.exit(0);
+			return null;
+		}
+	}
+	
 	// returns true if comp > old
 	private boolean chooseByDefaultStrategy(Service comp, Service old) {
 
@@ -159,6 +177,15 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 		else
 			return false;
 	}
+	
+	
+	// chooses a random component in a set of candidates
+	private Service chooseByRandomStrategy2(ArrayList<Service> candidates) {
+		
+		int index = CommonState.r.nextInt(candidates.size());
+		return candidates.get( index);
+	}
+	
 
 	// returns true if Avg(comp) > Avg(old)
 	private boolean chooseByAverageStrategy(Service comp, Service old) {
@@ -375,7 +402,7 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 			return false;
 	}
 
-	// greedy fair energy strategy (using Shaerf) - select the node with the "best" energy balance - problemi con G - R perchè negativo
+	// greedy fair energy strategy (using Shaerf) - select the node with the "best" energy balance - problemi con G - R perchÃ¨ negativo
 	private boolean chooseByFairEnergyStrategy(Service comp, Service old, GeneralNode node) {
 
 
