@@ -198,5 +198,21 @@ public class OverloadComponentAssembly implements CDProtocol, Cleanable {
 		services = new ArrayList<Service>();
 	}
 
-
+	public ArrayList<ArrayList<Service>> getCandidates() {
+		return candidate_services;
+	}
+	
+	public void setCandidates(ArrayList<ArrayList<Service>> cand) {
+		candidate_services = cand;
+	}
+	
+	
+	public void resetCandidatesList() {
+		ArrayList<ArrayList<Service>> cand = new ArrayList<ArrayList<Service>>();
+	
+		for(Service service : services) {
+			cand.add(new ArrayList<Service>());
+		}
+		setCandidates(cand);
+	}
 }
