@@ -99,7 +99,7 @@ public class OverloadReset implements Control {
 			for (Service service : services) {
 				service.reset();	
 			}
-						
+			ca.resetCandidatesList();			
 		}
 		
 		// Nodes with no battery die
