@@ -212,6 +212,22 @@ public class OverloadComponentInitializer implements Control {
 		
 		// System.exit(0);
     
+		for (int i = 0; i < Network.size(); i++) {
+
+			GeneralNode n = (GeneralNode) Network.get(i);
+			OverloadComponentAssembly ca = (OverloadComponentAssembly) n.getProtocol(component_assembly_pid);
+			OverloadApplication appl = (OverloadApplication) n.getProtocol(application_assembly_pid);
+			
+			ArrayList<ArrayList<Service>> cand = new ArrayList<ArrayList<Service>>();
+			
+			for(int j=0; j < services_per_node; j++) {
+				
+				cand.add(new ArrayList<Service>());
+			}
+			ca.setCandidates(cand);				
+		}
+		
+		
 		return false;
 	}
 
