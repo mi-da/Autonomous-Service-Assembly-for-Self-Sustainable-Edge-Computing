@@ -76,6 +76,7 @@ public class LinkController implements Control {
 						ArrayList<Service> candidates_of_type = new ArrayList<>();
 						int index = (int) service.getService_id()%services_per_node;
 
+						// refactor with new data structure
 						for(int k=0; k<candidates.get(index).size();k++) {
 							if(candidates.get(index).get(k).getType()==j) {
 								candidates_of_type.add(candidates.get(index).get(k));

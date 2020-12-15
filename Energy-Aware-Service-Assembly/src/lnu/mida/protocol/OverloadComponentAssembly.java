@@ -139,6 +139,8 @@ public class OverloadComponentAssembly implements CDProtocol, Cleanable {
 				}
 			}
 		}
+		
+		// print per vedere se sono nodi diversi?
 				
 
 		for (int i = 0; i < linkable.degree(); ++i) {		
