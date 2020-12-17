@@ -83,6 +83,8 @@ public class QualityEnergyObserver implements Control {
 		
 		toResolveAssemblies++;
 		
+		//System.out.println("---- quality energy observer --- ");
+		
 		for (int i = 0; i < Network.size(); i++) {
 
 			GeneralNode node = (GeneralNode) Network.get(i);
@@ -107,7 +109,7 @@ public class QualityEnergyObserver implements Control {
 			double energyBalance = Math.min(0,node.getG()-node.getR());
 			
 			// battery discharge				
-			 node.setBattery(node.getBattery() + node.getG()-node.getR());
+			//node.setBattery(node.getBattery() - node.getR());
 			 
 			 
 			 if(energyBalance<minEn)
@@ -137,7 +139,7 @@ public class QualityEnergyObserver implements Control {
 		IncrementalStats energy_jain_is = FinalUtilityObserver.energy_jain.get(index);
 		
 		// calculates the jain's fairness for energy
-		double energy_jain_fairness =  1 - (2*energy.getStD()/8.5);   // calcola sperimentalmente il minimo che può raggiungere
+		double energy_jain_fairness =  1 - (2*energy.getStD()/8.5);   // calcola sperimentalmente il minimo che puï¿½ raggiungere
 		
 //		System.out.println(minEn);
 		
