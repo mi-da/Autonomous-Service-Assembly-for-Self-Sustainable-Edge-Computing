@@ -85,7 +85,6 @@ public class OverloadComponentAssembly implements CDProtocol, Cleanable {
 		max_types = Configuration.getInt(prefix + "." + PAR_TYPES, 10);
 		application_pid = Configuration.getPid(prefix + "." + "appl_prot");		
 		services = new ArrayList<Service>();
-		//candidate_services = new CandidateServices();
 	}
 
 	/**
@@ -133,15 +132,7 @@ public class OverloadComponentAssembly implements CDProtocol, Cleanable {
 				if(otherservice!=service) {
 					candidate = otherservice.interact(service);
 					if(candidate!=null) {
-						
-						// perchè???????????????
-						if(candidate_services==null) {
-							//resetCandidateServices();
-						}
 						candidate_services.addCandidateService(candidate);
-						//if(node.getID()==0&&node.isUp())
-						//	System.out.println("servizio aggiunto: " + candidate.getService_id() + "  type : " + candidate.getType());
-						
 					}
 				}
 			}
@@ -150,13 +141,7 @@ public class OverloadComponentAssembly implements CDProtocol, Cleanable {
 		for (int i = 0; i < linkable.degree(); ++i) {		
 			
 			Node peer = linkable.getNeighbor(i);
-			
-			//System.out.println("node "+node.getID()+" interacts with node "+peer.getID());
 
-			//if(node.getID()==0&&node.isUp())
-			//	System.out.println("peer: " + peer.getID());
-
-			
 			if (!peer.isUp()) {
 				continue;
 			}
@@ -164,24 +149,14 @@ public class OverloadComponentAssembly implements CDProtocol, Cleanable {
 			OverloadComponentAssembly comp = (OverloadComponentAssembly) peer.getProtocol(protocolID);	
 			
 			ArrayList<Service> neighbourServices = comp.getServices();
-					
-			
-			
+								
 			for (Service service : services) {
 							
 				// Interact with services on other Node
 				for (Service neighbourService : neighbourServices) {
 					candidate = neighbourService.interact(service);
 					if(candidate!=null) {
-						
-						// perchè???????????????
-						if(comp.getCandidateServices()==null) {
-							//comp.resetCandidateServices();
-						}
 						comp.getCandidateServices().addCandidateService(candidate);
-						GeneralNode n2 = GeneralNode.getNode(neighbourService.getNode_id());
-						//if(n2.getID()==0&&n2.isUp())
-							//System.out.println("servizio aggiunto: " + candidate.getService_id() + "  type : " + candidate.getType());						
 					}
 				}
 			   
