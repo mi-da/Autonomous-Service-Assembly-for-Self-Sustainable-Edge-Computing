@@ -20,12 +20,15 @@ package lnu.mida.controller;
 
 import java.util.ArrayList;
 
+import lnu.mida.controller.init.OverloadFileInitializer;
 import lnu.mida.entity.*;
 import lnu.mida.entity.GeneralNode;
 import lnu.mida.protocol.OverloadApplication;
 import lnu.mida.protocol.OverloadComponentAssembly;
+import peersim.cdsim.CDState;
 import peersim.config.*;
 import peersim.core.*;
+import java.io.PrintStream;
 
 
 /**
@@ -60,6 +63,9 @@ public class OverloadReset implements Control {
 	private final int	component_assembly_pid;
 	private final int	application_pid;
 
+	private int original_network_size;
+	private int current_network_size;
+
 	// ///////////////////////////////////////////////////////////////////////
 	// Constructor
 	// ///////////////////////////////////////////////////////////////////////
@@ -75,6 +81,7 @@ public class OverloadReset implements Control {
 		this.name = name;
 		component_assembly_pid = Configuration.getPid(name + "." + COMP_PROT);
 		application_pid = Configuration.getPid(name + "." + APPL_PROT);
+		original_network_size = current_network_size = Configuration.getInt("NETWORK_SIZE",1);
 
 	}
 
@@ -87,30 +94,86 @@ public class OverloadReset implements Control {
 		
 		//System.err.println("-------- RESET CONTROLLER --------");
 		
-				
 		// reset the dependencies for the new round of composition
 		for (int i = 0; i < Network.size(); i++) {	
 			
 			GeneralNode n = (GeneralNode) Network.get(i);		
 			OverloadComponentAssembly ca = (OverloadComponentAssembly) n.getProtocol(component_assembly_pid);		
-			OverloadApplication appl = (OverloadApplication)  n.getProtocol(application_pid);	
+			
 			// reset the services
 			ArrayList<Service> services = ca.getServices();
+			
 			for (Service service : services) {
-				service.reset();	
+				
+				service.resetLinkNum();
+
+				Service[] listDepObj = service.getDependencies_obj();
+				boolean[] listDep = service.getDependencies();
+				
+				for (int j = 0; j < listDep.length; j++) {
+					
+					boolean dep = listDep[j];
+					if (dep == true) {
+
+						Service depObj = listDepObj[j];
+						if(depObj!=null)
+							depObj.addLinkNum();
+					}
+				}
+				service.reset();
+
 			}
-			ca.resetCandidatesList();			
+						
 		}
 		
+		PrintStream ps_first = OverloadFileInitializer.getPs_first();
+		PrintStream ps_last = OverloadFileInitializer.getPs_last();
+		
+		ArrayList<Node> to_remove = new ArrayList<Node>();
+		
 		// Nodes with no battery die
-//		for (int i = 0; i < Network.size(); i++) {	
-//			GeneralNode n = (GeneralNode) Network.get(i);
-//			if(n.getBattery()<0)
-//				Network.remove(i);
-//		}
-//		
+		for (int i = 0; i < Network.size(); i++) {	
+			
+			GeneralNode n = (GeneralNode) Network.get(i);
 
-//		System.out.println("Network size="+Network.size());
+			if(n.getBattery()<0) {				
+				
+				if(current_network_size==original_network_size) {
+					System.out.println("T_all");
+					ps_first.print(CDState.getCycle()+"\n");
+				}
+				if(current_network_size==1) {
+					System.out.println("T_one");
+					ps_last.print(CDState.getCycle()+"\n");
+				}
+
+				to_remove.add(Network.get(i));
+				current_network_size--;
+			}
+		}
+
+
+		for(int j=0; j<to_remove.size(); j++) {
+			Node to_del = to_remove.get(j);
+			long id_to_del = to_del.getID();
+			
+			for (int i = 0; i < Network.size(); i++) {
+				if(Network.get(i).getID()==id_to_del)
+					Network.remove(i);
+			}
+		}
+		
+		
+		for (int i = 0; i < Network.size(); i++) {
+			
+			GeneralNode n = (GeneralNode) Network.get(i);		
+			OverloadComponentAssembly ca = (OverloadComponentAssembly) n.getProtocol(component_assembly_pid);		
+
+			CandidateServices cand = new CandidateServices();
+			cand.resetCandidateLists();
+			ca.setCandidateServices(cand);
+		}
+		
 		
 		return false;
 	}
