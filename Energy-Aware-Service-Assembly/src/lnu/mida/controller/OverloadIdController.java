@@ -46,6 +46,12 @@ public class OverloadIdController implements Control {
 						
 		}
 		
+		if(Network.size()>0) {
+			PrintStream ps_last = OverloadFileInitializer.getPs_last();
+			ps_last.print(CDState.getCycle()+"\n");
+			System.out.println("T_one");
+		}
+		
 	   Service.counterID=0;
 	   GeneralNode.counterID=-1;
 	   return false;
