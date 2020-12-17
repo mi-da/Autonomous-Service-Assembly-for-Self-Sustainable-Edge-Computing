@@ -225,7 +225,11 @@ public class EnergyController implements Control {
 			node.setR(R);
 			
 			// battery discharge				
-			node.setBattery(node.getBattery() - (node.getG() - node.getR()));
+			node.setBattery(node.getBattery() - node.getR());
+			
+			// residual life
+			node.setResidualLife(node.getBattery()/node.getR());
+
 
 		}
 		return false;
