@@ -156,21 +156,8 @@ public class NewCycleInitController implements Control {
 		
 		for(int l=0; l<g; l++) {
 			double index = latency_array.get(l).get(1);
-			//System.out.println("\n index =  " + index + "    node = " + Network.get((int) index).getID());
-
 			n.addPeerSet(Network.get((int) index));
 		}
-		
-		/*
-		System.out.println("\n sorted array: ");
-		System.out.println(prova_array);
-
-		
-		System.out.println("\n\n peerset: ");
-		for(int d=0; d<n.getPeerSetSize(); d++) {
-			System.out.println(n.getPeerSet().get(d).getID());
-		}
-		*/
 	}
 			 
 			
@@ -210,10 +197,7 @@ public class NewCycleInitController implements Control {
 	//System.out.println("\n\n new: ");
 	for(int l=residual_life_array.size()-1; l>residual_life_array.size()-g-1; l--) {
 		double index = residual_life_array.get(l).get(1);
-		//System.out.println("\n index =  " + index + "    node = " + Network.get((int) index).getID());
 		((GeneralNode) Network.get((int) index)).setBestNode(true);
-		//System.out.println(((GeneralNode) Network.get((int) index)).getID());
-
 	}
 		return false;
 	}
