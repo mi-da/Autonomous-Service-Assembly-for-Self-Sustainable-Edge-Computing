@@ -18,7 +18,9 @@
 package lnu.mida.controller.init;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 
+import lnu.mida.entity.CandidateServices;
 import lnu.mida.entity.EnergyReputation;
 //import com.sun.tools.javac.util.ArrayUtils;
 import lnu.mida.entity.GeneralNode;
@@ -105,6 +107,11 @@ public class OverloadComponentInitializer implements Control {
 			appl.reset();
 			ca.reset();
 
+			CandidateServices cs = new CandidateServices();
+			cs.resetCandidateLists();
+			cs.node_id = (int) n.getID();
+			ca.setCandidateServices(cs);
+			
 			// Initialize the number of services with max_types
 			for (int j = 0; j < services_per_node; j++) {
 
@@ -116,7 +123,7 @@ public class OverloadComponentInitializer implements Control {
 				
 				s.setType(randomType);
 				s.setNode_id((int) n.getID());
-				        
+				//System.out.println(randomType);
 
 				// sigma: type 0 get requests from external users
 				if (randomType == 0) {
@@ -212,20 +219,7 @@ public class OverloadComponentInitializer implements Control {
 		
 		// System.exit(0);
     
-		for (int i = 0; i < Network.size(); i++) {
-
-			GeneralNode n = (GeneralNode) Network.get(i);
-			OverloadComponentAssembly ca = (OverloadComponentAssembly) n.getProtocol(component_assembly_pid);
-			OverloadApplication appl = (OverloadApplication) n.getProtocol(application_assembly_pid);
-			
-			ArrayList<ArrayList<Service>> cand = new ArrayList<ArrayList<Service>>();
-			
-			for(int j=0; j < services_per_node; j++) {
-				
-				cand.add(new ArrayList<Service>());
-			}
-			ca.setCandidates(cand);				
-		}
+		
 		
 		
 		return false;
