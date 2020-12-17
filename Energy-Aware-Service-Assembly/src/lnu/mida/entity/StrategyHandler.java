@@ -67,7 +67,7 @@ public class StrategyHandler {
 		return candidates.get( index);
 	}
 	
-	
+	// choose the candidate hosted by the node with greater residual life
 	private Service chooseByResidualLifeStrategy(LinkedList<Service> candidates) {
 		double max = 0;
 		Service res = null;
@@ -84,7 +84,7 @@ public class StrategyHandler {
 		return res;
 	}
 	
-	
+	// choose the candidate hosted by the node with least residual life
 	private Service chooseByReverseResidualLifeStrategy(LinkedList<Service> candidates) {
 		double min = Double.MAX_VALUE;
 		Service res = null;
@@ -101,7 +101,7 @@ public class StrategyHandler {
 		return res;
 	}
 	
-	
+	//choose a service hosted by a 'best' node iff the requester is privileged
 	private Service chooseByLatencySetStrategy(LinkedList<Service> candidates, GeneralNode node) {
 		double max = 0;
 		double max_best = 0;
@@ -134,7 +134,7 @@ public class StrategyHandler {
 	}
 	
 	
-	// RICONTROLLARE!!!!!!!!!!!!
+	// random weighted strategy
 	private Service chooseByRandomSelect1Strategy(LinkedList<Service> candidates) {
 		
 		// Compute the total weight of all items together.
@@ -153,7 +153,7 @@ public class StrategyHandler {
 		return candidates.get(idx);	
 	}
 	
-	
+	// choose the candidate with least links numbeer
 	private Service chooseByLinkNumStrategy(LinkedList<Service> candidates) {
 		double min = Double.MAX_VALUE;
 		Service res = null;
@@ -172,7 +172,7 @@ public class StrategyHandler {
 	
 	
 	private Service chooseByEvolutionaryGameStrategy(LinkedList<Service> candidates) {
-		//???????????????
+		// TO DO
 		return null;
 	}
 	
