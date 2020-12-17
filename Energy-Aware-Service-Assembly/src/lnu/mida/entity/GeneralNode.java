@@ -1,5 +1,7 @@
 package lnu.mida.entity;
 
+import java.util.ArrayList;
+
 import com.lajv.location.Location;
 
 import peersim.config.*;
@@ -61,8 +63,17 @@ private double G;
 // consumption rate of the node
 private double R;
 
-// battery 
+//battery 
 private double Battery;
+
+//residual time of the battery
+private double residual_life;
+
+//set of the k nearest nodes 
+private ArrayList<Node> peer_set;
+
+//true if this is a "best node"
+private boolean best_node;
 
 
 // Receiving costs 1 unit of energy = Eelect
@@ -304,7 +315,49 @@ public void setR(double r) {
 	R = r;
 }
 
+public double getResidualLife() {
+	return residual_life;
+}
 
+
+public void setResidualLife(double val) {
+	residual_life = val;
+}
+
+
+
+public ArrayList<Node> getPeerSet() {
+	return peer_set;
+}
+
+public void addPeerSet(Node node) {
+	peer_set.add(node);
+}
+
+public int getPeerSetSize() {
+	return peer_set.size();
+}
+
+public void resetPeerSet() {
+	peer_set = new ArrayList<Node>();
+}
+
+public boolean inPeerSet(Node node) {
+	
+	for(int i=0; i<peer_set.size(); i++) {
+		if(node==peer_set.get(i))
+			return true;
+	}
+	return false;
+}
+
+public boolean getBestNode() {
+	return best_node;
+}
+
+public void setBestNode(boolean b) {
+	best_node = b;
+}
 
 }
 
