@@ -44,7 +44,7 @@ public class StrategyHandler {
 		}
 		
 		if (STRATEGY.equals("evolutionary_game")) {
-			return chooseByEvolutionaryGameStrategy(candidates);
+			return chooseByEvolutionaryGameStrategy(candidates,node);
 		}
 		// exception is raised if a strategy is not selected
 		else {
