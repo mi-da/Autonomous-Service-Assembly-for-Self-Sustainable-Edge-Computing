@@ -74,10 +74,8 @@ public class LinkController implements Control {
 							continue;
 						
 						Service to_link = handler.chooseByStrategy(candidates.getCandidateServices(j), node);
-						if(to_link==null)
-							return false;
-
-						service.addLink(to_link);						
+						if(to_link!=null)
+							service.addLink(to_link);						
 					}
 				}
 				
