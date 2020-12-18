@@ -171,9 +171,26 @@ public class StrategyHandler {
 	
 	
 	
-	private Service chooseByEvolutionaryGameStrategy(LinkedList<Service> candidates) {
-		// TO DO
-		return null;
+	
+	private Service chooseByEvolutionaryGameStrategy(LinkedList<Service> candidates, GeneralNode node) {
+		
+		Service candidate = null;
+		
+		for(int i=0; i<candidates.size(); i++) {
+			GeneralNode n = GeneralNode.getNode(candidates.get(i).getNode_id());
+			if(n.getResidualLife()>node.getResidualLife()) {
+				candidate = candidates.get(i);
+				
+				if(node.getResidualLife()<candidates.get(i).getPayoff()) {
+					double abs = Math.abs((node.getResidualLife() - candidate.getPayoff())/candidate.getPayoff());
+					if(CommonState.r.nextDouble()<abs)
+						return candidate;
+				}
+
+			}
+		}
+			
+		return candidate;
 	}
 	
 }
