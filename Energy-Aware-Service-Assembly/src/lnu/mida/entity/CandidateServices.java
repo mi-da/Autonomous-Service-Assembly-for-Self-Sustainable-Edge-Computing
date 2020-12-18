@@ -94,5 +94,9 @@ public class CandidateServices {
 			}
 		}
 	}
+	
+	public long getListSize(int type) {
+		return candidate_lists[type].size();
+	}
 
 }
