@@ -123,6 +123,11 @@ public class Service implements Cleanable {
 	// overall load addressed to S;
 	private double lambda_t;
 
+	private double weight;
+	private double payoff;
+	
+	private int link_num;
+	
 	/**
 	 * Initialize this object by reading configuration parameters.
 	 * 
@@ -397,22 +402,50 @@ public class Service implements Cleanable {
 		dependencies_obj[t] = o;
 		o.addObserver(this);
 		setChanged();
+		
+		//if(this.getNode_id()==1) 
+		//System.out.println("\n in linkdep del servizio " + this.getService_id() + "    dep agiiunta :  " + dependencies_obj[t].getService_id());
 	}
 
+	
+	
 	/**
 	 * Unlink (remove) a previously linked dependency on component o. Component o
 	 * must belong to the list of dependencies. Observers are not notified, but the
 	 * changed flag is updated.
 	 */
-	protected void unlinkDependency(Service o) {
+	public void unlinkDependency(Service o) {
 		int t = o.getType();
 		assert (dependencies[t] == true);
 		assert (dependencies_obj[t] == o);
 		o.deleteObserver(this);
 		dependencies_obj[t] = null;
 		setChanged();
+		
+		//if(this.getNode_id()==1) 
+		//System.out.println("\n in unlinkdep " + o.getService_id());
+
 	}
 
+	
+	public void addLink(Service s) {
+		int t = s.getType();
+		
+		if(dependencies_obj[t]==null) {
+			linkDependency(s);
+		}else {
+			unlinkDependency(dependencies_obj[t]);
+			linkDependency(s);
+		}
+	}
+	
+	public void printDep(int type) {
+		if(dependencies_obj[type]==null)
+			System.out.println("null");
+		else
+			System.out.println("\n dep del servizio " + this.getService_id() + "     :  " + dependencies_obj[type].getService_id());
+	}
+	
 	/**
 	 * Append all references to dependency objects to the list dep
 	 */
@@ -633,9 +666,7 @@ public class Service implements Cleanable {
 	 * @param neighborService the selected node to talk with.
 	 */
 
-	public void interact(Service neighborService) {
-
-//		System.out.println("Servizio "+this.getService_id()+" su Nodo "+this.getNode_id()+" interagisce con servizio "+neighborService.getService_id()+" su nodo "+neighborService.getNode_id());
+	public Service interact(Service neighborService) {
 
 		assert (this != neighborService);
 
@@ -643,7 +674,7 @@ public class Service implements Cleanable {
 		List comp_list = new LinkedList();
 		neighborService.fillDependencies(comp_list);
 		comp_list.add(neighborService);
-
+		
 		Iterator it = comp_list.iterator();
 
 		while (it.hasNext()) {
@@ -659,27 +690,15 @@ public class Service implements Cleanable {
 
 			if (dependencies[t] == false) // if have dependency to resolve and i want it to resolve (alfa>x)
 				continue; // we do not have a dependency on component type t
-
-			GeneralNode thisNode = GeneralNode.getNode(this.getNode_id());
-
-			OverloadApplication thisApplication = (OverloadApplication) thisNode.getProtocol(application_assembly_pid);
-//			OverloadComponentAssembly thisAssembly = (OverloadComponentAssembly) thisNode.getProtocol(component_assembly_pid);
-
-			Service old = dependencies_obj[t];
-
-			if (dependencies_obj[t] == null) {
-				linkDependency(comp);
-			} else {
-
-				if (thisApplication.chooseByStrategy(comp, old, thisNode)) {
-					unlinkDependency(old);
-					linkDependency(comp);
-				}
-			}
+			
+			return comp;
+			
 		}
 		if (hasChanged())
 			updateCompoundUtility();
 		notifyObservers();
+		
+		return null;
 	}
 
 	public LinkedList getObservers() {
@@ -869,5 +888,37 @@ public class Service implements Cleanable {
 	public void setI_comm_lambda(double i_comm_lambda) {
 		I_comm_lambda = i_comm_lambda;
 	}
+
+	public double getWeight() {
+		return weight;
+	}
+	
+	public void setWeight(double val) {
+		weight = val;
+	}
+
+	public int getLinkNum() {
+		return link_num;
+	}
+	
+	public void addLinkNum() {
+		link_num++;
+	}
+	
+	public void delLinkNum() {
+		link_num--;
+	}
+	
+	public void resetLinkNum() {
+		link_num=0;
+	}
+		public double getPayoff() {
+		return payoff;
+	}
+	
+	public void setPayoff(double val) {
+		payoff = val;
+	}
+	
 
 }
