@@ -14,7 +14,7 @@ TYPES 10
 
 DEGREE 6
 
-STRATEGY random  # 6 strategies: 1) emergent, 2) random, 3) greedy, 4) shaerf, 5) local_energy, 5) overall_energy, 6) fair_energy, 7) quality_fair
+STRATEGY latency_set  # 6 strategies: 1) emergent, 2) random, 3) greedy, 4) shaerf, 5) local_energy, 5) overall_energy, 6) fair_energy, 7) quality_fair
 
 M 5 # period of the learner
 
@@ -190,5 +190,7 @@ control.shf Shuffle
 
 include.init wire loci vivs ci pdi fi
 #include.control shf enectr linkctr compctr qeC FinalutilC reset newcycle idctr failures dynpeer
+#include.control shf linkctr enectr compctr qeC FinalutilC reset newcycle idctr failures dynpeer
+#include.control shf linkctr enectr compctr qeC FinalutilC reset newcycle idctr failures 
 include.control shf linkctr enectr compctr qeC FinalutilC reset newcycle idctr
 include.protocol lnk vivp ca appl
