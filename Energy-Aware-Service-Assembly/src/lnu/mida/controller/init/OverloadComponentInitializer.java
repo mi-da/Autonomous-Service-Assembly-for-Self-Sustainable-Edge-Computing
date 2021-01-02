@@ -18,7 +18,9 @@
 package lnu.mida.controller.init;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 
+import lnu.mida.entity.CandidateServices;
 import lnu.mida.entity.EnergyReputation;
 //import com.sun.tools.javac.util.ArrayUtils;
 import lnu.mida.entity.GeneralNode;
@@ -94,7 +96,7 @@ public class OverloadComponentInitializer implements Control {
 			availableTypes.add(max_services_per_type);
 		}
 		
-
+		
 		for (int i = 0; i < Network.size(); i++) {
 
 
@@ -105,6 +107,9 @@ public class OverloadComponentInitializer implements Control {
 			appl.reset();
 			ca.reset();
 
+			ArrayList<Integer> new_list = new ArrayList<Integer>();
+			n.setMTBF(new_list);
+			
 			// Initialize the number of services with max_types
 			for (int j = 0; j < services_per_node; j++) {
 
@@ -116,7 +121,7 @@ public class OverloadComponentInitializer implements Control {
 				
 				s.setType(randomType);
 				s.setNode_id((int) n.getID());
-				        
+				//System.out.println(randomType);
 
 				// sigma: type 0 get requests from external users
 				if (randomType == 0) {
@@ -165,8 +170,15 @@ public class OverloadComponentInitializer implements Control {
 			
 			
 	        // set the Battery 
-			n.setBattery(70);
+			//n.setBattery(70);
 			
+			int max = 70;
+			int min = 70;
+			
+			double capacity = (double) min + (max - min) * CommonState.r.nextDouble();
+			n.setBattery(capacity);
+			n.setCapacity(capacity);
+			//System.out.println(n.getBattery());
 
 			n.setCPUConsumptionFactor(0.5+(1.5*CommonState.r.nextDouble()));
 			n.setCommunicationConsumptionFactor(0.5+(1.5*CommonState.r.nextDouble()));
@@ -185,6 +197,7 @@ public class OverloadComponentInitializer implements Control {
 
 		}
 		
+
 		// Prints nodes and services allocation
 //		for (int i = 0; i < Network.size(); i++) {
 //
@@ -212,6 +225,9 @@ public class OverloadComponentInitializer implements Control {
 		
 		// System.exit(0);
     
+		
+		
+		
 		return false;
 	}
 
