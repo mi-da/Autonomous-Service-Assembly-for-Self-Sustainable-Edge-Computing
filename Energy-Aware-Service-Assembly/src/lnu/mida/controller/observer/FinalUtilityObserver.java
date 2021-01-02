@@ -39,6 +39,16 @@ public class FinalUtilityObserver implements Control {
 	// Availability	
 	public static ArrayList<IncrementalStats> availability;
 
+	// numero medio di cicli in cui un nodo è attivo
+	public static int total_up;
+	//numero medio di cicli in cui un nodo è inattivo
+	public static int total_down;
+	
+	//numero di cicli in cui tutti i nodi sono attivi
+	public static int t_all_cycles;
+	//numero di cicli in cui almeno un nodo è inattivo
+	public static int d_one_cycles;
+	
 	// ///////////////////////////////////////////////////////////////////////
 	// Constructor
 	// ///////////////////////////////////////////////////////////////////////
@@ -66,6 +76,21 @@ public class FinalUtilityObserver implements Control {
 		
 		// print data from last experiment
 		if(exp_number==total_exps) {
+			
+			System.out.println("********** total up *********");
+			System.out.println("\n         " + total_up/total_exps);
+			
+			System.out.println("********** total down *********");
+			System.out.println("\n         " + total_down/total_exps);
+
+			System.out.println("\n\n\n\n");
+			System.out.println("********** t_all_cycles *********");
+			System.out.println("\n         " + t_all_cycles/total_exps);
+
+			System.out.println("********** d_one_cycles *********");
+			System.out.println("\n         " + d_one_cycles/total_exps);
+
+			
 			
 			PrintStream ps = OverloadFileInitializer.getPs_final();
 			
