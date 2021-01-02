@@ -414,7 +414,7 @@ public class Service implements Cleanable {
 	 * must belong to the list of dependencies. Observers are not notified, but the
 	 * changed flag is updated.
 	 */
-	protected void unlinkDependency(Service o) {
+	public void unlinkDependency(Service o) {
 		int t = o.getType();
 		assert (dependencies[t] == true);
 		assert (dependencies_obj[t] == o);
