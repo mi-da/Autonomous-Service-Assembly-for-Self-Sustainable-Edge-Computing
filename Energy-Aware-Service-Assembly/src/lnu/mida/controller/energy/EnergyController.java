@@ -93,14 +93,15 @@ public class EnergyController implements Control {
 	@Override
 	public boolean execute() {
 
+		//System.out.println("--- energy controller ---");
+
 		// non calcolo al round 0 (nessun bind)
 		if (CommonState.getIntTime() == 0)
 			return false;
 
 		int notResolved = 0;
 
-		// For every service in a node calculates the individual energy comsumption
-
+		// For every service in a node calculates the individual energy comsumption		
 		for (int i = 0; i < Network.size(); i++) {
 
 			if (!Network.get(i).isUp()) {
@@ -121,7 +122,7 @@ public class EnergyController implements Control {
 			for (Service service : services) {
 							
 				service.updateLambdaTot();
-				
+
 				if (!service.isFullyResolved()) {
 					continue;
 				} else {
@@ -151,7 +152,7 @@ public class EnergyController implements Control {
 						if (dep == true) {
 
 							Service depObj = listDepObj[j];
-
+							//System.out.println(" link tra service " + service.getService_id() + " - " + depObj.getService_id());
 							GeneralNode receiverNode = GeneralNode.getNode(depObj.getNode_id());
 
 							/**
@@ -224,10 +225,27 @@ public class EnergyController implements Control {
 			// set the energy consumption rate of node
 			node.setR(R);
 			
-			// battery discharge				
-			node.setBattery(node.getBattery() - (node.getG() - node.getR()));
+			// se R>G la batteria si scarica
+			if(R>node.getG())
+				node.setBattery(node.getBattery() - ( node.getR() - node.getG() ));
+
+			// se R<G la batteria si carica
+			if(R<node.getG())
+				node.setBattery(node.getBattery() + ( node.getG() - node.getR() ));
+	
+			// residual life
+			node.setResidualLife(node.getBattery()/node.getR());
 
 		}
+		
+		// se il nodo è inattivo la batteria continua a caricarsi
+		for (int i = 0; i < Network.size(); i++) {
+			GeneralNode node = (GeneralNode) Network.get(i);
+			if(node.getFailState()==2) {
+				node.setBattery(node.getBattery() + node.getG());
+			}
+		}
+		
 		return false;
 	}
 
