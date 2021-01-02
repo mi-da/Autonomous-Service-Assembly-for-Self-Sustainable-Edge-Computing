@@ -3,6 +3,7 @@ package lnu.mida.controller.dynamic;
 import java.util.ArrayList;
 
 import lnu.mida.entity.GeneralNode;
+import lnu.mida.entity.NetworkStatusManager;
 import lnu.mida.entity.Service;
 import lnu.mida.protocol.OverloadApplication;
 import lnu.mida.protocol.OverloadComponentAssembly;
