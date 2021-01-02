@@ -116,8 +116,7 @@ public class OverloadReset implements Control {
 							depObj.addLinkNum();
 					}
 				}
-				service.reset();
-
+				ca.resetCandidateServices();
 			}
 						
 		}
