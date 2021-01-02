@@ -1,5 +1,8 @@
 package lnu.mida.entity;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.lajv.location.Location;
 
 import peersim.config.*;
@@ -61,9 +64,32 @@ private double G;
 // consumption rate of the node
 private double R;
 
-// battery 
+//battery 
 private double Battery;
 
+//initial capacity 
+private double capacity;
+
+//residual time of the battery
+private double residual_life;
+
+//set of the k nearest nodes 
+private ArrayList<Node> peer_set;
+
+//true if this is a "best node"
+private boolean best_node;
+
+//cycle of last failure
+private int last_failure;
+
+//keeps all times between failures
+private List<Integer> mtbf;
+
+// cycles in which the node is up
+private int up_cycles;
+
+//cycles in which the node is down
+private int down_cycles;
 
 // Receiving costs 1 unit of energy = Eelect
 private double Eelect = 0.02;
@@ -294,6 +320,14 @@ public void setBattery(double battery) {
 	Battery = battery;
 }
 
+public double getCapacity() {
+	return capacity;
+}
+
+public void setCapacity(double val) {
+	capacity = val;
+}
+
 
 public double getR() {
 	return R;
@@ -304,8 +338,91 @@ public void setR(double r) {
 	R = r;
 }
 
+public double getResidualLife() {
+	return residual_life;
+}
 
 
+public void setResidualLife(double val) {
+	residual_life = val;
+}
+
+
+
+public ArrayList<Node> getPeerSet() {
+	return peer_set;
+}
+
+public void addPeerSet(Node node) {
+	peer_set.add(node);
+}
+
+public int getPeerSetSize() {
+	return peer_set.size();
+}
+
+public void resetPeerSet() {
+	peer_set = new ArrayList<Node>();
+}
+
+public boolean inPeerSet(Node node) {
+	
+	for(int i=0; i<peer_set.size(); i++) {
+		if(node==peer_set.get(i))
+			return true;
+	}
+	return false;
+}
+
+public boolean getBestNode() {
+	return best_node;
+}
+
+public void setBestNode(boolean b) {
+	best_node = b;
+}
+
+
+public int getLastFailure() {
+	return last_failure;
+}
+
+public void setLastFailure(int f) {
+	last_failure = f;
+}
+
+
+public List<Integer> getMTBF() {
+	return mtbf;
+}
+
+public void setMTBF(List<Integer> m) {
+	this.mtbf = m;
+}
+
+public void addMTBF(int m) {
+	mtbf.add(m);
+}
+
+public void printMTBF() {
+	System.out.println(mtbf);
+}
+
+public int getUpCycles() {
+	return up_cycles;
+}
+
+public int getDownCycles() {
+	return down_cycles;
+}
+
+public void addUpCycles(int val) {
+	up_cycles = up_cycles+val;
+}
+
+public void addDownCycle(int val) {
+	down_cycles = down_cycles + val;;
+}
 }
 
 
