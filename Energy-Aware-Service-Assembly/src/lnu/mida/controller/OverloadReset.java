@@ -63,8 +63,6 @@ public class OverloadReset implements Control {
 	private final int	component_assembly_pid;
 	private final int	application_pid;
 
-	private int original_network_size;
-	private int current_network_size;
 
 	// ///////////////////////////////////////////////////////////////////////
 	// Constructor
@@ -81,8 +79,6 @@ public class OverloadReset implements Control {
 		this.name = name;
 		component_assembly_pid = Configuration.getPid(name + "." + COMP_PROT);
 		application_pid = Configuration.getPid(name + "." + APPL_PROT);
-		original_network_size = current_network_size = Configuration.getInt("NETWORK_SIZE",1);
-
 	}
 
 	// ///////////////////////////////////////////////////////////////////////
@@ -126,29 +122,17 @@ public class OverloadReset implements Control {
 						
 		}
 		
-		PrintStream ps_first = OverloadFileInitializer.getPs_first();
-		PrintStream ps_last = OverloadFileInitializer.getPs_last();
-		
+
 		ArrayList<Node> to_remove = new ArrayList<Node>();
 		
 		// Nodes with no battery die
 		for (int i = 0; i < Network.size(); i++) {	
 			
 			GeneralNode n = (GeneralNode) Network.get(i);
+			OverloadComponentAssembly ca = (OverloadComponentAssembly) n.getProtocol(component_assembly_pid);		
 
 			if(n.getBattery()<0) {				
-				
-				if(current_network_size==original_network_size) {
-					System.out.println("T_all");
-					ps_first.print(CDState.getCycle()+"\n");
-				}
-				if(current_network_size==1) {
-					System.out.println("T_one");
-					ps_last.print(CDState.getCycle()+"\n");
-				}
-
 				to_remove.add(Network.get(i));
-				current_network_size--;
 			}
 		}
 
@@ -158,23 +142,64 @@ public class OverloadReset implements Control {
 			long id_to_del = to_del.getID();
 			
 			for (int i = 0; i < Network.size(); i++) {
-				if(Network.get(i).getID()==id_to_del)
+				if(Network.get(i).getID()==id_to_del) {
+					// si rimuovono tutte le dipendenze
+					remove_links(i);
+					NetworkStatusManager man = new NetworkStatusManager();
+					man.printStatus();
 					Network.remove(i);
+				}
 			}
 		}
 		
 		
-		for (int i = 0; i < Network.size(); i++) {
-			
-			GeneralNode n = (GeneralNode) Network.get(i);		
-			OverloadComponentAssembly ca = (OverloadComponentAssembly) n.getProtocol(component_assembly_pid);		
-
-			CandidateServices cand = new CandidateServices();
-			cand.resetCandidateLists();
-			ca.setCandidateServices(cand);
-		}
-		
-		
 		return false;
+	}
+	
+	
+	
+	public void remove_links(int node_index) {
+		
+		GeneralNode n = (GeneralNode) Network.get(node_index);		
+		OverloadComponentAssembly ca = (OverloadComponentAssembly) n.getProtocol(component_assembly_pid);		
+		
+		ArrayList<Service> services_to_del = ca.getServices();
+		for (Service service2 : services_to_del) {
+			service2.reset();
+		}				
+
+		for (int i = 0; i < Network.size(); i++) {
+			GeneralNode node_to_check = (GeneralNode) Network.get(i);		
+						
+			OverloadComponentAssembly ca_to_check = (OverloadComponentAssembly) node_to_check.getProtocol(component_assembly_pid);		
+			ArrayList<Service> services_to_check = ca_to_check.getServices();
+
+			for (Service service : services_to_check) {
+				Service[] listDepObj = service.getDependencies_obj();
+				boolean[] listDep = service.getDependencies();
+				
+				if(listDepObj==null)
+					continue;
+				
+				for (int j = 0; j < listDep.length; j++) {
+					
+					boolean dep = listDep[j];
+					if (dep == true) {
+						Service depObj = listDepObj[j];
+
+						if(depObj==null)
+							continue;
+						
+						for (Service s : services_to_del) {
+							if(depObj==s)
+								service.unlinkDependency(s);
+						
+						}
+					}
+				}
+			}
+			
+		}
+				
 	}
 }
