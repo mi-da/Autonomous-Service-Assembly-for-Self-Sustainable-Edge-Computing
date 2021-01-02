@@ -171,8 +171,11 @@ public class OverloadComponentInitializer implements Control {
 			n.setG(0.5 + 2 * CommonState.r.nextDouble());
 			
 			
-	        // set the Battery 
-			n.setBattery(70);
+	        	// set the Battery 			
+			int max = 70;
+			int min = 70;
+	
+			n.setBattery( (double) min + (max - min) * CommonState.r.nextDouble() );
 			
 
 			n.setCPUConsumptionFactor(0.5+(1.5*CommonState.r.nextDouble()));
