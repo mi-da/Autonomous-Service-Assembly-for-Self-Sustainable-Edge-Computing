@@ -5,6 +5,7 @@ import java.io.FileOutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import lnu.mida.controller.observer.FinalUtilityObserver;
+import lnu.mida.entity.NetworkStatusManager;
 import peersim.config.*;
 import peersim.core.*;
 import peersim.util.IncrementalStats;
@@ -26,6 +27,15 @@ public class OverloadFileInitializer implements Control {
 	public String filename_final;
 	public static FileOutputStream	fos_final;
 	public static PrintStream ps_final;
+	
+	//  collects first/last end time
+	public String filename_first;
+	public static FileOutputStream	fos_first;
+	public static PrintStream ps_first;
+	
+	public String filename_last;
+	public static FileOutputStream	fos_last;
+	public static PrintStream ps_last;
 	
 	public static  int experiment_number=0;
 
@@ -62,6 +72,10 @@ public class OverloadFileInitializer implements Control {
 			// Availability			
 			FinalUtilityObserver.availability = new ArrayList<>();
 
+			NetworkStatusManager.T_all = new ArrayList<>();
+			NetworkStatusManager.T_one = new ArrayList<>();
+			NetworkStatusManager.D_all = new ArrayList<>();
+			NetworkStatusManager.D_one = new ArrayList<>();
 
 			for(int i=0;i<((cycles/comp_step));i++) {
 				// Quality
@@ -75,6 +89,25 @@ public class OverloadFileInitializer implements Control {
 				// Availability
 				FinalUtilityObserver.availability.add(new IncrementalStats());
 			}
+			
+			filename_first = "first_"+Configuration.getString("STRATEGY","no strat")+"_"+System.currentTimeMillis()+".txt";
+			
+			try {
+				fos_first = new FileOutputStream(filename_first);
+				ps_first = new PrintStream(fos_first);
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+			}
+			
+			filename_last = "last_"+Configuration.getString("STRATEGY","no strat")+"_"+System.currentTimeMillis()+".txt";
+			
+			try {
+				fos_last = new FileOutputStream(filename_last);
+				ps_last = new PrintStream(fos_last);
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+			}
+			
 		}
 		
 		// the last experiment initializes the final file
@@ -115,5 +148,12 @@ public class OverloadFileInitializer implements Control {
 	public static int getExperiment_number() {
 		return experiment_number;
 	}
-
+	
+	public static PrintStream getPs_first() {
+		return ps_first;
+	}
+	
+	public static PrintStream getPs_last() {
+		return ps_last;
+	}
 }
