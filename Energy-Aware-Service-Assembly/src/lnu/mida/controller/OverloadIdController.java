@@ -1,11 +1,15 @@
 package lnu.mida.controller;
 
+import peersim.cdsim.CDState;
 import peersim.config.Configuration;
 import peersim.core.*;
 
+import java.io.PrintStream;
 import java.util.ArrayList;
 
+import lnu.mida.controller.init.OverloadFileInitializer;
 import lnu.mida.entity.GeneralNode;
+import lnu.mida.entity.NetworkStatusManager;
 import lnu.mida.entity.Service;
 import lnu.mida.protocol.OverloadApplication;
 import lnu.mida.protocol.OverloadComponentAssembly;
@@ -44,6 +48,16 @@ public class OverloadIdController implements Control {
 			ca.reset();
 			appl.reset();
 						
+		}
+
+		if(Network.size()>0) {
+
+			PrintStream ps_last = OverloadFileInitializer.getPs_last();
+			//ps_last.print(CDState.getCycle()+"\n");
+						
+			System.out.println("T_one");
+			NetworkStatusManager man = new NetworkStatusManager();
+			man.updateTone(CDState.getCycle());
 		}
 		
 	   Service.counterID=0;
