@@ -122,20 +122,37 @@ public class OverloadComponentAssembly implements CDProtocol, Cleanable {
 	@Override
 	public void nextCycle(Node node, int protocolID) {
 		
-
+		//System.out.println("nodo " + node.getID());
+		int interazioni = 0;
+		
 		int linkableID = FastConfig.getLinkable(protocolID);
 		Linkable linkable = (Linkable) node.getProtocol(linkableID);
 		
-		Service candidate;
+		List<Service> candidate = new ArrayList<Service>();
 				
 		// Services intereact with the services on the same node
-		for (Service service : services) {			
+		for (Service service : services) {	
+			/*if(node.getID()==0) {
+				System.out.println("servizio " + service.getService_id());
+				Service[] listDepObj = service.getDependencies_obj();
+				for(int i=0; i<service.getDependencies_obj().length; i++) {
+					if(listDepObj[i]!=null)
+					System.out.println(listDepObj[i].getService_id());
+				}}*/
 			for (Service otherservice : services) {
 
 				if(otherservice!=service) {
+					otherservice.interazioni2++;
+					interazioni++;
 					candidate = otherservice.interact(service);
-					if(candidate!=null) 
-						candidate_services.addCandidateService(candidate);	
+					
+					if(candidate!=null) {
+					
+						for(int i=0; i<candidate.size();i++) {
+							candidate_services.addCandidateService(candidate.get(i));
+						}
+						
+					}
 				}
 			}
 		}
@@ -144,24 +161,39 @@ public class OverloadComponentAssembly implements CDProtocol, Cleanable {
 		for (int i = 0; i < linkable.degree(); ++i) {		
 			
 			Node peer = linkable.getNeighbor(i);
+			if(peer.getID()==1 && peer.isUp()) {
+				//System.out.println(" NODO 1 interagisce con nodo " + node.getID());
+			}
 
 			if (!peer.isUp()) {
 				continue;
 			}
+			
+			//if(peer.getID()==0)
+			//	System.out.println("\nnode "+node.getID()+" interacts with node "+peer.getID()+"\n");
+
 			
 			OverloadComponentAssembly comp = (OverloadComponentAssembly) peer.getProtocol(protocolID);	
 			
 			ArrayList<Service> neighbourServices = comp.getServices();
 					
 			
+			
 			for (Service service : services) {
 							
 				// Interact with services on other Node
 				for (Service neighbourService : neighbourServices) {
-
+					
+					neighbourService.interazioni2++;
+					interazioni++;
 					candidate = neighbourService.interact(service);
-					if(candidate!=null) 
-						comp.getCandidateServices().addCandidateService(candidate);
+					if(candidate!=null) {
+						
+						for(int j=0; j<candidate.size();j++) {
+							comp.getCandidateServices().addCandidateService(candidate.get(j));
+						}
+						
+					}
 				}
 			   
 			}
@@ -170,6 +202,15 @@ public class OverloadComponentAssembly implements CDProtocol, Cleanable {
 			
 		}
 		
+		
+		//if(node.getID()==1 && node.isUp()) {
+			//System.out.println("size :  " + getCandidateServices().getListSize(6));
+		//	candidate_services.printAllLists();
+		//}
+
+		//System.out.println("--- interazioni : " + interazioni);
+		
+
 	}
 	
 	
@@ -191,6 +232,7 @@ public class OverloadComponentAssembly implements CDProtocol, Cleanable {
 	}
 	
 	public void resetCandidateServices() {
+		//candidate_services = new CandidateServices();
 		candidate_services.clearLists();
 	}
 
@@ -202,7 +244,15 @@ public class OverloadComponentAssembly implements CDProtocol, Cleanable {
 	public void reset() {
 		services = new ArrayList<Service>();
 	}
-
-
+	
+	
+	public void checkIfNull() {
+		if(candidate_services==null) {
+			System.out.println("candidate_services è NULL ..... ");
+		}else {
+			System.out.println("candidate_services NON NULL !!!! ");
+		}
+	}
+	
 	
 }
