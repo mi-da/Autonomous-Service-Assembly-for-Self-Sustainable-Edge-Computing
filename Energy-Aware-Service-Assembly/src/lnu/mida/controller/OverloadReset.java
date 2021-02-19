@@ -64,6 +64,7 @@ public class OverloadReset implements Control {
 	private final int	component_assembly_pid;
 	private final int	application_pid;
 	
+
 	// ///////////////////////////////////////////////////////////////////////
 	// Constructor
 	// ///////////////////////////////////////////////////////////////////////
@@ -78,7 +79,7 @@ public class OverloadReset implements Control {
 		
 		this.name = name;
 		component_assembly_pid = Configuration.getPid(name + "." + COMP_PROT);
-		application_pid = Configuration.getPid(name + "." + APPL_PROT);		
+		application_pid = Configuration.getPid(name + "." + APPL_PROT);
 	}
 
 	// ///////////////////////////////////////////////////////////////////////
@@ -88,14 +89,19 @@ public class OverloadReset implements Control {
 	@Override
 	public boolean execute() {
 		
-		int t_all = 0;		
-		int d_one = 0;
+		
+		//System.err.println("-------- RESET CONTROLLER --------");
+		//System.out.println("\n\nNETWORK SIZE : " + Network.size());
 
+				
+		// reset the dependencies for the new round of composition
 		for (int i = 0; i < Network.size(); i++) {	
 			
 			GeneralNode n = (GeneralNode) Network.get(i);		
 			OverloadComponentAssembly ca = (OverloadComponentAssembly) n.getProtocol(component_assembly_pid);		
 			
+			//System.out.println("NODO " + Network.get(i).getID() + "  battery : " + ((GeneralNode) Network.get(i)).getBattery());
+
 			// reset the services
 			ArrayList<Service> services = ca.getServices();
 			
@@ -114,58 +120,49 @@ public class OverloadReset implements Control {
 
 						Service depObj = listDepObj[j];
 
-						if(depObj!=null) 
+						if(depObj!=null) {
+							//System.out.println("			dep of type : " + j + "    provider " + depObj.getService_id());
 							depObj.addLinkNum();
+						}
 					}
 				}
+				//service.reset();
 				ca.resetCandidateServices();
-			}
-			
-		
-			if(Network.get(i).getFailState()==2) {
-				d_one++;
-			}else {
-				t_all++;
-			}
-				
-		}
-		if(t_all == Network.size())
-			FinalUtilityObserver.t_all_cycles+=6;
-		if(d_one>0)
-			FinalUtilityObserver.d_one_cycles+=6;
-		
-		
-			
-		ArrayList<Node> to_remove = new ArrayList<Node>();
-		NetworkStatusManager man = new NetworkStatusManager();
 
+			}
+			
+						
+		}
+		
+		
+
+		
+		ArrayList<Node> to_remove = new ArrayList<Node>();
+		
+		
 		for (int i = 0; i < Network.size(); i++) {	
 			
 			GeneralNode n = (GeneralNode) Network.get(i);
 			OverloadComponentAssembly ca = (OverloadComponentAssembly) n.getProtocol(component_assembly_pid);		
-		
-			if(n.getFailState()==0)
-				n.addUpCycles(6);
-			if(n.getFailState()==2)
-				n.addDownCycle(6);
-			
+
 			// Nodes with no battery die
-			if(n.getBattery()<0) {	
+			if(n.getBattery()<0 || n.getBattery()==0) {	
+
 				n.setBattery(0);
 				n.setR(0);
-				n.addMTBF(CDState.getCycle()-n.getLastFailure());
-
-				n.setLastFailure(CDState.getCycle());
+				
 				to_remove.add(Network.get(i));
 				
 			}
 			
 			// down nodes with battery live
-			if(n.getFailState()==2 && n.getBattery()>0.1*n.getCapacity()) {
-				man.remDownNode();
+			if(n.getFailState()==2 && n.getBattery()>(0.2*n.getCapacity())) {
 				n.setFailState(0);
 			}
 				
+			double availability = (double) n.getChargeCycles()/(n.getChargeCycles()+n.getDischargeCycles());
+			n.setAvailability(availability);
+
 		}
 
 
@@ -177,8 +174,6 @@ public class OverloadReset implements Control {
 				if(Network.get(i).getID()==id_to_del) {
 					// si rimuovono tutte le dipendenze
 					remove_links(i);
-					man.printStatus();
-					man.addDownNode();
 					Network.get(i).setFailState(2);
 				}
 			}
@@ -196,6 +191,7 @@ public class OverloadReset implements Control {
 	
 	public void remove_links(int node_index) {
 		
+		// se qualche servizio ospitato dal nodo morto risolveva delle dipendenze, questi link vanno rimossi
 		GeneralNode n = (GeneralNode) Network.get(node_index);		
 		OverloadComponentAssembly ca = (OverloadComponentAssembly) n.getProtocol(component_assembly_pid);		
 		
@@ -203,20 +199,28 @@ public class OverloadReset implements Control {
 		for (Service service2 : services_to_del) {
 			service2.reset();
 		}				
+		//System.out.println("		\n\n\n" );
 
+		// si scorre tutta la rete
 		for (int i = 0; i < Network.size(); i++) {
 			GeneralNode node_to_check = (GeneralNode) Network.get(i);		
-						
+			
+			//System.out.println("	node_to_check : " + node_to_check.getID());
+			
+			// si scorrono tutti i servizi
 			OverloadComponentAssembly ca_to_check = (OverloadComponentAssembly) node_to_check.getProtocol(component_assembly_pid);		
 			ArrayList<Service> services_to_check = ca_to_check.getServices();
 
 			for (Service service : services_to_check) {
 				Service[] listDepObj = service.getDependencies_obj();
 				boolean[] listDep = service.getDependencies();
+				//System.out.println("		service_to_check : " + service.getService_id());
+
 				
 				if(listDepObj==null)
 					continue;
 				
+				// si scorre tutta la lista dei providers
 				for (int j = 0; j < listDep.length; j++) {
 					
 					boolean dep = listDep[j];
@@ -226,9 +230,14 @@ public class OverloadReset implements Control {
 						if(depObj==null)
 							continue;
 						
+						//System.out.println("			dep of type : " + j + "    provider " + depObj.getService_id());
+
+						// si cerca se ci sono link con il nodo morto
 						for (Service s : services_to_del) {
-							if(depObj==s) 
+							if(depObj==s) {
 								service.unlinkDependency(s);
+								//System.out.println(" ***  link RIMOSSO  tra  " + service.getService_id() + " - " + s.getService_id());
+							}
 						}
 					}
 				}

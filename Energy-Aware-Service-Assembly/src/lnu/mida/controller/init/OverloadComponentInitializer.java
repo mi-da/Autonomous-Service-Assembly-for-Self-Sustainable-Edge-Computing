@@ -20,10 +20,14 @@ package lnu.mida.controller.init;
 import java.util.ArrayList;
 import java.util.LinkedList;
 
+import lnu.mida.entity.BatteryReputation;
 import lnu.mida.entity.CandidateServices;
 import lnu.mida.entity.EnergyReputation;
 //import com.sun.tools.javac.util.ArrayUtils;
 import lnu.mida.entity.GeneralNode;
+import lnu.mida.entity.GreenReputation;
+import lnu.mida.entity.LocalReputation;
+import lnu.mida.entity.OverallEnergyReputation;
 import lnu.mida.entity.QOSReputation;
 import lnu.mida.entity.Service;
 import lnu.mida.entityl.transferfunction.CustomTransferFunction;
@@ -107,8 +111,10 @@ public class OverloadComponentInitializer implements Control {
 			appl.reset();
 			ca.reset();
 
-			ArrayList<Integer> new_list = new ArrayList<Integer>();
-			n.setMTBF(new_list);
+			//CandidateServices cs = new CandidateServices();
+			//cs.initializeLists();
+			//cs.node_id = (int) n.getID();
+			//ca.setCandidateServices(cs);
 			
 			// Initialize the number of services with max_types
 			for (int j = 0; j < services_per_node; j++) {
@@ -118,7 +124,7 @@ public class OverloadComponentInitializer implements Control {
 
 				// set type of service
 				int randomType = getRandomType(availableTypes);
-				
+				//System.out.println(randomType);
 				s.setType(randomType);
 				s.setNode_id((int) n.getID());
 				//System.out.println(randomType);
@@ -167,6 +173,7 @@ public class OverloadComponentInitializer implements Control {
 
 			// set green energy generation rate (for Journal)
 			n.setG(0.5 + 2 * CommonState.r.nextDouble());
+			//n.setG(0);
 			
 			
 	        // set the Battery 
@@ -178,6 +185,7 @@ public class OverloadComponentInitializer implements Control {
 			double capacity = (double) min + (max - min) * CommonState.r.nextDouble();
 			n.setBattery(capacity);
 			n.setCapacity(capacity);
+			
 			//System.out.println(n.getBattery());
 
 			n.setCPUConsumptionFactor(0.5+(1.5*CommonState.r.nextDouble()));
@@ -189,12 +197,24 @@ public class OverloadComponentInitializer implements Control {
 			
 			
 
-			for(long serv_num=0;serv_num<700;serv_num++)
+			for(long serv_num=0;serv_num<500;serv_num++)
 				appl.getQoSReputations().add(new QOSReputation(serv_num));
 			
-			for(long nodes_num=0;nodes_num<150;nodes_num++)
+			for(long serv_num=0;serv_num<500;serv_num++)
+				appl.getLocalReputations().add(new LocalReputation(serv_num));
+			
+			for(long nodes_num=0;nodes_num<100;nodes_num++)
 				appl.getEnergyReputations().add(new EnergyReputation(nodes_num));
 
+			for(long nodes_num=0;nodes_num<100;nodes_num++)
+				appl.getBatteryReputations().add(new BatteryReputation(nodes_num));
+
+			for(long nodes_num=0;nodes_num<100;nodes_num++)
+				appl.getGreenReputations().add(new GreenReputation(nodes_num));
+			
+			for(long serv_num=0;serv_num<500;serv_num++)
+				appl.getOverallEnergyReputations().add(new OverallEnergyReputation(serv_num));
+			
 		}
 		
 

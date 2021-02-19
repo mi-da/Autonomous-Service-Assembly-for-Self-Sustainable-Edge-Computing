@@ -9,7 +9,6 @@ import java.util.ArrayList;
 
 import lnu.mida.controller.init.OverloadFileInitializer;
 import lnu.mida.entity.GeneralNode;
-import lnu.mida.entity.NetworkStatusManager;
 import lnu.mida.entity.Service;
 import lnu.mida.protocol.OverloadApplication;
 import lnu.mida.protocol.OverloadComponentAssembly;
@@ -37,7 +36,6 @@ public class OverloadIdController implements Control {
 	@Override
 	public boolean execute() {
 		
-		System.err.println("------- ID CONTROLLER -------");
 	
 		for (int i = 0; i < Network.size(); i++) {	
 			
@@ -50,16 +48,7 @@ public class OverloadIdController implements Control {
 						
 		}
 
-		if(Network.size()>0) {
-
-			PrintStream ps_last = OverloadFileInitializer.getPs_last();
-			//ps_last.print(CDState.getCycle()+"\n");
-						
-			System.out.println("T_one");
-			NetworkStatusManager man = new NetworkStatusManager();
-			man.updateTone(CDState.getCycle());
-		}
-		
+				
 	   Service.counterID=0;
 	   GeneralNode.counterID=-1;
 	   return false;

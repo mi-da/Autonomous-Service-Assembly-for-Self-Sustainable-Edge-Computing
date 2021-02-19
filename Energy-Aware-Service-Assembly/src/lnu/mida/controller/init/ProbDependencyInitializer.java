@@ -83,21 +83,28 @@ public class ProbDependencyInitializer implements Control {
 		// for each node
 		
 		int totDependencies = 0;
-		
+				
 		for (int i = 0; i < Network.size(); ++i) {
 			
 			comp = (OverloadComponentAssembly) Network.get(i).getProtocol(protocolID);
 			ArrayList<Service> services = comp.getServices();
 			
-			
+			//System.out.println("Nodo " + Network.get(i).getID());
 			// for each service inside a node
 			for (Service service : services) {
 				
+				//System.out.println("Servizio " + service.getService_id() + "  dep: ");
+				//System.out.println(" servizio " + service.getService_id() + " type " + service.getType());
+				
 	            int dep_num = 0;
-	            
+
 				for (int t = service.getType() + 1; t < comp.getTypes(); ++t) {
 					double val = CommonState.r.nextDouble();
+					//if(service.getService_id()==261) {
+						//System.out.println(" val =  " + val + "     prob = " + prob);
+					//}
 					if (val <= prob) {
+
 						totDependencies++;
 						service.setDependencyType(t);
 						dep_num++;					
@@ -107,14 +114,22 @@ public class ProbDependencyInitializer implements Control {
 						}					
 					}
 				}
-				service.setDep_num(dep_num);				
 				
 			}
 			
+			/*
+			for (Service service : services) {
+				boolean[] listDep = service.getDependencies();
+
+				for (int j = 0; j < listDep.length; j++) {
+					System.out.println(" dep " + j + "  :  " + listDep[j]);
+				}
+			}
+			*/
 								
 		}
 		
-//		System.out.println("totDependencies "+totDependencies);
+		System.out.println("totDependencies "+totDependencies);
 //		System.exit(0);
 
 		return false;

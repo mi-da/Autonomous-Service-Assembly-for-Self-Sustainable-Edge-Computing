@@ -21,7 +21,10 @@ package lnu.mida.controller.energy;
 import java.util.ArrayList;
 
 import com.lajv.location.Location;
+
+import lnu.mida.controller.observer.FinalUtilityObserver;
 import lnu.mida.entity.GeneralNode;
+import lnu.mida.entity.GreenReputation;
 import lnu.mida.entity.Service;
 import lnu.mida.protocol.OverloadApplication;
 import lnu.mida.protocol.OverloadComponentAssembly;
@@ -70,6 +73,8 @@ public class EnergyController implements Control {
 	public static double variance;
 	public static double stdDev;
 
+	//public double Rtot;
+
 	// ///////////////////////////////////////////////////////////////////////
 	// Constructor
 	// ///////////////////////////////////////////////////////////////////////
@@ -93,21 +98,24 @@ public class EnergyController implements Control {
 	@Override
 	public boolean execute() {
 
-		//System.out.println("--- energy controller ---");
-
 		// non calcolo al round 0 (nessun bind)
 		if (CommonState.getIntTime() == 0)
 			return false;
 
-		int notResolved = 0;
-
-		// For every service in a node calculates the individual energy comsumption		
+		int alive_nodes=0;
+		int fully_resolved=0;
+		// For every service in a node calculates the individual energy comsumption
+		double meanR=0;
+		
 		for (int i = 0; i < Network.size(); i++) {
 
+			
 			if (!Network.get(i).isUp()) {
 				continue;
 			}
 
+			alive_nodes++;
+			
 			GeneralNode node = (GeneralNode) Network.get(i);
 			OverloadComponentAssembly ca = (OverloadComponentAssembly) node.getProtocol(component_assembly_pid);
 			OverloadApplication appl = (OverloadApplication) node.getProtocol(application_pid);
@@ -115,33 +123,38 @@ public class EnergyController implements Control {
 			
 			ArrayList<Service> services = ca.getServices();
 					
-			
 			double R=0;
 			
 			// Navigates all the services hosted on a node
 			for (Service service : services) {
-							
-				service.updateLambdaTot();
 
+				service.updateLambdaTot();
+				
+				
+				//if(node.getID()==1)
+				//	System.out.println(" <-- in energy controller -->    servizio " + service.getService_id() + "    fullyresolved : " + service.isFullyResolved() );
+				
 				if (!service.isFullyResolved()) {
 					continue;
 				} else {
-					
 					// Consumed energy by services S
 					
+					fully_resolved++;
 					/** 
 					 * Computation
 					 */
 					double I_comp = node.getConsumedIndividualCPUEnergy(1);				
 					double I_comp_lambda = node.getConsumedIndividualCPUEnergy(service.getLambdatoCPU());
-			
+					//System.out.println(service.getLambdatoCPU());
+
+					
 					/** 
 					 * Communication
 					 */
 					double I_comm = node.getConsumedIndividualCommEnergyReceiving(1);
 					double I_comm_lambda = node.getConsumedIndividualCommEnergyReceiving(service.getLambda_t());
 
-					
+
 					Service[] listDepObj = service.getDependencies_obj();
 					boolean[] listDep = service.getDependencies();
 					
@@ -204,6 +217,7 @@ public class EnergyController implements Control {
 								
 								I_comm+=node.getConsumedIndividualCommEnergySending(1, latency);
 								I_comm_lambda+=node.getConsumedIndividualCommEnergySending(lambda_to_receiver, latency);
+
 							}
 						}
 					}
@@ -216,38 +230,65 @@ public class EnergyController implements Control {
 					// lambda dependent
 					service.setI_comp_lambda(I_comp_lambda);
 					service.setI_comm_lambda(I_comm_lambda);
-					
+
 					R+= I_comp_lambda+I_comm_lambda;
+					
+					//System.out.println(service.getSigma());
 				}		
 				
 			}
 			
 			// set the energy consumption rate of node
 			node.setR(R);
+			meanR+=R;
 			
-			// se R>G la batteria si scarica
-			if(R>node.getG())
-				node.setBattery(node.getBattery() - ( node.getR() - node.getG() ));
+			//if(node.getID()==10)
+			//System.out.println("R = " + node.getR());
 
-			// se R<G la batteria si carica
-			if(R<node.getG())
-				node.setBattery(node.getBattery() + ( node.getG() - node.getR() ));
-	
-			// residual life
-			node.setResidualLife(node.getBattery()/node.getR());
-
-		}
-		
-		// se il nodo è inattivo la batteria continua a caricarsi
-		for (int i = 0; i < Network.size(); i++) {
-			GeneralNode node = (GeneralNode) Network.get(i);
-			if(node.getFailState()==2) {
-				node.setBattery(node.getBattery() + node.getG());
+			/*
+			if(node.getID()==10) {
+				System.out.println("G = " + node.getG());
+				System.out.println("Battery = " + node.getBattery());
+				System.out.println("R = " + node.getR());
+				System.out.println("Residual Life = " + node.getResidualLife());
+				System.out.println("Status = " + node.isUp());
+				System.out.println("Charge cycles = " + node.getChargeCycles());
+				System.out.println("Discharge cycles = " + node.getDischargeCycles());
+				System.out.println("Availability = " + node.getAvailability());
+			
 			}
+			*/
 		}
-		
+
+		//System.out.println("\n meanR : " + meanR/alive_nodes);
+
+		//System.out.println("\n alive nodes : " + alive_nodes);
+		//System.out.println(" fully resolved services : " + fully_resolved);
 		return false;
 	}
+	
+	
+	
+	
+	 public static double calculateSD()
+	    {
+	        double sum = 0.0, standardDeviation = 0.0;
+	        int length = Network.size();
+
+	        
+	        for (int i = 0; i < Network.size(); i++) {
+	            sum += ((GeneralNode) Network.get(i)).getResidualLife();
+	        }
+	        
+
+	        double mean = sum/length;
+
+	        for (int i = 0; i < Network.size(); i++) {
+	            standardDeviation += Math.pow(((GeneralNode) Network.get(i)).getResidualLife() - mean, 2);
+	        }
+
+	        return Math.sqrt(standardDeviation/length);
+	    }
 
 	public static double getVariance() {
 		return variance;

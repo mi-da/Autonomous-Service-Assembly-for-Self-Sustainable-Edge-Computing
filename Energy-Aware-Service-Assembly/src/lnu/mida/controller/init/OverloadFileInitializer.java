@@ -4,8 +4,9 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.LinkedList;
+
 import lnu.mida.controller.observer.FinalUtilityObserver;
-import lnu.mida.entity.NetworkStatusManager;
 import peersim.config.*;
 import peersim.core.*;
 import peersim.util.IncrementalStats;
@@ -27,15 +28,24 @@ public class OverloadFileInitializer implements Control {
 	public String filename_final;
 	public static FileOutputStream	fos_final;
 	public static PrintStream ps_final;
+
 	
-	//  collects first/last end time
-	public String filename_first;
-	public static FileOutputStream	fos_first;
-	public static PrintStream ps_first;
+	public String nodo1;
+	public static FileOutputStream	fos_nodo1;
+	public static PrintStream ps_nodo1;
 	
-	public String filename_last;
-	public static FileOutputStream	fos_last;
-	public static PrintStream ps_last;
+	public String nodo2;
+	public static FileOutputStream	fos_nodo2;
+	public static PrintStream ps_nodo2;
+	
+	public String nodo3;
+	public static FileOutputStream	fos_nodo3;
+	public static PrintStream ps_nodo3;
+	
+	public String nodo4;
+	public static FileOutputStream	fos_nodo4;
+	public static PrintStream ps_nodo4;
+
 	
 	public static  int experiment_number=0;
 
@@ -49,6 +59,7 @@ public class OverloadFileInitializer implements Control {
 	 * @param name
 	 *            the configuration prefix for this class.
 	 */
+	@SuppressWarnings("unchecked")
 	public OverloadFileInitializer(String name) {
 
 		this.name = name;
@@ -58,6 +69,8 @@ public class OverloadFileInitializer implements Control {
 		int cycles = Configuration.getInt("simulation.cycles",1);
 		int comp_step = Configuration.getInt("COMPOSITION_STEPS",1);
 
+		int original_network_size = Configuration.getInt("NETWORK_SIZE",1);
+		
 		// the first experiment initializes the final data structure
 		if(experiment_number==1) {
 
@@ -69,13 +82,11 @@ public class OverloadFileInitializer implements Control {
 			FinalUtilityObserver.energy_jain = new ArrayList<>();
 			// Network			
 			FinalUtilityObserver.networkSize = new ArrayList<>();
+			FinalUtilityObserver.networkUpSize = new ArrayList<>();
 			// Availability			
 			FinalUtilityObserver.availability = new ArrayList<>();
-
-			NetworkStatusManager.T_all = new ArrayList<>();
-			NetworkStatusManager.T_one = new ArrayList<>();
-			NetworkStatusManager.D_all = new ArrayList<>();
-			NetworkStatusManager.D_one = new ArrayList<>();
+			FinalUtilityObserver.availability_s = new ArrayList<>();
+			FinalUtilityObserver.availability_ud = new ArrayList<>();
 
 			for(int i=0;i<((cycles/comp_step));i++) {
 				// Quality
@@ -86,27 +97,14 @@ public class OverloadFileInitializer implements Control {
 				FinalUtilityObserver.energy_jain.add(new IncrementalStats());
 				// Network
 				FinalUtilityObserver.networkSize.add(new IncrementalStats());
+				FinalUtilityObserver.networkUpSize.add(new IncrementalStats());
 				// Availability
 				FinalUtilityObserver.availability.add(new IncrementalStats());
+				FinalUtilityObserver.availability_s.add(new IncrementalStats());
+				FinalUtilityObserver.availability_ud.add(new IncrementalStats());
 			}
 			
-			filename_first = "first_"+Configuration.getString("STRATEGY","no strat")+"_"+System.currentTimeMillis()+".txt";
-			
-			try {
-				fos_first = new FileOutputStream(filename_first);
-				ps_first = new PrintStream(fos_first);
-			} catch (FileNotFoundException e) {
-				e.printStackTrace();
-			}
-			
-			filename_last = "last_"+Configuration.getString("STRATEGY","no strat")+"_"+System.currentTimeMillis()+".txt";
-			
-			try {
-				fos_last = new FileOutputStream(filename_last);
-				ps_last = new PrintStream(fos_last);
-			} catch (FileNotFoundException e) {
-				e.printStackTrace();
-			}
+
 			
 		}
 		
@@ -118,6 +116,49 @@ public class OverloadFileInitializer implements Control {
 			try {
 				fos_final = new FileOutputStream(filename_final);
 				ps_final = new PrintStream(fos_final);
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+			}
+			
+			
+			
+			
+			nodo1 = "nodo1_"+Configuration.getString("STRATEGY","no strat")+"_"+System.currentTimeMillis()+".txt";
+			
+			try {
+				fos_nodo1 = new FileOutputStream(nodo1);
+				ps_nodo1 = new PrintStream(fos_nodo1);
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+			}
+			
+			
+			nodo2 = "nodo2_"+Configuration.getString("STRATEGY","no strat")+"_"+System.currentTimeMillis()+".txt";
+			
+			try {
+				fos_nodo2 = new FileOutputStream(nodo2);
+				ps_nodo2 = new PrintStream(fos_nodo2);
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+			}
+			
+			
+			nodo3 = "nodo3_"+Configuration.getString("STRATEGY","no strat")+"_"+System.currentTimeMillis()+".txt";
+			
+			try {
+				fos_nodo3 = new FileOutputStream(nodo3);
+				ps_nodo3 = new PrintStream(fos_nodo3);
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+			}
+			
+			
+			
+			nodo4 = "nodo4_"+Configuration.getString("STRATEGY","no strat")+"_"+System.currentTimeMillis()+".txt";
+			
+			try {
+				fos_nodo4 = new FileOutputStream(nodo4);
+				ps_nodo4 = new PrintStream(fos_nodo4);
 			} catch (FileNotFoundException e) {
 				e.printStackTrace();
 			}
@@ -149,11 +190,17 @@ public class OverloadFileInitializer implements Control {
 		return experiment_number;
 	}
 	
-	public static PrintStream getPs_first() {
-		return ps_first;
+	public static PrintStream getPs_nodo1() {
+		return ps_nodo1;
 	}
-	
-	public static PrintStream getPs_last() {
-		return ps_last;
+
+	public static PrintStream getPs_nodo2() {
+		return ps_nodo2;
+	}
+	public static PrintStream getPs_nodo3() {
+		return ps_nodo3;
+	}
+	public static PrintStream getPs_nodo4() {
+		return ps_nodo4;
 	}
 }

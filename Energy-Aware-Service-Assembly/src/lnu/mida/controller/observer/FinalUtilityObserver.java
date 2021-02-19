@@ -2,6 +2,8 @@ package lnu.mida.controller.observer;
 
 import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 
 import lnu.mida.controller.init.OverloadFileInitializer;
 import peersim.config.Configuration;
@@ -35,20 +37,14 @@ public class FinalUtilityObserver implements Control {
 	
 	// Network	
 	public static ArrayList<IncrementalStats> networkSize;
+	public static ArrayList<IncrementalStats> networkUpSize;
 	
 	// Availability	
 	public static ArrayList<IncrementalStats> availability;
+	public static ArrayList<IncrementalStats> availability_s;
+	public static ArrayList<IncrementalStats> availability_ud;
+	
 
-	// numero medio di cicli in cui un nodo è attivo
-	public static int total_up;
-	//numero medio di cicli in cui un nodo è inattivo
-	public static int total_down;
-	
-	//numero di cicli in cui tutti i nodi sono attivi
-	public static int t_all_cycles;
-	//numero di cicli in cui almeno un nodo è inattivo
-	public static int d_one_cycles;
-	
 	// ///////////////////////////////////////////////////////////////////////
 	// Constructor
 	// ///////////////////////////////////////////////////////////////////////
@@ -73,25 +69,12 @@ public class FinalUtilityObserver implements Control {
 		
 		int exp_number = OverloadFileInitializer.experiment_number;
 		int total_exps = Configuration.getInt("simulation.experiments",1);
+
 		
 		// print data from last experiment
 		if(exp_number==total_exps) {
 			
-			System.out.println("********** total up *********");
-			System.out.println("\n         " + total_up/total_exps);
-			
-			System.out.println("********** total down *********");
-			System.out.println("\n         " + total_down/total_exps);
 
-			System.out.println("\n\n\n\n");
-			System.out.println("********** t_all_cycles *********");
-			System.out.println("\n         " + t_all_cycles/total_exps);
-
-			System.out.println("********** d_one_cycles *********");
-			System.out.println("\n         " + d_one_cycles/total_exps);
-
-			
-			
 			PrintStream ps = OverloadFileInitializer.getPs_final();
 			
 			int n = 1;
@@ -115,22 +98,38 @@ public class FinalUtilityObserver implements Control {
 				IncrementalStats nodesAlive_is = networkSize.get(index);	
 				double nodesAlive = nodesAlive_is.getAverage();
 				
+				IncrementalStats nodesUp_is = networkUpSize.get(index);	
+				double nodesUp = nodesUp_is.getAverage();
+				
 				// Availability
 				IncrementalStats avail_is = availability.get(index);	
 				double availability = avail_is.getAverage();
-
 				
+				IncrementalStats avail_s_is = availability_s.get(index);	
+				double availability_s = avail_s_is.getAverage();
+				
+				IncrementalStats avail_ud_is = availability_ud.get(index);	
+				double availability_ud = avail_ud_is.getAverage();
+
+				//System.out.println(finalQuality);
 				ps.print(n+" ");
 				ps.print(finalQuality+" ");
 				ps.print(finalQualityFairness+" ");
 				ps.print(finalEnergy+" ");
 				ps.print(finalEnergyFairness+" ");
 				ps.print(nodesAlive+" ");
-				ps.print(availability+"\n");
+				ps.print(nodesUp+" ");
+				ps.print(availability+" ");
+				ps.print(availability_s+" ");
+				ps.print(availability_ud+"\n");
 				
 				n+=1; // learning step
+
 			}						
 		}
+		
+		//System.out.println("\n\n mean Fairness = " + fairness/counter_fairness);
+
 		
 		return false;
 	}	

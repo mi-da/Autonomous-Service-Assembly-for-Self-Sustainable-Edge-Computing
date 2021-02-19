@@ -81,7 +81,11 @@ public class QualityEnergyObserver implements Control {
 		int fully_resolved_services = 0;
 		int to_resolve_services=0;
 		
+		int nodes_up=0;
+		
 		toResolveAssemblies++;
+		
+		//System.out.println("---- quality energy observer --- ");
 		
 		for (int i = 0; i < Network.size(); i++) {
 
@@ -90,30 +94,41 @@ public class QualityEnergyObserver implements Control {
 			
 			ArrayList<Service> services = n.getServices();
 			
+			if(Network.get(i).isUp())
+				nodes_up++;
 			
 			for (Service service : services) {
+				
+				service.updateCompoundUtility();
+				
 				to_resolve_services++;
+				
+				service.updateCompoundUtility();
 				
 				if (service.isFullyResolved()) {
 					fully_resolved_services++;
 				}
-
+				
+				if(service.getService_id()==10)
+					System.out.println("QE : " + service.isFullyResolved());
+				
 				// recursive quality calculation
 				quality.add(service.getEffectiveCU());
 
 			}					
 
 
-			double energyBalance = Math.min(0,node.getG()-node.getR());
+			//double energyBalance = Math.min(0,node.getG()-node.getR());
+			double energyBalance = node.getG()-node.getR();
 			
 			// battery discharge				
-			 node.setBattery(node.getBattery() + node.getG()-node.getR());
+			//node.setBattery(node.getBattery() - node.getR());
 			 
 			 
 			 if(energyBalance<minEn)
 				 minEn=energyBalance;
 
-			
+			//System.out.println(node.getG()-node.getR());
 			energy.add(energyBalance); 
 
 		}
@@ -137,7 +152,7 @@ public class QualityEnergyObserver implements Control {
 		IncrementalStats energy_jain_is = FinalUtilityObserver.energy_jain.get(index);
 		
 		// calculates the jain's fairness for energy
-		double energy_jain_fairness =  1 - (2*energy.getStD()/8.5);   // calcola sperimentalmente il minimo che può raggiungere
+		double energy_jain_fairness =  1 - (2*energy.getStD()/8.5);   // calcola sperimentalmente il minimo che puï¿½ raggiungere
 		
 //		System.out.println(minEn);
 		
@@ -150,10 +165,16 @@ public class QualityEnergyObserver implements Control {
 		
 		// Network		
 		FinalUtilityObserver.networkSize.get(index).add(Network.size());
+		FinalUtilityObserver.networkUpSize.get(index).add(nodes_up);
 		
 		// Availability		
 		double availability = (double) resolvedAssemblies/(double) toResolveAssemblies;
+		double availability_services = (double) fully_resolved_services/to_resolve_services;
+		double availability_up_down = (double) nodes_up/Network.size();
+		
 		FinalUtilityObserver.availability.get(index).add(availability);
+		FinalUtilityObserver.availability_s.get(index).add(availability_services);
+		FinalUtilityObserver.availability_ud.get(index).add(availability_up_down);
 		
 		// System.out.println(toResolveAssemblies+" "+resolvedAssemblies);
 

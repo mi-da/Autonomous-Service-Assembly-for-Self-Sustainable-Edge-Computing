@@ -75,6 +75,7 @@ public class OverloadComponentFailures implements Control {
 			int j = CommonState.r.nextInt(Network.size());
 			
 			remove_links(j);
+			System.out.println(" nodo morto : " + Network.get(j).getID() + "   (in OverloadComponentFailures)");
 
 			NetworkStatusManager man = new NetworkStatusManager();
 			man.printStatus();
@@ -98,6 +99,8 @@ public class OverloadComponentFailures implements Control {
 //						
 //		}
 		
+		
+		
 
 		
 		return false;				
@@ -105,10 +108,9 @@ public class OverloadComponentFailures implements Control {
 	}
 	
 	
-	
-	
-	public void remove_links(int node_index) {
+public void remove_links(int node_index) {
 		
+		// se qualche servizio ospitato dal nodo morto risolveva delle dipendenze, questi link vanno rimossi
 		GeneralNode n = (GeneralNode) Network.get(node_index);		
 		OverloadComponentAssembly ca = (OverloadComponentAssembly) n.getProtocol(component_assembly_pid);		
 		
@@ -116,10 +118,14 @@ public class OverloadComponentFailures implements Control {
 		for (Service service2 : services_to_del) {
 			service2.reset();
 		}				
+		//System.out.println("		\n\n\n" );
 
+		// si scorre tutta la rete
 		for (int i = 0; i < Network.size(); i++) {
 			GeneralNode node_to_check = (GeneralNode) Network.get(i);		
-						
+			
+			//System.out.println("	node_to_check : " + node_to_check.getID());
+			
 			// si scorrono tutti i servizi
 			OverloadComponentAssembly ca_to_check = (OverloadComponentAssembly) node_to_check.getProtocol(component_assembly_pid);		
 			ArrayList<Service> services_to_check = ca_to_check.getServices();
@@ -127,10 +133,13 @@ public class OverloadComponentFailures implements Control {
 			for (Service service : services_to_check) {
 				Service[] listDepObj = service.getDependencies_obj();
 				boolean[] listDep = service.getDependencies();
+				//System.out.println("		service_to_check : " + service.getService_id());
+
 				
 				if(listDepObj==null)
 					continue;
 				
+				// si scorre tutta la lista dei providers
 				for (int j = 0; j < listDep.length; j++) {
 					
 					boolean dep = listDep[j];
@@ -140,10 +149,14 @@ public class OverloadComponentFailures implements Control {
 						if(depObj==null)
 							continue;
 						
+						//System.out.println("			dep of type : " + j + "    provider " + depObj.getService_id());
+
+						// si cerca se ci sono link con il nodo morto
 						for (Service s : services_to_del) {
-							if(depObj==s)
+							if(depObj==s) {
 								service.unlinkDependency(s);
-							
+								//System.out.println(" ***  link RIMOSSO  tra  " + service.getService_id() + " - " + s.getService_id());
+							}
 						}
 					}
 				}
@@ -152,5 +165,6 @@ public class OverloadComponentFailures implements Control {
 		}
 				
 	}
+	
 
 }

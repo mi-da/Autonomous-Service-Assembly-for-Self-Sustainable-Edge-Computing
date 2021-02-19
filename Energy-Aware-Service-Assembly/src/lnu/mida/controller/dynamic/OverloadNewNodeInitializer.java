@@ -40,6 +40,8 @@ public class OverloadNewNodeInitializer implements NodeInitializer {
 	@Override
 	public void initialize(Node n) {
 		
+		System.out.println("--- NEW node Initizlizer ---");
+
 		
 		GeneralNode node = (GeneralNode)n;
 	
