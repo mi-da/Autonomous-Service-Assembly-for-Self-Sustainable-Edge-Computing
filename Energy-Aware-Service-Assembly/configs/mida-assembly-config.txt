@@ -4,21 +4,23 @@
 
 ## For battery discharge: N=100 Ty=10 SperNode = 3 Exp=50
 
-simulation.cycles 6*300  # 300
-simulation.experiments 100 # 20
+simulation.cycles 6*100  # 300
+simulation.experiments 10 # 20
 NETWORK_SIZE 100
 
 SERVICES_PER_NODE 5 #number of services per node
 
-TYPES 10
+TYPES 10   
 
 DEGREE 6
 
-STRATEGY residual_life  # 6 strategies: 1) emergent, 2) random, 3) greedy, 4) shaerf, 5) local_energy, 5) overall_energy, 6) fair_energy, 7) quality_fair
+STRATEGY fair_energy  # 6 strategies: 1) emergent, 2) random, 3) greedy, 4) shaerf, 5) local_energy, 5) overall_energy, 6) fair_energy, 7) quality_fair
 
 M 5 # period of the learner
 
 COMPOSITION_STEPS 6 # the system runs a composition step every 6 simulation cycles
+
+SOLAR_STEP 1
 
 random.seed 1234554324
 
@@ -127,12 +129,6 @@ control.reset.comp_prot ca
 control.reset.from COMPOSITION_STEPS
 control.reset.step COMPOSITION_STEPS
 
-control.stat lnu.mida.controller.StatController
-control.stat.appl_prot appl
-control.stat.comp_prot ca
-control.stat.from COMPOSITION_STEPS
-control.stat.step COMPOSITION_STEPS
-
 control.newcycle lnu.mida.controller.NewCycleInitController
 control.newcycle.appl_prot appl
 control.newcycle.comp_prot ca
@@ -146,6 +142,21 @@ control.enectr.comp_prot ca
 control.enectr.viv_prot vivp
 control.enectr.from COMPOSITION_STEPS
 control.enectr.step COMPOSITION_STEPS
+
+# Solar controller
+control.solar lnu.mida.controller.SolarController
+control.solar.appl_prot appl
+control.solar.comp_prot ca
+control.solar.from SOLAR_STEP
+control.solar.step SOLAR_STEP
+
+# Battery controller
+control.battery lnu.mida.controller.BatteryController
+control.battery.appl_prot appl
+control.battery.comp_prot ca
+control.battery.from SOLAR_STEP
+control.battery.step SOLAR_STEP
+
 
 # Id control reset 
 control.idctr lnu.mida.controller.OverloadIdController
@@ -195,7 +206,8 @@ control.vivo.threshold 0.0
 control.shf Shuffle
 
 include.init wire loci vivs ci pdi fi
+#include.control shf enectr linkctr compctr qeC FinalutilC reset newcycle idctr failures dynpeer
 #include.control shf linkctr enectr compctr qeC FinalutilC reset newcycle idctr failures dynpeer
 #include.control shf linkctr enectr compctr qeC FinalutilC reset newcycle idctr failures 
-include.control shf linkctr enectr compctr qeC FinalutilC reset stat newcycle idctr
+include.control shf linkctr solar battery enectr compctr qeC FinalutilC reset newcycle idctr
 include.protocol lnk vivp ca appl
