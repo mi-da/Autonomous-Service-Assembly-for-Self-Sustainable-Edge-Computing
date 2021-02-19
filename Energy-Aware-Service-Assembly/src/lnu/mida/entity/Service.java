@@ -1,5 +1,6 @@
 package lnu.mida.entity;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -13,6 +14,7 @@ import peersim.config.Configuration;
 import peersim.config.FastConfig;
 import peersim.core.Cleanable;
 import peersim.core.Linkable;
+import peersim.core.Network;
 import peersim.core.Node;
 
 public class Service implements Cleanable {
@@ -128,6 +130,19 @@ public class Service implements Cleanable {
 	
 	private int link_num;
 	
+	public int interazioni;
+	public int interazioni2;
+	
+	public int dim_lista;
+	public int c;
+	
+	private double overall_reputation;
+	private int overall_reputation_counter;
+	
+	private double local_reputation;
+	private int local_reputation_counter;
+	
+
 	/**
 	 * Initialize this object by reading configuration parameters.
 	 * 
@@ -355,6 +370,7 @@ public class Service implements Cleanable {
 		assert (t < getTypes());
 		dependencies[t] = true;
 		is_fully_resolved = false;
+		//System.out.println("il servizio " + getService_id() + " ha una dep di tipo " + t);
 	}
 
 	/**
@@ -642,7 +658,6 @@ public class Service implements Cleanable {
 
 			Service ca = (Service) o;
 			lambda_tot += ca.transferLoad(this);
-
 		}
 		this.lambda_t = lambda_tot;
 
@@ -652,7 +667,7 @@ public class Service implements Cleanable {
 	private double transferLoad(Service overloadComponentAssembly) {
 		for (int i = 0; i < max_types; i++) {
 			Service depObj = dependencies_obj[i];
-
+			
 			if (depObj != null && overloadComponentAssembly.equals(depObj)) {
 				return transfer_func_S[i].calculate_tSd(lambda_t);
 			}
@@ -666,20 +681,36 @@ public class Service implements Cleanable {
 	 * @param neighborService the selected node to talk with.
 	 */
 
-	public Service interact(Service neighborService) {
+	public List<Service> interact(Service neighborService) {
 
+		//System.out.println("Servizio "+this.getService_id()+" su Nodo "+this.getNode_id()+" interagisce con servizio "+neighborService.getService_id()+" su nodo "+neighborService.getNode_id());
+		
 		assert (this != neighborService);
 
 		// The list comp_list contains the neighbor and all its dependencies
 		List comp_list = new LinkedList();
 		neighborService.fillDependencies(comp_list);
 		comp_list.add(neighborService);
+
+		List<Service> candidates = new ArrayList<Service>();
+		/*
+		if(this.getNode_id()==0) {
+			System.out.println("comp list del SERVIZIO : " + neighborService.getService_id());
+			for(int i=0; i<comp_list.size(); i++) {
+				System.out.println(((Service) comp_list.get(i)).getService_id());
+			}
+			System.out.println("\n\n");
+		}*/
 		
 		Iterator it = comp_list.iterator();
-
+		//System.out.println("\n");
+		dim_lista += comp_list.size();
+		c++;
+		
 		while (it.hasNext()) {
 
 			Service comp = (Service) it.next();
+			//System.out.println(" comp " + comp.getService_id());
 
 			assert (comp != null);
 
@@ -688,17 +719,24 @@ public class Service implements Cleanable {
 
 			assert (t >= 0 && t < max_types);
 
+			interazioni++;
+			//System.out.println("Servizio "+this.getService_id()+" interagisce con servizio "+comp.getService_id());
+
 			if (dependencies[t] == false) // if have dependency to resolve and i want it to resolve (alfa>x)
 				continue; // we do not have a dependency on component type t
+
+			//System.out.println("il servizio " + this.getService_id() + " ha una dep di tipo " + t);
 			
-			return comp;
+
+			candidates.add(comp);
+			//return comp;
 			
 		}
 		if (hasChanged())
 			updateCompoundUtility();
 		notifyObservers();
 		
-		return null;
+		return candidates;
 	}
 
 	public LinkedList getObservers() {
@@ -801,6 +839,7 @@ public class Service implements Cleanable {
 	}
 
 	public double getLambdatoCPU() {
+		//System.out.println("sigma : " + getSigma() + "  " + getType());
 		return transfer_func_CPU.calculate_tSd(lambda_t);
 	}
 
@@ -918,6 +957,39 @@ public class Service implements Cleanable {
 	
 	public void setPayoff(double val) {
 		payoff = val;
+	}
+	
+	public double getOverallRep() {
+		return overall_reputation;
+	}
+
+	public void setOverallRep(double val) {
+		overall_reputation = val;
+	}
+	
+	public int getOverallRepCounter() {
+		return overall_reputation_counter;
+	}
+
+	public void setOverallRepCounter(int val) {
+		overall_reputation_counter = val;
+	}
+	
+	
+	public double getLocalRep() {
+		return overall_reputation;
+	}
+
+	public void setLocalRep(double val) {
+		overall_reputation = val;
+	}
+	
+	public int getLocalRepCounter() {
+		return local_reputation_counter;
+	}
+
+	public void setLocalRepCounter(int val) {
+		local_reputation_counter = val;
 	}
 	
 

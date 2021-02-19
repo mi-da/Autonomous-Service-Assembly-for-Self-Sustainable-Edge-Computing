@@ -1,7 +1,6 @@
 package lnu.mida.entity;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import com.lajv.location.Location;
 
@@ -60,6 +59,7 @@ private long ID;
 
 // green energy generation rate of the node
 private double G;
+private double predictedG;
 
 // consumption rate of the node
 private double R;
@@ -79,17 +79,21 @@ private ArrayList<Node> peer_set;
 //true if this is a "best node"
 private boolean best_node;
 
-//cycle of last failure
-private int last_failure;
+private int link_num;
+private int total_link_num;
 
-//keeps all times between failures
-private List<Integer> mtbf;
+private double availability;
 
-// cycles in which the node is up
-private int up_cycles;
+//cycles in which the battery is charging
+private int charge_cycles;
 
-//cycles in which the node is down
-private int down_cycles;
+//cycles in which the battery is discharging
+private int discharge_cycles;
+
+private double[] solarHistory;
+
+private double ee_energy;
+private int ee_counter;
 
 // Receiving costs 1 unit of energy = Eelect
 private double Eelect = 0.02;
@@ -120,6 +124,8 @@ public GeneralNode(String prefix) {
 			Configuration.getInstance(names[i]);
 		protocol[i] = p; 
 	}
+	solarHistory = new double[288];
+
 }
 
 
@@ -286,7 +292,7 @@ public double getConsumedIndividualCPUEnergy(double lambda_CPU) {
 	return lambda_CPU*CPUCost; // + (CPUCost/10);			
 }
 
-// retursn consumed individual communication energy consumption for sending
+// return consumed individual communication energy consumption for sending
 public double getConsumedIndividualCommEnergySending(double lambda, double latency) {
 	
 	// No communication involved for services on the same node
@@ -296,8 +302,10 @@ public double getConsumedIndividualCommEnergySending(double lambda, double laten
 	// Sending energy =  K(E_{elect} + E_{amp} l_{S,S'}^2)
 	double sendingEnergy = lambda*(Eelect+(Eamp*Math.pow(latency,2)));
 	
-//	System.out.println("latency "+latency);
-//	System.out.println("sending energy "+sendingEnergy);
+	//System.out.println("latency "+latency);
+	//System.out.println("Eamp "+Eamp);
+	//System.out.println("Eelect "+Eelect);
+	//System.out.println("sending energy "+sendingEnergy);
 	
 	return sendingEnergy;	
 }
@@ -318,14 +326,6 @@ public double getBattery() {
 
 public void setBattery(double battery) {
 	Battery = battery;
-}
-
-public double getCapacity() {
-	return capacity;
-}
-
-public void setCapacity(double val) {
-	capacity = val;
 }
 
 
@@ -382,47 +382,88 @@ public void setBestNode(boolean b) {
 	best_node = b;
 }
 
-
-public int getLastFailure() {
-	return last_failure;
+public int getLinkNum() {
+	return link_num;
 }
 
-public void setLastFailure(int f) {
-	last_failure = f;
+public void setLinkNum(int val) {
+	link_num = val;
+}
+
+public int getTotalLinkNum() {
+	return total_link_num;
+}
+
+public void setTotalLinkNum(int val) {
+	total_link_num += val;
+}
+
+public double getCapacity() {
+	return capacity;
+}
+
+public void setCapacity(double val) {
+	capacity = val;
+}
+
+public double getAvailability() {
+	return availability;
+}
+public double setAvailability(double val) {
+	return availability=val;
 }
 
 
-public List<Integer> getMTBF() {
-	return mtbf;
+public void addChargeCycle() {
+	charge_cycles++;
 }
 
-public void setMTBF(List<Integer> m) {
-	this.mtbf = m;
+public void addDischargeCycle() {
+	discharge_cycles++;
 }
 
-public void addMTBF(int m) {
-	mtbf.add(m);
+
+public int getChargeCycles() {
+	return charge_cycles;
 }
 
-public void printMTBF() {
-	System.out.println(mtbf);
+public int getDischargeCycles() {
+	return discharge_cycles;
 }
 
-public int getUpCycles() {
-	return up_cycles;
+
+public void addSolarHistory(double battery, int i) {
+	solarHistory[i]=battery;
 }
 
-public int getDownCycles() {
-	return down_cycles;
+public double[] getSolarHistory() {
+	return solarHistory;
 }
 
-public void addUpCycles(int val) {
-	up_cycles = up_cycles+val;
+public double getPredictedG() {
+	return predictedG;
 }
 
-public void addDownCycle(int val) {
-	down_cycles = down_cycles + val;;
+public void setPredictedG(double val) {
+	predictedG=val;
 }
+
+public double getEeEnergy() {
+	return ee_energy;
+}
+
+public void setEeEnergy(double val) {
+	ee_energy=val;
+}
+
+public int getEeCounter() {
+	return ee_counter;
+}
+
+public void setEeCounter(int val) {
+	ee_counter=val;
+}
+
 }
 
 

@@ -14,6 +14,8 @@ public class EnergyReputation implements Cloneable  {
 	// approach to challenge
 	private double ee;
 	
+	private long counter;
+	
 	public EnergyReputation(long nodeID) {
 		this.setNodeID(nodeID);
 		k=0;
@@ -22,15 +24,35 @@ public class EnergyReputation implements Cloneable  {
 	
 	public void addDeclaredEnergy(double declaredEnergy) {		
 		
+		/*
 		double W = 0.1 + (0.9/k);
 		if(k==0)
 			W=1;
+		*/
 		
+		double W = 0.1 + (0.9/counter);
+		if(counter==0)
+			W=1;
+		
+		//double W = 0.7;
+				
 		double ee_new = W*declaredEnergy + ( (1-W)*ee );		
 		ee = ee_new;
 		
 		k++;
 		
+		if(nodeID==0)
+			System.out.println("        [print in Energy Rep.]" + ee + "   k " + k);
+				
+		
+		
+		
+		
+		GeneralNode node = GeneralNode.getNode(nodeID);
+		node.setEeEnergy(ee);
+		node.setEeCounter(k);
+		
+		//System.out.println("k = " + k + "   c = " + counter);
 	}
 	
 	@Override
@@ -45,7 +67,7 @@ public class EnergyReputation implements Cloneable  {
 		return result;
 	}
 
-	public int getK() {
+	public long getK() {
 		return k;
 	}
 	

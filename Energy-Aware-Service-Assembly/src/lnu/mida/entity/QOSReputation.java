@@ -73,6 +73,10 @@ public class QOSReputation implements Cloneable  {
 		
 		k++;
 		
+		//if(serviceID==0)
+		//	System.out.println("        [print in QoS Rep.]" + ee + "   k " + k);
+		
+		
 	}
 	
 	public double getWindowAverage() {
