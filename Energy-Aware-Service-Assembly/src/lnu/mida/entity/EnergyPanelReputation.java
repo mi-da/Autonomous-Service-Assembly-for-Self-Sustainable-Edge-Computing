@@ -1,6 +1,6 @@
 package lnu.mida.entity;
 
-public class EnergyReputation implements Cloneable  {
+public class EnergyPanelReputation implements Cloneable  {
 	
 	
 	// service id for which the experience is evaluated
@@ -14,7 +14,8 @@ public class EnergyReputation implements Cloneable  {
 	// approach to challenge
 	private double ee;
 	
-	public EnergyReputation(long nodeID) {
+	
+	public EnergyPanelReputation(long nodeID) {
 		this.setNodeID(nodeID);
 		k=0;
 		ee=0;
@@ -22,22 +23,29 @@ public class EnergyReputation implements Cloneable  {
 	
 	public void addDeclaredEnergy(double declaredEnergy) {		
 		
+		
 		double W = 0.1 + (0.9/k);
 		if(k==0)
 			W=1;
 		
+		//double W = 0.7;
+				
 		double ee_new = W*declaredEnergy + ( (1-W)*ee );		
 		ee = ee_new;
 		
 		k++;
 		
+		GeneralNode node = GeneralNode.getNode(nodeID);
+		node.setEePEnergy(ee);
+		node.setEePCounter(k);
+		
 	}
 	
 	@Override
 	public Object clone() {	
-		EnergyReputation result = null;
+		EnergyPanelReputation result = null;
 		try {
-			result = (EnergyReputation) super.clone();
+			result = (EnergyPanelReputation) super.clone();
 		} catch (CloneNotSupportedException ex) {
 			System.out.println(ex.getMessage());
 			assert(false);
@@ -45,7 +53,7 @@ public class EnergyReputation implements Cloneable  {
 		return result;
 	}
 
-	public int getK() {
+	public long getK() {
 		return k;
 	}
 	

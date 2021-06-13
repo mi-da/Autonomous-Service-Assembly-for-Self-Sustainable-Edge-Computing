@@ -6,15 +6,11 @@ import peersim.core.*;
 import peersim.cdsim.CDProtocol;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
+
+import lnu.mida.entity.CandidateServices;
 import lnu.mida.entity.GeneralNode;
 import lnu.mida.entity.Service;
-import lnu.mida.entityl.transferfunction.TransferFunction;
-import lnu.mida.entityl.transferfunction.UnityTransferFunction;
-
-import java.util.Iterator;
 
 /**
  * This class implements the P2P-based component assembly protocol. Each node
@@ -57,8 +53,6 @@ public class OverloadComponentAssembly implements CDProtocol, Cleanable {
 	private ArrayList<Service> services;
 	
 	
-	// servizi che il node "scopre"
-
 	/**
 	 * The application protocol id.
 	 * 
@@ -114,28 +108,48 @@ public class OverloadComponentAssembly implements CDProtocol, Cleanable {
 	@Override
 	public void nextCycle(Node node, int protocolID) {
 		
-
 		int linkableID = FastConfig.getLinkable(protocolID);
 		Linkable linkable = (Linkable) node.getProtocol(linkableID);
 		
+		List<Service> candidate = new ArrayList<Service>();
 		
+		GeneralNode n = GeneralNode.getNode(node.getID());
+		CandidateServices node_cands = n.getCandidateServices();
+				
 		// Services intereact with the services on the same node
-		for (Service service : services) {			
+		for (Service service : services) {	
+
 			for (Service otherservice : services) {
-				if(otherservice!=service)
-					otherservice.interact(service);
+
+				if(otherservice!=service) {
+	
+					candidate = otherservice.interact(service);
+					
+					if(candidate!=null) {
+					
+						for(int i=0; i<candidate.size();i++) {
+							node_cands.addCandidateService(candidate.get(i));
+						}
+						
+					}
+				}
 			}
 		}
 
+
 		for (int i = 0; i < linkable.degree(); ++i) {		
 			
+
 			Node peer = linkable.getNeighbor(i);
-			
-//			System.out.println("node "+node.getID()+" interacts with node "+peer.getID());
+			if(peer.getID()==1 && peer.isUp()) {
+			}
 
 			if (!peer.isUp()) {
 				continue;
 			}
+			
+			GeneralNode n_peer = GeneralNode.getNode(peer.getID());
+			CandidateServices peer_cands = n_peer.getCandidateServices();
 			
 			OverloadComponentAssembly comp = (OverloadComponentAssembly) peer.getProtocol(protocolID);	
 			
@@ -147,15 +161,23 @@ public class OverloadComponentAssembly implements CDProtocol, Cleanable {
 							
 				// Interact with services on other Node
 				for (Service neighbourService : neighbourServices) {
-					neighbourService.interact(service);
+					
+					candidate = neighbourService.interact(service);
+					if(candidate!=null) {
+						
+						for(int j=0; j<candidate.size();j++) {
+							peer_cands.addCandidateService(candidate.get(j));
+						}
+						
+					}
 				}
 			   
-			}	
-			
-//			System.exit(0);
-			
+			}
+						
 		}
+		
 	}
+	
 	
 	
 	public ArrayList<Service> getServices() {
@@ -175,6 +197,8 @@ public class OverloadComponentAssembly implements CDProtocol, Cleanable {
 	public void reset() {
 		services = new ArrayList<Service>();
 	}
+	
 
-
+	
+	
 }

@@ -22,8 +22,8 @@ import java.util.ArrayList;
 
 import lnu.mida.entity.*;
 import lnu.mida.entity.GeneralNode;
-import lnu.mida.protocol.OverloadApplication;
 import lnu.mida.protocol.OverloadComponentAssembly;
+import peersim.cdsim.CDState;
 import peersim.config.*;
 import peersim.core.*;
 
@@ -31,7 +31,7 @@ import peersim.core.*;
 /**
  * I am an observer that observe
  */
-public class OverloadReset implements Control {
+public class OverloadResetServices implements Control {
 
 	// ///////////////////////////////////////////////////////////////////////
 	// Constants
@@ -59,6 +59,7 @@ public class OverloadReset implements Control {
 
 	private final int	component_assembly_pid;
 	private final int	application_pid;
+	
 
 	// ///////////////////////////////////////////////////////////////////////
 	// Constructor
@@ -70,12 +71,11 @@ public class OverloadReset implements Control {
 	 * @param name
 	 *            the configuration prefix for this class.
 	 */
-	public OverloadReset(String name) {
+	public OverloadResetServices(String name) {
 		
 		this.name = name;
 		component_assembly_pid = Configuration.getPid(name + "." + COMP_PROT);
 		application_pid = Configuration.getPid(name + "." + APPL_PROT);
-
 	}
 
 	// ///////////////////////////////////////////////////////////////////////
@@ -85,33 +85,20 @@ public class OverloadReset implements Control {
 	@Override
 	public boolean execute() {
 		
-		//System.err.println("-------- RESET CONTROLLER --------");
 		
-				
+			
 		// reset the dependencies for the new round of composition
 		for (int i = 0; i < Network.size(); i++) {	
 			
 			GeneralNode n = (GeneralNode) Network.get(i);		
 			OverloadComponentAssembly ca = (OverloadComponentAssembly) n.getProtocol(component_assembly_pid);		
-			OverloadApplication appl = (OverloadApplication)  n.getProtocol(application_pid);	
-			// reset the services
-			ArrayList<Service> services = ca.getServices();
-			for (Service service : services) {
-				service.reset();	
-			}
 						
+			n.resetCandidateServices();
+			
 		}
-		
-		// Nodes with no battery die
-//		for (int i = 0; i < Network.size(); i++) {	
-//			GeneralNode n = (GeneralNode) Network.get(i);
-//			if(n.getBattery()<0)
-//				Network.remove(i);
-//		}
-//		
-
-//		System.out.println("Network size="+Network.size());
 		
 		return false;
 	}
+		
+	
 }

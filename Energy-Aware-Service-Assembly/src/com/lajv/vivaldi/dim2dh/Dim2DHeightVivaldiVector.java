@@ -31,6 +31,7 @@ public class Dim2DHeightVivaldiVector implements VivaldiVector {
 	/**
 	 * @see VivaldiVector#normalize()
 	 */
+	@Override
 	public void normalize() {
 		// Make sure that the height composant is maximum one third of the length
 		limitH();
@@ -58,6 +59,7 @@ public class Dim2DHeightVivaldiVector implements VivaldiVector {
 	/**
 	 * @see VivaldiVector#applyError(double)
 	 */
+	@Override
 	public void applyError(double error) {
 		x *= error;
 		y *= error;
@@ -67,6 +69,7 @@ public class Dim2DHeightVivaldiVector implements VivaldiVector {
 	/**
 	 * @see VivaldiVector#length()
 	 */
+	@Override
 	public double length() {
 		return Math.sqrt(x * x + y * y) + h;
 	}

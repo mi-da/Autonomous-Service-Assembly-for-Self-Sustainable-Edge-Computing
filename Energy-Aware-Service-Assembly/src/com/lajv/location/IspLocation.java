@@ -49,6 +49,7 @@ public class IspLocation implements Location {
 	 * expected to be between x:(0, 0.125) and y:(0, 0.125). More nodes will also have an ISP with
 	 * lower index.
 	 */
+	@Override
 	public void randomize() {
 		x = CommonState.r.nextDouble() * CommonState.r.nextDouble() * CommonState.r.nextDouble();
 		y = CommonState.r.nextDouble() * CommonState.r.nextDouble() * CommonState.r.nextDouble();
@@ -56,6 +57,7 @@ public class IspLocation implements Location {
 		uploadCapacity = 0.5 + (1 - x * y) * CommonState.r.nextDouble() * 4.5;
 	}
 
+	@Override
 	public double latency(Location otherLocation) {
 		IspLocation other = (IspLocation) otherLocation;
 		if (isp == other.isp) {
@@ -69,6 +71,7 @@ public class IspLocation implements Location {
 		}
 	}
 
+	@Override
 	public Object clone() {
 		IspLocation clone = null;
 		try {
@@ -79,6 +82,7 @@ public class IspLocation implements Location {
 		return clone;
 	}
 
+	@Override
 	public double getUploadCapacity() {
 		return uploadCapacity;
 	}

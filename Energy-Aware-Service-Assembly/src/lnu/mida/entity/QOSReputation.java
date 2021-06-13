@@ -11,6 +11,7 @@ public class QOSReputation implements Cloneable  {
 	private double declared_utility;
 	// number of time the experience is done
 	private int k;
+	private int counter;
 	// current average (influenced by the window period of the learner)
 	private double Qk;
 	// trust value
@@ -39,6 +40,10 @@ public class QOSReputation implements Cloneable  {
 
 		Qk = Qk_new;
 		
+		//if(serviceID==10)
+		//	System.out.println("    experienced_utility  " + experienced_utility);
+		
+		
 		// Updating the trust value
 		
 		double efficiency = (1 - ( Math.abs(declared_utility - experienced_utility) / Math.abs(declared_utility) ));
@@ -55,12 +60,10 @@ public class QOSReputation implements Cloneable  {
 //			if(Tk<1)
 //				Tk+=0.1;
 //		}
-
 		Tk=Tk_new;		
-		
-//		System.out.println("dec="+declared_utility+" exp="+experienced_utility+" Tk="+Tk_old+" Tk_new="+Tk);
-		
-		
+
+	
+			
 		// Approach to Challenge - Shaerf quality	
 		double W = 0.2 + (0.8/k);
 		if(k==0)
@@ -72,7 +75,24 @@ public class QOSReputation implements Cloneable  {
 		ee = ee_new;
 		
 		k++;
+		counter++;
+	
+		int nodeID = (int)serviceID/5;
+		//System.out.println("Servizio: " + serviceID  + "     nodo " + nodeID);
 		
+		GeneralNode n = GeneralNode.getNode(nodeID);
+		n.setQosCounter(k, serviceID);
+		n.setEeQos(ee, serviceID);
+		n.setTk(Tk, serviceID);
+		n.setWindow(Qk, serviceID);
+		
+		/*
+		if(serviceID==10) {
+			System.out.println("	Tk  :" + Tk);
+			System.out.println("	 k  :" + k);
+			System.out.println("	 c  :" + counter);
+		}
+		*/
 	}
 	
 	public double getWindowAverage() {

@@ -18,20 +18,18 @@
 package lnu.mida.controller.init;
 
 import java.util.ArrayList;
-
-import lnu.mida.entity.EnergyReputation;
-//import com.sun.tools.javac.util.ArrayUtils;
+import lnu.mida.entity.EnergyBatteryPanelReputation;
+import lnu.mida.entity.EnergyPanelReputation;
 import lnu.mida.entity.GeneralNode;
+import lnu.mida.entity.GreenReputation;
 import lnu.mida.entity.QOSReputation;
 import lnu.mida.entity.Service;
 import lnu.mida.entityl.transferfunction.CustomTransferFunction;
 import lnu.mida.entityl.transferfunction.TransferFunction;
-import lnu.mida.entityl.transferfunction.UnityTransferFunction;
 import lnu.mida.protocol.OverloadApplication;
 import lnu.mida.protocol.OverloadComponentAssembly;
 import peersim.config.*;
 import peersim.core.*;
-import peersim.util.ExtendedRandom;
 
 public class OverloadComponentInitializer implements Control {
 
@@ -76,6 +74,8 @@ public class OverloadComponentInitializer implements Control {
 	@Override
 	public boolean execute() {
 
+		System.out.println("--- OverloadComponentInitizlizer--- ");
+
 		int m = Configuration.getInt("M", 50000);
 		QOSReputation.setM(m); // set the parameter m for the learner
 
@@ -94,7 +94,7 @@ public class OverloadComponentInitializer implements Control {
 			availableTypes.add(max_services_per_type);
 		}
 		
-
+		
 		for (int i = 0; i < Network.size(); i++) {
 
 
@@ -105,6 +105,19 @@ public class OverloadComponentInitializer implements Control {
 			appl.reset();
 			ca.reset();
 
+			n.initCand();
+			n.initRep();
+			
+			ArrayList<Integer> new_list = new ArrayList<Integer>();
+			n.setMTBF(new_list);
+			
+			ArrayList<Integer> new_list2 = new ArrayList<Integer>();
+			n.setMTTF(new_list2);
+			
+			ArrayList<Integer> new_list3 = new ArrayList<Integer>();
+			n.setDowntimePeriods(new_list3);
+			
+			
 			// Initialize the number of services with max_types
 			for (int j = 0; j < services_per_node; j++) {
 
@@ -113,10 +126,10 @@ public class OverloadComponentInitializer implements Control {
 
 				// set type of service
 				int randomType = getRandomType(availableTypes);
-				
+				//System.out.println(randomType);
 				s.setType(randomType);
 				s.setNode_id((int) n.getID());
-				        
+				//System.out.println(randomType);
 
 				// sigma: type 0 get requests from external users
 				if (randomType == 0) {
@@ -125,7 +138,7 @@ public class OverloadComponentInitializer implements Control {
 				}
 				
 				
-				s.setTransfer_func_CPU(new CustomTransferFunction(Math.random()));
+				s.setTransfer_func_CPU(new CustomTransferFunction(15*Math.random()));
 
 				/**
 				 * Quality parameters
@@ -145,7 +158,7 @@ public class OverloadComponentInitializer implements Control {
 				// setup transfer functions
 				TransferFunction transfer_func[] = s.getTransferFunctions();
 				for (int k = 0; k < types; k++) {
-					transfer_func[k] = new CustomTransferFunction(CommonState.r.nextDouble()); // transfer_func[j] = new
+					transfer_func[k] = new CustomTransferFunction(15*CommonState.r.nextDouble()); // transfer_func[j] = new
 																				  // CustomTransferFunction(0.2);
                                                                                   // transfer_func[j] = new UnityTransferFunction();
 				}
@@ -161,12 +174,21 @@ public class OverloadComponentInitializer implements Control {
 			 */
 
 			// set green energy generation rate (for Journal)
-			n.setG(0.5 + 2 * CommonState.r.nextDouble());
+			double G = (1440 * CommonState.r.nextDouble());
+			n.setG(0);
+			//n.setG(0);
 			
 			
 	        // set the Battery 
-			n.setBattery(70);
 			
+			int max = 6480; // batteria AAA da 1200 mAh
+			int min = 6480;
+			
+			double capacity = min + (max - min) * CommonState.r.nextDouble();
+			n.setBattery(capacity);
+			n.setCapacity(capacity);
+			
+			//System.out.println(n.getBattery());
 
 			n.setCPUConsumptionFactor(0.5+(1.5*CommonState.r.nextDouble()));
 			n.setCommunicationConsumptionFactor(0.5+(1.5*CommonState.r.nextDouble()));
@@ -177,41 +199,22 @@ public class OverloadComponentInitializer implements Control {
 			
 			
 
-			for(long serv_num=0;serv_num<700;serv_num++)
+			for(long serv_num=0;serv_num<500;serv_num++)
 				appl.getQoSReputations().add(new QOSReputation(serv_num));
 			
-			for(long nodes_num=0;nodes_num<150;nodes_num++)
-				appl.getEnergyReputations().add(new EnergyReputation(nodes_num));
+			for(long nodes_num=0;nodes_num<100;nodes_num++)
+				appl.getEnergyBPReputations().add(new EnergyBatteryPanelReputation(nodes_num));
+
+			for(long nodes_num=0;nodes_num<100;nodes_num++)
+				appl.getEnergyPReputations().add(new EnergyPanelReputation(nodes_num));
+
+			for(long nodes_num=0;nodes_num<100;nodes_num++)
+				appl.getGreenReputations().add(new GreenReputation(nodes_num));
+
 
 		}
 		
-		// Prints nodes and services allocation
-//		for (int i = 0; i < Network.size(); i++) {
-//
-//			GeneralNode n = (GeneralNode) Network.get(i);
-//			OverloadComponentAssembly ca = (OverloadComponentAssembly) n.getProtocol(component_assembly_pid);
-//			OverloadApplication appl = (OverloadApplication) n.getProtocol(application_assembly_pid);
-//
-//			
-//			ArrayList<Service> services = ca.getServices();
-//			
-//			System.out.println("On node "+n.getID());
-//			
-//			for (Service service : services) {
-//				System.out.println("Node= "+service.getNode_id()+" service="+service.getService_id()+" type="+service.getType());
-//			}
-//			if(services.size()==0)
-//				System.out.println("No services here");
-//			
-//			System.out.println("QoS rep"+appl.getQoSReputations().size());
-//			System.out.println("Ene rep"+appl.getEnergyReputations().size());
-//			
-//			System.out.println();
-//		
-//		}
 		
-		// System.exit(0);
-    
 		return false;
 	}
 

@@ -4,21 +4,23 @@
 
 ## For battery discharge: N=100 Ty=10 SperNode = 3 Exp=50
 
-simulation.cycles 6*100  # 300
-simulation.experiments 5 # 20
+simulation.cycles 6*20  # 200
+simulation.experiments 5 # 50
 NETWORK_SIZE 100
 
 SERVICES_PER_NODE 5 #number of services per node
 
-TYPES 10
+TYPES 10   
 
-DEGREE 6
+DEGREE 6 # must be less than cache size
 
-STRATEGY random  # 6 strategies: 1) emergent, 2) random, 3) greedy, 4) shaerf, 5) local_energy, 5) overall_energy, 6) fair_energy, 7) quality_fair
+STRATEGY random  # 6 strategies: 1) random, 2) green_learning, 3) local_energy, 4) fair_energy, 5) maxb, 6) maxg
 
 M 5 # period of the learner
 
 COMPOSITION_STEPS 6 # the system runs a composition step every 6 simulation cycles
+
+SOLAR_STEP 1
 
 random.seed 1234554324
 
@@ -115,11 +117,23 @@ control.compctr.comp_prot ca
 control.compctr.from COMPOSITION_STEPS
 control.compctr.step COMPOSITION_STEPS
 
-control.reset lnu.mida.controller.OverloadReset
-control.reset.appl_prot appl
-control.reset.comp_prot ca
-control.reset.from COMPOSITION_STEPS
-control.reset.step COMPOSITION_STEPS
+control.linkctr lnu.mida.controller.LinkController
+control.linkctr.appl_prot appl
+control.linkctr.comp_prot ca
+control.linkctr.from COMPOSITION_STEPS
+control.linkctr.step COMPOSITION_STEPS
+
+control.resetServices lnu.mida.controller.OverloadResetServices
+control.resetServices.appl_prot appl
+control.resetServices.comp_prot ca
+control.resetServices.from COMPOSITION_STEPS
+control.resetServices.step COMPOSITION_STEPS
+
+control.resetBattery lnu.mida.controller.OverloadResetBattery
+control.resetBattery.appl_prot appl
+control.resetBattery.comp_prot ca
+control.resetBattery.from COMPOSITION_STEPS
+control.resetBattery.step COMPOSITION_STEPS
 
 # Energy consumption controller
 control.enectr lnu.mida.controller.energy.EnergyController
@@ -128,6 +142,33 @@ control.enectr.comp_prot ca
 control.enectr.viv_prot vivp
 control.enectr.from COMPOSITION_STEPS
 control.enectr.step COMPOSITION_STEPS
+
+# Solar controller
+control.solar lnu.mida.controller.SolarController
+control.solar.appl_prot appl
+control.solar.comp_prot ca
+control.solar.from SOLAR_STEP
+control.solar.step SOLAR_STEP
+
+# Battery controller
+control.battery lnu.mida.controller.BatteryController
+control.battery.appl_prot appl
+control.battery.comp_prot ca
+control.battery.from SOLAR_STEP
+control.battery.step SOLAR_STEP
+
+# Battery controller
+control.batteryPanel lnu.mida.controller.BatteryPanelController
+control.batteryPanel.appl_prot appl
+control.batteryPanel.comp_prot ca
+control.batteryPanel.from SOLAR_STEP
+control.batteryPanel.step SOLAR_STEP
+
+control.newcycle lnu.mida.controller.NewCycleInitController
+control.newcycle.appl_prot appl
+control.newcycle.comp_prot ca
+control.newcycle.from COMPOSITION_STEPS
+control.newcycle.step COMPOSITION_STEPS
 
 # Id control reset 
 control.idctr lnu.mida.controller.OverloadIdController
@@ -147,16 +188,15 @@ control.changel.step COMPOSITION_STEPS*100
 control.failures lnu.mida.controller.dynamic.OverloadComponentFailures
 control.failures.appl_prot appl
 control.failures.comp_prot ca
-control.failures.num 20
-control.failures.from COMPOSITION_STEPS*100
-control.failures.step COMPOSITION_STEPS*100
-#control.failures.at COMPOSITION_STEPS*150
+control.failures.num 5
+control.failures.from COMPOSITION_STEPS*15
+control.failures.step COMPOSITION_STEPS*15
 
 # Dynamic node join
 control.dynpeer peersim.dynamics.DynamicNetwork
-control.dynpeer.add 20
-control.dynpeer.from COMPOSITION_STEPS*100
-control.dynpeer.step COMPOSITION_STEPS*100
+control.dynpeer.add 5
+control.dynpeer.from COMPOSITION_STEPS*15
+control.dynpeer.step COMPOSITION_STEPS*15
 
 
 control.dynpeer.init.0 RandNI
@@ -177,5 +217,29 @@ control.vivo.threshold 0.0
 control.shf Shuffle
 
 include.init wire loci vivs ci pdi fi
-include.control shf enectr compctr qeC FinalutilC reset idctr failures dynpeer
+
+
+
+
+# scenario "Battery"
+include.control shf linkctr battery enectr compctr qeC FinalutilC resetServices resetBattery newcycle idctr
+
+# scenario "Battery" con dinamicità
+#include.control shf linkctr battery enectr compctr qeC FinalutilC resetServices resetBattery newcycle idctr failures dynpeer
+
+
+
+# scenario "Battery Panel"
+#include.control shf linkctr solar batteryPanel enectr compctr qeC FinalutilC resetServices resetBattery idctr
+
+# scenario "Battery Panel" con dinamicità
+#include.control shf linkctr solar batteryPanel enectr compctr qeC FinalutilC resetServices resetBattery idctr failures dynpeer
+
+
+# scenario "Panel"
+#include.control shf linkctr solar enectr compctr qeC FinalutilC resetServices idctr
+
+# scenario "Panel" con dinamicità
+#include.control shf linkctr solar enectr compctr qeC FinalutilC resetServices idctr failures dynpeer
+
 include.protocol lnk vivp ca appl

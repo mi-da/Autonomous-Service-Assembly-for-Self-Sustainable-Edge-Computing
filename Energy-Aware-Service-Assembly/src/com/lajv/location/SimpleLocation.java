@@ -18,6 +18,7 @@ public class SimpleLocation implements Location, Cloneable {
 		uploadCapacity = 0.5 + CommonState.r.nextDouble() * 4.5; // Random value between 0.5 and 5.0
 	}
 
+	@Override
 	public double latency(Location otherLocation) {
 		SimpleLocation other = (SimpleLocation) otherLocation;
 		double xdiff = other.x - x;
@@ -25,6 +26,7 @@ public class SimpleLocation implements Location, Cloneable {
 		return Math.sqrt(xdiff * xdiff + ydiff * ydiff);
 	}
 
+	@Override
 	public Object clone() {
 		SimpleLocation clone = null;
 		try {

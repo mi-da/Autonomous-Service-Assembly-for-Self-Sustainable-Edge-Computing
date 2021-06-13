@@ -1,7 +1,6 @@
 package com.lajv.location;
 
 import peersim.config.Configuration;
-import peersim.core.CommonState;
 
 public class CircleLocation implements Location, Cloneable {
 
@@ -29,6 +28,7 @@ public class CircleLocation implements Location, Cloneable {
 		this.y = r * Math.sin(a);	
 	}
 
+	@Override
 	public double latency(Location otherLocation) {
 		CircleLocation other = (CircleLocation) otherLocation;
 		double xdiff = other.x - x;
@@ -36,6 +36,7 @@ public class CircleLocation implements Location, Cloneable {
 		return Math.sqrt(xdiff * xdiff + ydiff * ydiff);
 	}
 
+	@Override
 	public Object clone() {
 		CircleLocation clone = null;
 		try {

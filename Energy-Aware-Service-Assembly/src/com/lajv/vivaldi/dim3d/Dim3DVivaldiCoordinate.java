@@ -67,6 +67,7 @@ public class Dim3DVivaldiCoordinate implements Cloneable, VivaldiCoordinate {
 	/**
 	 * @see VivaldiCoordinate#distance(VivaldiCoordinate)
 	 */
+	@Override
 	public double distance(VivaldiCoordinate pt) {
 		Dim3DVivaldiCoordinate other = (Dim3DVivaldiCoordinate) pt;
 		double px = other.x - x;
@@ -78,6 +79,7 @@ public class Dim3DVivaldiCoordinate implements Cloneable, VivaldiCoordinate {
 	/**
 	 * @see VivaldiCoordinate#differenceVector(VivaldiCoordinate)
 	 */
+	@Override
 	public VivaldiVector differenceVector(VivaldiCoordinate other) {
 		Dim3DVivaldiCoordinate o = (Dim3DVivaldiCoordinate) other;
 		double vx = x - o.x;
@@ -89,6 +91,7 @@ public class Dim3DVivaldiCoordinate implements Cloneable, VivaldiCoordinate {
 	/**
 	 * @see VivaldiVector#applyForceVector(VivaldiVector, double, double)
 	 */
+	@Override
 	public void applyForceVector(VivaldiVector vector, double correction_factor,
 			double uncertainty_balance) {
 		Dim3DVivaldiVector v = (Dim3DVivaldiVector) vector;
@@ -100,6 +103,7 @@ public class Dim3DVivaldiCoordinate implements Cloneable, VivaldiCoordinate {
 	/**
 	 * @see VivaldiCoordinate#clone()
 	 */
+	@Override
 	public Object clone() {
 		try {
 			return super.clone();
@@ -115,6 +119,7 @@ public class Dim3DVivaldiCoordinate implements Cloneable, VivaldiCoordinate {
 	 * 
 	 * @return a string representation of this <code>VivaldiCoordinate</code>.
 	 */
+	@Override
 	public String toString() {
 		DecimalFormat df = new DecimalFormat("0.00");
 		return "{x: " + df.format(x) + ", y: " + df.format(y) + ", z: " + df.format(z) + "}";

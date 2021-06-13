@@ -20,6 +20,8 @@ package lnu.mida.controller;
 
 import java.util.ArrayList;
 
+import com.lajv.location.Location;
+
 import lnu.mida.entity.GeneralNode;
 import lnu.mida.entity.Service;
 import lnu.mida.protocol.OverloadApplication;
@@ -86,6 +88,9 @@ public class OverloadCompositionController implements Control {
 	@Override
 	public boolean execute() {
 		
+		//System.out.println("\n--- composition controller ---");
+
+		
 		// non calcolo al round 0 (nessun bind)
 		if (CommonState.getIntTime() == 0)
 			return false;
@@ -101,41 +106,47 @@ public class OverloadCompositionController implements Control {
 			OverloadComponentAssembly ca = (OverloadComponentAssembly) node.getProtocol(component_assembly_pid);
 			OverloadApplication appl = (OverloadApplication) node.getProtocol(application_pid);
 			
+			
 			ArrayList<Service> services = ca.getServices();
 			
 			ArrayList<GeneralNode> interactingNodes = new ArrayList<GeneralNode>();
 			
-			
+
 			for (Service service : services) {
 
+				service.updateCompoundUtility();
 				
 				double experiencedCU = 1;
 
 				if (!service.isFullyResolved()) {
 					experiencedCU = 0;
 				} else {
-
+					
 					Service[] listDepObj = service.getDependencies_obj();
 					boolean[] listDep = service.getDependencies();
-					
+
+					double consumption=0;
+
 					// recursive calculation of L and E for comm and comp
 					service.setL_comp(service.calculateL_comp());
 					service.setL_comm(service.calculateL_comp());
 					service.setE_comp(service.calculateE_comp());
 					service.setE_comm(service.calculateE_comm());
 					
-
+					
 					for (int j = 0; j < listDep.length; j++) {
-						
+
 						boolean dep = listDep[j];
+						
 						if (dep == true) {
 
 							Service depObj = listDepObj[j];
-							
+
 							if(depObj==null) {
 								experiencedCU = 0;
 								continue;
 							}
+														
 							
 							// should not happen
 							if(service.getType()==depObj.getType()) {
@@ -147,29 +158,32 @@ public class OverloadCompositionController implements Control {
 							depObj.updateLambdaTot();
 
 							double experienced_utility = depObj.getRealUtility(service);
-
+							
 							appl.addQoSHistoryExperience(depObj, experienced_utility, depObj.getDeclaredUtility());
 							
-							// Energy balance learning
 							GeneralNode depNode = GeneralNode.getNode(depObj.getNode_id());
 							
 							if(!interactingNodes.contains(depNode))
 								interactingNodes.add(depNode);
 
 							experiencedCU = experiencedCU * experienced_utility; // Experienced Compound Utility (multiplication of all dependencies)				
+						
+
 						}
 					}
+
 				}
 
 				service.setExperiencedCU(experiencedCU);					
 
 			}
 			
+			
 		    for (GeneralNode interactingNode : interactingNodes) {
-		    	appl.addEnergyHistoryExperience(interactingNode, Math.min(0,interactingNode.getG()-interactingNode.getR()));
-		    	//appl.addEnergyHistoryExperience(interactingNode, Math.min(interactingNode.getG(),interactingNode.getR())/interactingNode.getR());
-			}	
-
+		    	appl.addEnergyBPHistoryExperience(interactingNode, Math.min(0,interactingNode.getG()+interactingNode.getBattery()-interactingNode.getR()));
+		    	appl.addEnergyPHistoryExperience(interactingNode, Math.min(0,interactingNode.getG()-interactingNode.getR()));
+		    }	
+		    
 		}	
 
 		return false;

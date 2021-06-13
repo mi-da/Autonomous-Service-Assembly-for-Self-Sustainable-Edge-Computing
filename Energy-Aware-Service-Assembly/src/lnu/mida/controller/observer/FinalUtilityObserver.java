@@ -2,7 +2,6 @@ package lnu.mida.controller.observer;
 
 import java.io.PrintStream;
 import java.util.ArrayList;
-
 import lnu.mida.controller.init.OverloadFileInitializer;
 import peersim.config.Configuration;
 import peersim.core.*;
@@ -35,9 +34,13 @@ public class FinalUtilityObserver implements Control {
 	
 	// Network	
 	public static ArrayList<IncrementalStats> networkSize;
+	public static ArrayList<IncrementalStats> networkUpSize;
 	
 	// Availability	
-	public static ArrayList<IncrementalStats> availability;
+	public static ArrayList<IncrementalStats> availability;	// in relazione alle assemblies completamente risolte
+	public static ArrayList<IncrementalStats> availability_s;	// in relazione ai servizi completamente risolti
+	public static ArrayList<IncrementalStats> availability_n1;	// in relazione al numero di nodi attivi
+
 
 	// ///////////////////////////////////////////////////////////////////////
 	// Constructor
@@ -63,10 +66,12 @@ public class FinalUtilityObserver implements Control {
 		
 		int exp_number = OverloadFileInitializer.experiment_number;
 		int total_exps = Configuration.getInt("simulation.experiments",1);
+
 		
 		// print data from last experiment
 		if(exp_number==total_exps) {
 			
+
 			PrintStream ps = OverloadFileInitializer.getPs_final();
 			
 			int n = 1;
@@ -90,20 +95,34 @@ public class FinalUtilityObserver implements Control {
 				IncrementalStats nodesAlive_is = networkSize.get(index);	
 				double nodesAlive = nodesAlive_is.getAverage();
 				
+				IncrementalStats nodesUp_is = networkUpSize.get(index);	
+				double nodesUp = nodesUp_is.getAverage();
+				
 				// Availability
 				IncrementalStats avail_is = availability.get(index);	
 				double availability = avail_is.getAverage();
-
 				
-				ps.print(n+" ");
-				ps.print(finalQuality+" ");
-				ps.print(finalQualityFairness+" ");
-				ps.print(finalEnergy+" ");
-				ps.print(finalEnergyFairness+" ");
-				ps.print(nodesAlive+" ");
-				ps.print(availability+"\n");
+				IncrementalStats avail_s_is = availability_s.get(index);	
+				double availability_s = avail_s_is.getAverage();
+				
+				IncrementalStats avail_n1_is = availability_n1.get(index);	
+				double availability_n1 = avail_n1_is.getAverage();
+
+				//System.out.println(finalQuality);
+				/*1*/ps.print(n+" ");
+				/*2*/ps.print(finalQuality+" ");
+				/*3*/ps.print(finalQualityFairness+" ");
+				/*4*/ps.print(finalEnergy+" ");
+				/*5*/ps.print(finalEnergyFairness+" ");
+				/*6*/ps.print(nodesAlive+" ");
+				/*7*/ps.print(nodesUp+" ");
+				/*8*/ps.print(availability+" ");	// assemblies fully resolved
+				/*9*/ps.print(availability_s+" ");	// services fully resolved/tot services
+				/*10*/ps.print(availability_n1+"\n");	// nodes up/Network size
+	
 				
 				n+=1; // learning step
+
 			}						
 		}
 		

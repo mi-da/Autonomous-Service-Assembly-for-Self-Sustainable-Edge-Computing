@@ -1,7 +1,5 @@
 package com.lajv.location;
 
-import com.lajv.NetworkNode;
-
 import lnu.mida.entity.GeneralNode;
 import peersim.core.Control;
 import peersim.core.Network;
@@ -39,6 +37,7 @@ public class LocationInitializer implements NodeInitializer, Control {
 	 * 
 	 * @return always false
 	 */
+	@Override
 	public boolean execute() {
 
 		int numOfDistances = 0;
@@ -60,6 +59,7 @@ public class LocationInitializer implements NodeInitializer, Control {
 	/**
 	 * @see peersim.dynamics.NodeInitializer#initialize(peersim.core.Node)
 	 */
+	@Override
 	public void initialize(Node n) {
 		GeneralNode netNode = (GeneralNode) n;
 		netNode.location.randomize();

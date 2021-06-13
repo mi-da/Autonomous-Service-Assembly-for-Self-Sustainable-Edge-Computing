@@ -1,14 +1,15 @@
 package lnu.mida.controller.dynamic;
 
+import java.util.ArrayList;
 import java.util.Random;
-
 import com.lajv.location.CircleLocation;
 import com.lajv.vivaldi.VivaldiProtocol;
 import com.lajv.vivaldi.dim2d.Dim2DVivaldiCoordinate;
-
 import lnu.mida.controller.init.ProbDependencyInitializer;
-import lnu.mida.entity.EnergyReputation;
+import lnu.mida.entity.EnergyBatteryPanelReputation;
+import lnu.mida.entity.EnergyPanelReputation;
 import lnu.mida.entity.GeneralNode;
+import lnu.mida.entity.GreenReputation;
 import lnu.mida.entity.QOSReputation;
 import lnu.mida.entity.Service;
 import lnu.mida.entityl.transferfunction.CustomTransferFunction;
@@ -43,7 +44,9 @@ public class OverloadNewNodeInitializer implements NodeInitializer {
 		
 		GeneralNode node = (GeneralNode)n;
 	
-		
+		node.initCand();
+		node.initRep();
+				
 		int m = Configuration.getInt("M", 50000);
 		QOSReputation.setM(m); // set the parameter m for the learner
 
@@ -56,9 +59,17 @@ public class OverloadNewNodeInitializer implements NodeInitializer {
 		appl.reset();
 		ca.reset();
 		
-		appl.getQoSReputations().add(new QOSReputation(700));
-		appl.getEnergyReputations().add(new EnergyReputation(150));
-
+		ArrayList<Integer> new_list = new ArrayList<Integer>();
+		node.setMTBF(new_list);
+		
+		ArrayList<Integer> new_list2 = new ArrayList<Integer>();
+		node.setDowntimePeriods(new_list2);
+		
+		
+		appl.getQoSReputations().add(new QOSReputation(500));
+		appl.getEnergyBPReputations().add(new EnergyBatteryPanelReputation(100));	
+		appl.getEnergyPReputations().add(new EnergyPanelReputation(100));	
+		appl.getGreenReputations().add(new GreenReputation(100));
 
 		// Initialize the number of services with max_types
 		for (int j = 0; j < services_per_node; j++) {
@@ -68,9 +79,7 @@ public class OverloadNewNodeInitializer implements NodeInitializer {
 
 			// set type of service
 			int randomType = CommonState.r.nextInt(10);			
-			
-			// System.out.println(randomType);
-			
+						
 			s.setType(randomType);
 			s.setNode_id((int) node.getID());
 			        
@@ -82,7 +91,7 @@ public class OverloadNewNodeInitializer implements NodeInitializer {
 			}
 			
 			
-			s.setTransfer_func_CPU(new CustomTransferFunction(Math.random()));
+			s.setTransfer_func_CPU(new CustomTransferFunction(15*Math.random()));
 
 			/**
 			 * Quality parameters
@@ -102,7 +111,7 @@ public class OverloadNewNodeInitializer implements NodeInitializer {
 			// setup transfer functions
 			TransferFunction transfer_func[] = s.getTransferFunctions();
 			for (int k = 0; k < types; k++) {
-				transfer_func[k] = new CustomTransferFunction(CommonState.r.nextDouble()); // transfer_func[j] = new
+				transfer_func[k] = new CustomTransferFunction(15*CommonState.r.nextDouble()); // transfer_func[j] = new
 																			  // CustomTransferFunction(0.2);
                                                                               // transfer_func[j] = new UnityTransferFunction();
 			}
@@ -132,12 +141,16 @@ public class OverloadNewNodeInitializer implements NodeInitializer {
 		 */
 
 		// set green energy generation rate (for Journal)
-		node.setG(0.5 + 2 * CommonState.r.nextDouble());
-		
+		double G = (1440 * CommonState.r.nextDouble());
+		node.setG(0);
 		
         // set the Battery 
-		node.setBattery(70);
+		int max = 6480; // batteria AAA da 1200 mAh
+		int min = 6480;
 		
+		double capacity = min + (max - min) * CommonState.r.nextDouble();
+		node.setBattery(capacity);
+		node.setCapacity(capacity);		
 
 		node.setCPUConsumptionFactor(0.5+(1.5*CommonState.r.nextDouble()));
 		node.setCommunicationConsumptionFactor(0.5+(1.5*CommonState.r.nextDouble()));
@@ -147,11 +160,18 @@ public class OverloadNewNodeInitializer implements NodeInitializer {
 		 */
 				
 
-		for(long serv_num=0;serv_num<700;serv_num++)
+		for(long serv_num=0;serv_num<500;serv_num++)
 			appl.getQoSReputations().add(new QOSReputation(serv_num));
 		
-		for(long nodes_num=0;nodes_num<150;nodes_num++)
-			appl.getEnergyReputations().add(new EnergyReputation(nodes_num));
+		for(long nodes_num=0;nodes_num<100;nodes_num++)
+			appl.getEnergyBPReputations().add(new EnergyBatteryPanelReputation(nodes_num));
+
+		for(long nodes_num=0;nodes_num<100;nodes_num++)
+			appl.getEnergyPReputations().add(new EnergyPanelReputation(nodes_num));
+
+		for(long nodes_num=0;nodes_num<100;nodes_num++)
+			appl.getGreenReputations().add(new GreenReputation(nodes_num));
+
 		
 		// random location		
 		node.location.randomize();

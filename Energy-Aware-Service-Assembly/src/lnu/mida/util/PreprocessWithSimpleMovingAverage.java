@@ -36,6 +36,7 @@ public class PreprocessWithSimpleMovingAverage {
 
 		File dir = new File("C:\\Users\\Mirko\\eclipse-workspace\\Decentralized-Learning-Service-Assembly");
 		File[] foundFiles = dir.listFiles(new FilenameFilter() {
+			@Override
 			public boolean accept(File dir, String name) {
 				return name.startsWith(starts_with);
 			}

@@ -25,6 +25,7 @@ public class Dim2DVivaldiVector implements VivaldiVector {
 	/**
 	 * @see VivaldiVector#normalize()
 	 */
+	@Override
 	public void normalize() {
 		double length = length();
 		// Nodes start at origo and thus the length could be 0, in this case a random vector is
@@ -41,6 +42,7 @@ public class Dim2DVivaldiVector implements VivaldiVector {
 	/**
 	 * @see VivaldiVector#applyError(double)
 	 */
+	@Override
 	public void applyError(double error) {
 		x *= error;
 		y *= error;
@@ -49,6 +51,7 @@ public class Dim2DVivaldiVector implements VivaldiVector {
 	/**
 	 * @see VivaldiVector#length()
 	 */
+	@Override
 	public double length() {
 		return Math.sqrt(x * x + y * y);
 	}

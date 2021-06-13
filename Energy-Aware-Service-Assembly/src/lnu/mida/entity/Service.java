@@ -1,19 +1,13 @@
 package lnu.mida.entity;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
 import lnu.mida.entityl.transferfunction.TransferFunction;
-import lnu.mida.protocol.OverloadApplication;
-import lnu.mida.protocol.OverloadComponentAssembly;
-import peersim.cdsim.CDProtocol;
-import peersim.config.Configuration;
-import peersim.config.FastConfig;
 import peersim.core.Cleanable;
-import peersim.core.Linkable;
-import peersim.core.Node;
 
 public class Service implements Cleanable {
 
@@ -123,6 +117,10 @@ public class Service implements Cleanable {
 	// overall load addressed to S;
 	private double lambda_t;
 
+	private double weight;
+
+	
+
 	/**
 	 * Initialize this object by reading configuration parameters.
 	 * 
@@ -150,7 +148,7 @@ public class Service implements Cleanable {
 		queueParameter = 0;
 		curveParameter = 0;
 		declared_utility = 0;
-		sigma = 0;
+		sigma = 70;
 		lambda_t = 0;
 		setExperiencedCU(0);
 		transfer_func_S = new TransferFunction[max_types];
@@ -332,12 +330,18 @@ public class Service implements Cleanable {
 
 		double returned_util = 0;
 
-		if (lambda_t < (200 * queueParameter))
-			returned_util = declared_utility;
+		if (lambda_t < (200 * queueParameter)) {
+			returned_util = declared_utility;}
 		else {
-			returned_util = Math.pow(Math.E, -(lambda_t * lambda_t) / (10000 * curveParameter));
+			//returned_util = Math.pow(Math.E, -(lambda_t * lambda_t) / (10000 * curveParameter));
+			returned_util = Math.pow(Math.E, -(lambda_t * lambda_t) / (Double.parseDouble("1.0e100") * curveParameter));
+			//System.out.println("\n curveParameter " + curveParameter);
+			//System.out.println(" lambda_t * lambda_t " + (lambda_t * lambda_t));
+			//System.out.println(" Double.parseDouble(\"1.0e5\") * curveParameter) " + (Double.parseDouble("1.0e16") * curveParameter));
+
 //			if(returned_util>0.7)
 //				System.out.println(returned_util);
+
 		}
 
 		return returned_util;
@@ -350,6 +354,7 @@ public class Service implements Cleanable {
 		assert (t < getTypes());
 		dependencies[t] = true;
 		is_fully_resolved = false;
+		//System.out.println("il servizio " + getService_id() + " ha una dep di tipo " + t);
 	}
 
 	/**
@@ -390,6 +395,7 @@ public class Service implements Cleanable {
 	 * changed flag is updated.
 	 */
 	protected void linkDependency(Service o) {
+		
 		assert (this != o);
 		int t = o.getType();
 		assert (dependencies[t] == true);
@@ -397,22 +403,50 @@ public class Service implements Cleanable {
 		dependencies_obj[t] = o;
 		o.addObserver(this);
 		setChanged();
+		
+		//if(this.getNode_id()==1) 
+		//System.out.println("\n in linkdep del servizio " + this.getService_id() + "    dep agiiunta :  " + dependencies_obj[t].getService_id());
 	}
 
+	
+	
 	/**
 	 * Unlink (remove) a previously linked dependency on component o. Component o
 	 * must belong to the list of dependencies. Observers are not notified, but the
 	 * changed flag is updated.
 	 */
-	protected void unlinkDependency(Service o) {
+	public void unlinkDependency(Service o) {
 		int t = o.getType();
 		assert (dependencies[t] == true);
 		assert (dependencies_obj[t] == o);
 		o.deleteObserver(this);
 		dependencies_obj[t] = null;
 		setChanged();
+		
+		//if(this.getNode_id()==1) 
+		//System.out.println("\n in unlinkdep " + o.getService_id());
+
 	}
 
+	
+	public void addLink(Service s) {
+		int t = s.getType();
+		
+		if(dependencies_obj[t]==null) {
+			linkDependency(s);
+		}else {
+			unlinkDependency(dependencies_obj[t]);
+			linkDependency(s);
+		}
+	}
+	
+	public void printDep(int type) {
+		if(dependencies_obj[type]==null)
+			System.out.println("null");
+		else
+			System.out.println("\n dep del servizio " + this.getService_id() + "     :  " + dependencies_obj[type].getService_id());
+	}
+	
 	/**
 	 * Append all references to dependency objects to the list dep
 	 */
@@ -605,13 +639,19 @@ public class Service implements Cleanable {
 	// recursively calculate lambda tot
 	public double updateLambdaTot() {
 		double lambda_tot = sigma;
-		for (Object o : this.observers) {
+		
+		//if(this.getService_id()==202)
+		//	System.out.println("....size..... " + this.observers.size());
 
+		for (Object o : this.observers) {
+			
 			Service ca = (Service) o;
 			lambda_tot += ca.transferLoad(this);
-
 		}
 		this.lambda_t = lambda_tot;
+
+		//if(this.getService_id()==202)
+		//	System.out.println("lambda_tot " + lambda_tot);
 
 		return lambda_tot;
 	}
@@ -619,11 +659,12 @@ public class Service implements Cleanable {
 	private double transferLoad(Service overloadComponentAssembly) {
 		for (int i = 0; i < max_types; i++) {
 			Service depObj = dependencies_obj[i];
-
+			
 			if (depObj != null && overloadComponentAssembly.equals(depObj)) {
 				return transfer_func_S[i].calculate_tSd(lambda_t);
 			}
 		}
+
 		return 0;
 	}
 
@@ -633,10 +674,10 @@ public class Service implements Cleanable {
 	 * @param neighborService the selected node to talk with.
 	 */
 
-	public void interact(Service neighborService) {
+	public List<Service> interact(Service neighborService) {
 
-//		System.out.println("Servizio "+this.getService_id()+" su Nodo "+this.getNode_id()+" interagisce con servizio "+neighborService.getService_id()+" su nodo "+neighborService.getNode_id());
-
+		//System.out.println("Servizio "+this.getService_id()+" su Nodo "+this.getNode_id()+" interagisce con servizio "+neighborService.getService_id()+" su nodo "+neighborService.getNode_id());
+		
 		assert (this != neighborService);
 
 		// The list comp_list contains the neighbor and all its dependencies
@@ -644,8 +685,11 @@ public class Service implements Cleanable {
 		neighborService.fillDependencies(comp_list);
 		comp_list.add(neighborService);
 
+		List<Service> candidates = new ArrayList<Service>();
+		
 		Iterator it = comp_list.iterator();
 
+		
 		while (it.hasNext()) {
 
 			Service comp = (Service) it.next();
@@ -659,29 +703,23 @@ public class Service implements Cleanable {
 
 			if (dependencies[t] == false) // if have dependency to resolve and i want it to resolve (alfa>x)
 				continue; // we do not have a dependency on component type t
-
-			GeneralNode thisNode = GeneralNode.getNode(this.getNode_id());
-
-			OverloadApplication thisApplication = (OverloadApplication) thisNode.getProtocol(application_assembly_pid);
-//			OverloadComponentAssembly thisAssembly = (OverloadComponentAssembly) thisNode.getProtocol(component_assembly_pid);
-
-			Service old = dependencies_obj[t];
-
-			if (dependencies_obj[t] == null) {
-				linkDependency(comp);
-			} else {
-
-				if (thisApplication.chooseByStrategy(comp, old, thisNode)) {
-					unlinkDependency(old);
-					linkDependency(comp);
-				}
-			}
+			
+			candidates.add(comp);
+			
 		}
 		if (hasChanged())
 			updateCompoundUtility();
 		notifyObservers();
+		
+		return candidates;
 	}
 
+	public void checkChanges() {
+		if (hasChanged())
+			updateCompoundUtility();
+		notifyObservers();
+	}
+	
 	public LinkedList getObservers() {
 		return observers;
 	}
@@ -782,6 +820,7 @@ public class Service implements Cleanable {
 	}
 
 	public double getLambdatoCPU() {
+		//System.out.println("sigma : " + getSigma() + "  " + getType());
 		return transfer_func_CPU.calculate_tSd(lambda_t);
 	}
 
@@ -868,6 +907,14 @@ public class Service implements Cleanable {
 
 	public void setI_comm_lambda(double i_comm_lambda) {
 		I_comm_lambda = i_comm_lambda;
+	}
+
+	public double getWeight() {
+		return weight;
+	}
+	
+	public void setWeight(double val) {
+		weight = val;
 	}
 
 }

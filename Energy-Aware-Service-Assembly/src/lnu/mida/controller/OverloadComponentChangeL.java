@@ -1,6 +1,5 @@
 package lnu.mida.controller;
 
-import lnu.mida.protocol.OverloadComponentAssembly;
 import peersim.config.Configuration;
 import peersim.core.*;
 

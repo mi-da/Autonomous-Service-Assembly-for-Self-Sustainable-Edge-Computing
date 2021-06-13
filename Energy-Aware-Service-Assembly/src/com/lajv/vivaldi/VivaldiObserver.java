@@ -5,8 +5,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 
-import com.lajv.location.CircleLocation;
-
 import lnu.mida.entity.GeneralNode;
 import peersim.config.Configuration;
 import peersim.core.Control;

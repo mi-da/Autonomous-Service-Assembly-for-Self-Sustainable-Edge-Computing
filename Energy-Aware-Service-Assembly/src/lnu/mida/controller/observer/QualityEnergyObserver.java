@@ -2,9 +2,12 @@ package lnu.mida.controller.observer;
 
 import java.util.ArrayList;
 
+import java.util.List;
+
 import lnu.mida.entity.GeneralNode;
 import lnu.mida.entity.Service;
 import lnu.mida.protocol.OverloadComponentAssembly;
+import peersim.cdsim.CDState;
 import peersim.config.*;
 import peersim.core.Control;
 import peersim.core.Fallible;
@@ -77,12 +80,16 @@ public class QualityEnergyObserver implements Control {
 		IncrementalStats quality = new IncrementalStats();
 		IncrementalStats energy = new IncrementalStats();
 
-
 		int fully_resolved_services = 0;
 		int to_resolve_services=0;
 		
-		toResolveAssemblies++;
+		int nodes_up=0;
 		
+		double min_residual_life=Double.MAX_VALUE;
+		
+		
+		toResolveAssemblies++;
+				
 		for (int i = 0; i < Network.size(); i++) {
 
 			GeneralNode node = (GeneralNode) Network.get(i);
@@ -90,33 +97,37 @@ public class QualityEnergyObserver implements Control {
 			
 			ArrayList<Service> services = n.getServices();
 			
-			
+			if(Network.get(i).isUp())
+				nodes_up++;
+
 			for (Service service : services) {
+				
+				service.updateCompoundUtility();
+				
 				to_resolve_services++;
+				
+				service.updateCompoundUtility();
 				
 				if (service.isFullyResolved()) {
 					fully_resolved_services++;
 				}
-
-				// recursive quality calculation
-				quality.add(service.getEffectiveCU());
+				
+				//if (service.isFullyResolved())
+					quality.add(service.getEffectiveCU());
 
 			}					
 
+			double energyBalance = node.getG()-node.getR();
 
-			double energyBalance = Math.min(0,node.getG()-node.getR());
-			
-			// battery discharge				
-			 node.setBattery(node.getBattery() + node.getG()-node.getR());
-			 
 			 
 			 if(energyBalance<minEn)
 				 minEn=energyBalance;
 
-			
 			energy.add(energyBalance); 
-
+			
+			
 		}
+		
 		
 		if(to_resolve_services==fully_resolved_services)
 			resolvedAssemblies++;
@@ -137,12 +148,8 @@ public class QualityEnergyObserver implements Control {
 		IncrementalStats energy_jain_is = FinalUtilityObserver.energy_jain.get(index);
 		
 		// calculates the jain's fairness for energy
-		double energy_jain_fairness =  1 - (2*energy.getStD()/8.5);   // calcola sperimentalmente il minimo che può raggiungere
+		double energy_jain_fairness =  1 - (2*energy.getStD()/8.5);   // calcola sperimentalmente il minimo che puï¿½ raggiungere
 		
-//		System.out.println(minEn);
-		
-//		double energy_jain_fairness =  energy.getStD();   
-
 		
 		// double energy_jain_fairness = Math.pow(energy.getSum(), 2) / (energy.getN() * energy.getSqrSum());
 		energy_jain_is.add(energy_jain_fairness);
@@ -150,13 +157,18 @@ public class QualityEnergyObserver implements Control {
 		
 		// Network		
 		FinalUtilityObserver.networkSize.get(index).add(Network.size());
+		FinalUtilityObserver.networkUpSize.get(index).add(nodes_up);
 		
 		// Availability		
 		double availability = (double) resolvedAssemblies/(double) toResolveAssemblies;
-		FinalUtilityObserver.availability.get(index).add(availability);
+		double availability_services = (double) fully_resolved_services/to_resolve_services;
+		double availability_n1 = (double) nodes_up/Network.size();
 		
-		// System.out.println(toResolveAssemblies+" "+resolvedAssemblies);
+		FinalUtilityObserver.availability.get(index).add(availability);
+		FinalUtilityObserver.availability_s.get(index).add(availability_services);
+		FinalUtilityObserver.availability_n1.get(index).add(availability_n1);
 
+		
 		return false;
 	}
 

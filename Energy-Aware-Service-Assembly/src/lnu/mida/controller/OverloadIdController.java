@@ -3,8 +3,6 @@ package lnu.mida.controller;
 import peersim.config.Configuration;
 import peersim.core.*;
 
-import java.util.ArrayList;
-
 import lnu.mida.entity.GeneralNode;
 import lnu.mida.entity.Service;
 import lnu.mida.protocol.OverloadApplication;
@@ -33,7 +31,6 @@ public class OverloadIdController implements Control {
 	@Override
 	public boolean execute() {
 		
-		System.err.println("------- ID CONTROLLER -------");
 	
 		for (int i = 0; i < Network.size(); i++) {	
 			
@@ -45,7 +42,8 @@ public class OverloadIdController implements Control {
 			appl.reset();
 						
 		}
-		
+
+				
 	   Service.counterID=0;
 	   GeneralNode.counterID=-1;
 	   return false;

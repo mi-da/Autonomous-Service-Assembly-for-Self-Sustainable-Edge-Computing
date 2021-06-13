@@ -26,6 +26,7 @@ public class OverloadFileInitializer implements Control {
 	public String filename_final;
 	public static FileOutputStream	fos_final;
 	public static PrintStream ps_final;
+
 	
 	public static  int experiment_number=0;
 
@@ -39,6 +40,7 @@ public class OverloadFileInitializer implements Control {
 	 * @param name
 	 *            the configuration prefix for this class.
 	 */
+	@SuppressWarnings("unchecked")
 	public OverloadFileInitializer(String name) {
 
 		this.name = name;
@@ -48,6 +50,8 @@ public class OverloadFileInitializer implements Control {
 		int cycles = Configuration.getInt("simulation.cycles",1);
 		int comp_step = Configuration.getInt("COMPOSITION_STEPS",1);
 
+		int original_network_size = Configuration.getInt("NETWORK_SIZE",1);
+		
 		// the first experiment initializes the final data structure
 		if(experiment_number==1) {
 
@@ -59,10 +63,13 @@ public class OverloadFileInitializer implements Control {
 			FinalUtilityObserver.energy_jain = new ArrayList<>();
 			// Network			
 			FinalUtilityObserver.networkSize = new ArrayList<>();
+			FinalUtilityObserver.networkUpSize = new ArrayList<>();
 			// Availability			
 			FinalUtilityObserver.availability = new ArrayList<>();
+			FinalUtilityObserver.availability_s = new ArrayList<>();
+			FinalUtilityObserver.availability_n1 = new ArrayList<>();
 
-
+			
 			for(int i=0;i<((cycles/comp_step));i++) {
 				// Quality
 				FinalUtilityObserver.quality.add(new IncrementalStats());
@@ -72,9 +79,16 @@ public class OverloadFileInitializer implements Control {
 				FinalUtilityObserver.energy_jain.add(new IncrementalStats());
 				// Network
 				FinalUtilityObserver.networkSize.add(new IncrementalStats());
+				FinalUtilityObserver.networkUpSize.add(new IncrementalStats());
 				// Availability
 				FinalUtilityObserver.availability.add(new IncrementalStats());
+				FinalUtilityObserver.availability_s.add(new IncrementalStats());
+				FinalUtilityObserver.availability_n1.add(new IncrementalStats());
+
 			}
+			
+
+			
 		}
 		
 		// the last experiment initializes the final file
@@ -88,6 +102,7 @@ public class OverloadFileInitializer implements Control {
 			} catch (FileNotFoundException e) {
 				e.printStackTrace();
 			}
+			
 		}
 	}
 
