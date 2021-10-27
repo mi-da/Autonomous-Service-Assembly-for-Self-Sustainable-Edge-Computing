@@ -286,6 +286,10 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 		
 	}
 	
+	// Estende la Local considerando il parametro alfa
+	private Service chooseByLocalHistoryEnergyStrategy(LinkedList<Service> candidates, GeneralNode node) {
+		return null;
+	}
 	
 
 	// overall energy strategy

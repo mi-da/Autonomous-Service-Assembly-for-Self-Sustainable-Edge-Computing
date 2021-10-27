@@ -1,0 +1,71 @@
+METEPOLITICA:
+
+- Rank: metric  
+- alfa: weight of history. 1=no history
+- h: exploration parameter. h=infinity is greedy
+- sng: lower is better (-) or higher is better (+)
+
+
+POLITICHE:
+
+Random: STRATEGY.equals("random")  
+- Rank:   
+- alfa: 
+- h: 0
+- sng:
+- TODO: Nothing
+
+Local: (STRATEGY.equals("local_energy"))
+- Rank: L  
+- alfa: variabile (1, 0.7, 0.5, 0.2)
+- h: (1, 7, 15) --> chiedere a Vincenzo
+- sng: -
+- TODO: estendere per mantenere efficiency estimator ed h?
+
+Overall: (STRATEGY.equals("overall_energy"))
+- Rank: O 
+- alfa: variabile (1, 0.7, 0.5, 0.2)
+- h: (1, 7, 15) --> chiedere a Vincenzo
+- sng: -
+- TODO: estendere per mantenere efficiency estimator ed h. Sembrava che andasse troppo bene, controllare.
+
+Energy Aware (Learning):
+- Testare al variare come le precedenti
+- TODO: Riscriverla mettendo il suo ee
+
+Residual Life:(STRATEGY.equals("weighted_random"))
+- Rank: rl
+- alfa: ?
+- h: ?
+- sng: -
+- TODO: ???
+
+Energy Balance: (STRATEGY.equals("fair_energyBP"))
+- TODO: Vedere dove sta e se quel progetto contiene cose che non sono nel master
+- Rank: ee
+- alfa: variabile (1, 0.7, 0.5, 0.2)
+- h: (1, 7, 15) --> chiedere a Vincenzo
+- sng: -
+- TODO: stare attenti a quale chiamare: P (panel) ,BP (battery panel)
+
+
+SCENARIO E PARAMETRI:
+
+RETE:
+- Battery? Number of nodes?
+- Ripartiamo dagli scenari statici della tesi di Francesca
+
+Scenario A:
+- nodi
+- ecc
+- ecc
+
+Scenario B:
+- nodi
+- ecc
+- ecc
+
+Scenario C:
+- nodi
+- ecc
+- ecc
