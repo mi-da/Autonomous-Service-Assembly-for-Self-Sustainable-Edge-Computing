@@ -183,6 +183,13 @@ public class OverloadCompositionController implements Control {
 		    	appl.addEnergyBPHistoryExperience(interactingNode, Math.min(0,interactingNode.getG()+interactingNode.getBattery()-interactingNode.getR()));
 		    	appl.addEnergyPHistoryExperience(interactingNode, Math.min(0,interactingNode.getG()-interactingNode.getR()));
 		    	// Aggiungere per EnergyAware ee solo consumo
+		    	
+		    	// Local energy consumption added to experience (we need a function calculating the local consumption)
+		    	appl.addEnergyLocalHistoryExperience(interactingNode,0);
+		    	// Overall energy consumption added to experience (we need a function calculating the local consumption)
+		    	appl.addEnergyOverallHistoryExperience(interactingNode,0);
+		    	// Residual life added to experience (we need a function calculating residual life)
+		    	appl.addResidualLifeHistoryExperience(interactingNode,0);
 		    }	
 		    
 		}	

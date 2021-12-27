@@ -4,10 +4,13 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import com.lajv.location.Location;
 import lnu.mida.entity.EnergyBatteryPanelReputation;
+import lnu.mida.entity.EnergyLocalReputation;
+import lnu.mida.entity.EnergyOverallReputation;
 import lnu.mida.entity.EnergyPanelReputation;
 import lnu.mida.entity.GeneralNode;
 import lnu.mida.entity.GreenReputation;
 import lnu.mida.entity.QOSReputation;
+import lnu.mida.entity.ResidualLifeReputation;
 import lnu.mida.entity.Service;
 import peersim.cdsim.CDProtocol;
 import peersim.cdsim.CDState;
@@ -47,6 +50,9 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 	private ArrayList<EnergyBatteryPanelReputation> energyBPReputations;
 	private ArrayList<EnergyPanelReputation> energyPReputations;
 	private ArrayList<GreenReputation> greenReputations;
+	private ArrayList<EnergyLocalReputation> energyLocalReputations;
+	private ArrayList<EnergyOverallReputation> energyOverallReputations;
+	private ArrayList<ResidualLifeReputation> residualLifeReputations;
 
 	/**
 	 * Initialize this object by reading configuration parameters.
@@ -61,7 +67,8 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 		energyBPReputations = new ArrayList<EnergyBatteryPanelReputation>();
 		energyPReputations = new ArrayList<EnergyPanelReputation>();
 		greenReputations = new ArrayList<GreenReputation>();
-	
+		energyLocalReputations = new ArrayList<EnergyLocalReputation>();
+		energyOverallReputations = new ArrayList<EnergyOverallReputation>();
 	}
 
 	public void addQoSHistoryExperience(Service service, double experienced_utility, double declared_utility) {
@@ -78,12 +85,30 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 		EnergyBatteryPanelReputation reputation = getOrCreateEnergyBPReputation(index);
 		reputation.addDeclaredEnergy(nodeBalance);
 	}
+	
 	public void addEnergyPHistoryExperience(GeneralNode generalNode, double nodeBalance) {
 		int index = (int) generalNode.getID();
 		EnergyPanelReputation reputation = getOrCreateEnergyPReputation(index);
 		reputation.addDeclaredEnergy(nodeBalance);
 	}
 	
+	public void addEnergyLocalHistoryExperience(GeneralNode generalNode, double localEnergy) {
+		int index = (int) generalNode.getID();
+		EnergyLocalReputation reputation = getOrCreateEnergyLocalReputation(index);
+		reputation.addDeclaredEnergy(localEnergy);
+	}
+	
+	public void addEnergyOverallHistoryExperience(GeneralNode generalNode, double overallEnergy) {
+		int index = (int) generalNode.getID();
+		EnergyOverallReputation reputation = getOrCreateEnergyOverallReputation(index);
+		reputation.addDeclaredEnergy(overallEnergy);
+	}
+	
+	public void addResidualLifeHistoryExperience(GeneralNode generalNode, double residualLife) {
+		int index = (int) generalNode.getID();
+		ResidualLifeReputation reputation = getOrCreateResidualLifeReputation(index);
+		reputation.addDeclaredEnergy(residualLife);
+	}
 
 	public void addGreenHistoryExperience(GeneralNode generalNode, double level) {
 		int index = (int) generalNode.getID();
@@ -127,6 +152,10 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 		// individual energy
 		if (STRATEGY.equals("local_energy")) {
 			return chooseByLocalEnergyStrategy(candidates, node);
+		}
+		// individual energy template
+		if (STRATEGY.equals("local_energy_template")) {
+			return chooseByLocalEnergyTemplate(candidates, node);
 		}
 		// overall energy
 		if (STRATEGY.equals("overall_energy")) {
@@ -286,9 +315,91 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 		
 	}
 	
-	// Estende la Local considerando il parametro alfa
-	private Service chooseByLocalHistoryEnergyStrategy(LinkedList<Service> candidates, GeneralNode node) {
-		return null;
+	// Estende la Local considerando il parametro alfa ed h
+	private Service chooseByLocalEnergyTemplate(LinkedList<Service> candidates, GeneralNode node) {
+		if(CDState.getCycle()<7)
+			return chooseByRandomStrategy(candidates);
+		
+		Double[] probl_array = new Double[candidates.size()]; // Do we need this?
+		double sigma = 0;
+
+		// tiny translation to avoid 0 as a base of the exponent - Do we need this?	
+		double translation = Math.pow(10,-5);
+
+		for(int i=0; i<candidates.size(); i++) {
+
+			GeneralNode nnode = GeneralNode.getNode(candidates.get(i).getNode_id());
+			double cand_ee = nnode.getEeLocalEnergy();
+			int k = nnode.getEeLocalCounter();
+
+			// if no experiences do the average
+			if (k == 0) {
+				int n = 0;
+				double sum = 0;
+
+				for(int j=0; j<Network.size(); j++) {
+					GeneralNode othernode = (GeneralNode) Network.get(i);
+					
+					if (othernode.getEeBPCounter() > 0) {
+						double ee = othernode.getEeBPEnergy();
+						sum += ee;
+						n++;
+					}
+					
+				}
+				
+
+				if (n == 0)
+					return chooseByLocalEnergyStrategy(candidates, node);
+
+				cand_ee = sum / n;
+
+			}
+
+			cand_ee-=translation;
+
+			// local energy consumption -> lower is better --> negative exponent (is this H?)
+			// if the value of cand_ee is greater than 1 the exponent shall be positive?
+			double cand_probl = Math.pow(cand_ee, -3); 
+			probl_array[i] = cand_probl;
+			sigma+=cand_probl;
+			
+		}
+	
+		for(int i=0; i<probl_array.length; i++) {
+			probl_array[i] = probl_array[i] / sigma;
+		}
+		
+		
+		// random pesata su probl_array - Do we need this?
+		
+		
+		double sum=0;
+		
+		ArrayList<Double> array = new ArrayList<Double>();
+		
+		for(int i=0; i<probl_array.length; i++) {
+
+			sum+=probl_array[i];
+			array.add(sum);
+		}	
+		
+		double max = 0;
+		double min = sum;
+		
+		double random_num = min + (max - min) * CommonState.r.nextDouble();
+
+		int index=0;
+		
+		for(int i=0; i<array.size(); i++) {
+			if(array.get(i)>random_num) {
+				index = i;
+				break;
+			}
+		}
+		
+		
+		return candidates.get(index);
 	}
 	
 
@@ -894,6 +1005,38 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 		return newReputation;
 	}
 	
+	private EnergyLocalReputation getOrCreateEnergyLocalReputation(int nodeID) {
+		for (EnergyLocalReputation reputation : energyLocalReputations) {
+			if (reputation.getNodeId() == nodeID) {
+				return reputation;
+			}
+		}
+		EnergyLocalReputation newReputation = new EnergyLocalReputation(nodeID);
+		energyLocalReputations.add(newReputation);
+		return newReputation;
+	}
+	
+	private EnergyOverallReputation getOrCreateEnergyOverallReputation(int nodeID) {
+		for (EnergyOverallReputation reputation : energyOverallReputations) {
+			if (reputation.getNodeId() == nodeID) {
+				return reputation;
+			}
+		}
+		EnergyOverallReputation newReputation = new EnergyOverallReputation(nodeID);
+		energyOverallReputations.add(newReputation);
+		return newReputation;
+	}
+	
+	private ResidualLifeReputation getOrCreateResidualLifeReputation(int nodeID) {
+		for (ResidualLifeReputation reputation : residualLifeReputations) {
+			if (reputation.getNodeId() == nodeID) {
+				return reputation;
+			}
+		}
+		ResidualLifeReputation newReputation = new ResidualLifeReputation(nodeID);
+		residualLifeReputations.add(newReputation);
+		return newReputation;
+	}
 	
 	public GreenReputation getOrCreateGreenReputation(int nodeID) {
 		for (GreenReputation reputation : greenReputations) {

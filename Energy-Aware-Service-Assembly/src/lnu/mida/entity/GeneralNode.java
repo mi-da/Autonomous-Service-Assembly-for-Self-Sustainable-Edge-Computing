@@ -89,6 +89,15 @@ private int ee_BPcounter;
 private double ee_Penergy;
 private int ee_Pcounter;
 
+private double ee_Localenergy;
+private int ee_Localcounter;
+
+private double ee_Overallenergy;
+private int ee_Overallcounter;
+
+private double ee_ResidualLife;
+private int ee_ResidualLifecounter;
+
 private double ee_availability;
 private int ee_av_counter;
 
@@ -469,6 +478,30 @@ public void setEePEnergy(double val) {
 	ee_Penergy=val;
 }
 
+public double getEeLocalEnergy() {
+	return ee_Localenergy;
+}
+
+public void setEeLocalEnergy(double val) {
+	ee_Localenergy=val;
+}
+
+public double getEeOverallEnergy() {
+	return ee_Overallenergy;
+}
+
+public void setEeOverallEnergy(double val) {
+	ee_Overallenergy=val;
+}
+
+public double getEeResidualLife() {
+	return ee_ResidualLife;
+}
+
+public void setEeResidualLife(double val) {
+	ee_ResidualLife=val;
+}
+
 public int getEePCounter() {
 	return ee_Pcounter;
 }
@@ -477,7 +510,29 @@ public void setEePCounter(int val) {
 	ee_Pcounter=val;
 }
 
+public int getEeLocalCounter() {
+	return ee_Localcounter;
+}
 
+public void setEeLocalCounter(int val) {
+	ee_Localcounter=val;
+}
+
+public int getEeOverallCounter() {
+	return ee_Overallcounter;
+}
+
+public void setEeOverallCounter(int val) {
+	ee_Overallcounter=val;
+}
+
+public int getEeResidualLifeCounter() {
+	return ee_ResidualLifecounter;
+}
+
+public void setEeResidualLifeCounter(int val) {
+	ee_ResidualLifecounter=val;
+}
 
 public double getEeAvailability() {
 	return ee_availability;
