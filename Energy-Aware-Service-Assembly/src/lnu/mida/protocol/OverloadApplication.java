@@ -92,8 +92,8 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 		reputation.addDeclaredEnergy(nodeBalance);
 	}
 	
-	public void addEnergyLocalHistoryExperience(GeneralNode generalNode, double localEnergy) {
-		int index = (int) generalNode.getID();
+	public void addEnergyLocalHistoryExperience(Service service, double localEnergy) {
+		int index = (int) service.getService_id();
 		EnergyLocalReputation reputation = getOrCreateEnergyLocalReputation(index);
 		reputation.addDeclaredEnergy(localEnergy);
 	}
@@ -371,7 +371,7 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 		}
 		
 		
-		// random pesata su probl_array - Do we need this?
+		// random pesata su probl_array
 		
 		
 		double sum=0;

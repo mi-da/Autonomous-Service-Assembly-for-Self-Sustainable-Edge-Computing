@@ -94,8 +94,32 @@ public class OverloadCompositionController implements Control {
 		// non calcolo al round 0 (nessun bind)
 		if (CommonState.getIntTime() == 0)
 			return false;
-
 		
+		// update L and E
+		for (int i = 0; i < Network.size(); i++) {
+			
+			if (!Network.get(i).isUp()) {
+				continue;
+			}
+
+			GeneralNode node = (GeneralNode) Network.get(i);
+			OverloadComponentAssembly ca = (OverloadComponentAssembly) node.getProtocol(component_assembly_pid);
+			OverloadApplication appl = (OverloadApplication) node.getProtocol(application_pid);
+			
+			
+			ArrayList<Service> services = ca.getServices();
+			
+			for (Service service : services) {
+				// recursive calculation of L and E for comm and comp
+				service.setL_comp(service.calculateL_comp());
+				service.setL_comm(service.calculateL_comm());
+				service.setE_comp(service.calculateE_comp());
+				service.setE_comm(service.calculateE_comm());
+			}
+		}
+		
+		
+		///
 		for (int i = 0; i < Network.size(); i++) {
 
 			if (!Network.get(i).isUp()) {
@@ -110,7 +134,6 @@ public class OverloadCompositionController implements Control {
 			ArrayList<Service> services = ca.getServices();
 			
 			ArrayList<GeneralNode> interactingNodes = new ArrayList<GeneralNode>();
-			
 
 			for (Service service : services) {
 
@@ -125,14 +148,7 @@ public class OverloadCompositionController implements Control {
 					Service[] listDepObj = service.getDependencies_obj();
 					boolean[] listDep = service.getDependencies();
 
-					double consumption=0;
-
-					// recursive calculation of L and E for comm and comp
-					service.setL_comp(service.calculateL_comp());
-					service.setL_comm(service.calculateL_comp());
-					service.setE_comp(service.calculateE_comp());
-					service.setE_comm(service.calculateE_comm());
-					
+					double consumption=0;					
 					
 					for (int j = 0; j < listDep.length; j++) {
 
@@ -161,6 +177,10 @@ public class OverloadCompositionController implements Control {
 							
 							appl.addQoSHistoryExperience(depObj, experienced_utility, depObj.getDeclaredUtility());
 							
+							// add local energy
+							appl.addEnergyLocalHistoryExperience(depObj,depObj.getL_comp()+depObj.getL_comm());
+							// add overall energy
+							
 							GeneralNode depNode = GeneralNode.getNode(depObj.getNode_id());
 							
 							if(!interactingNodes.contains(depNode))
@@ -184,17 +204,25 @@ public class OverloadCompositionController implements Control {
 		    	appl.addEnergyPHistoryExperience(interactingNode, Math.min(0,interactingNode.getG()-interactingNode.getR()));
 		    	// Aggiungere per EnergyAware ee solo consumo
 		    	
-		    	// Local energy consumption added to experience (we need a function calculating the local consumption)
+		    	// Local energy consumption added to experience (we need a function calculating the local consumption) - Local energy consumed by interacting node
 		    	appl.addEnergyLocalHistoryExperience(interactingNode,0);
 		    	// Overall energy consumption added to experience (we need a function calculating the local consumption)
 		    	appl.addEnergyOverallHistoryExperience(interactingNode,0);
+		    	
+		    	
+		    	
 		    	// Residual life added to experience (we need a function calculating residual life)
-		    	appl.addResidualLifeHistoryExperience(interactingNode,0);
+		    	appl.addResidualLifeHistoryExperience(interactingNode,interactingNode.getResidualLife());
 		    }	
 		    
 		}	
 
 		return false;
+	}
+	
+	public static double calculateLocalEnergy(GeneralNode currentNode, GeneralNode interactingNode) {
+		// who is consuming the Local Energy currentNode or interactingNode?
+		return 0;
 	}
 
 	public static double getVariance() {

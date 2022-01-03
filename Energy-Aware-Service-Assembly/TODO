@@ -69,3 +69,10 @@ Scenario C:
 - nodi
 - ecc
 - ecc
+
+
+TODO - 1/3
+- parametro alfa in all Reputation entity. Alfa è fisso, ora ci sta W. Mettere alfa in configs
+- per local e overall facciamo learning sui servizi e non sui nodi - modificare OverloadCompositionController
+- overload application per la local ed overall deve prendere ee dal servizio e non dal nodo (modificare GeneralNode).
+Quindi muovere eeLocal ed eeOverall dal nodo al servizio
