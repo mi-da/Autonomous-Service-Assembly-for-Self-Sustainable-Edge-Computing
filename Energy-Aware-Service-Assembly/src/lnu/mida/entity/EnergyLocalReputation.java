@@ -1,43 +1,36 @@
 package lnu.mida.entity;
 
+import peersim.config.Configuration;
+
 public class EnergyLocalReputation implements Cloneable  {
 	
 	
 	// service id for which the experience is evaluated
-	private long nodeID;
+	private long serviceID;
 	
 	// number of time the experience is done
 	private int k;
-	// window period of the learner
-	private static int M;
 	
-	// approach to challenge
+	// estimated value
 	private double ee;
 	
+	// history weight
+	private double ALPHA;
 	
-	public EnergyLocalReputation(long nodeID) {
-		this.setNodeID(nodeID);
+	
+	public EnergyLocalReputation(long serviceID) {
+		this.setServiceID(serviceID);
 		k=0;
 		ee=0;
+		ALPHA = Configuration.getDouble("ALPHA",0);
 	}
 	
 	public void addDeclaredEnergy(double declaredEnergy) {		
 		
-		double W = 0.1 + (0.9/k);
-		if(k==0)
-			W=1;
-		
-		//double W = 0.7;
-				
-		double ee_new = W*declaredEnergy + ( (1-W)*ee );		
+		double ee_new = ALPHA*declaredEnergy + ( (1-ALPHA)*ee );		
 		ee = ee_new;
-		
 		k++;
-		
-		GeneralNode node = GeneralNode.getNode(nodeID);
-		node.setEeLocalEnergy(ee);
-		node.setEeLocalCounter(k);
-		
+			
 	}
 	
 	@Override
@@ -60,24 +53,17 @@ public class EnergyLocalReputation implements Cloneable  {
 		this.k=k;
 	}
 
-	public static int getM() {
-		return M;
-	}
-
-	public static void setM(int m) {
-		M = m;
-	}
-
 	public double getEe() {
 		return ee;
 	}
 
-	public long getNodeId() {
-		return nodeID;
+	public long getServiceID() {
+		return serviceID;
 	}
 
-	public void setNodeID(long nodeID) {
-		this.nodeID = nodeID;
+	public void setServiceID(long serviceID) {
+		this.serviceID = serviceID;
 	}
+
 
 }

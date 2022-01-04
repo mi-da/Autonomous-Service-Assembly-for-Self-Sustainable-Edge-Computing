@@ -36,6 +36,9 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 	 */
 	private static String STRATEGY = "";
 
+	// randomness of service selection for the strategy
+	private static double H = Configuration.getDouble("H", 0);
+
 	// ///////////////////////////////////////////////////////////////////////
 	// Fields
 	// ///////////////////////////////////////////////////////////////////////
@@ -74,8 +77,8 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 	public void addQoSHistoryExperience(Service service, double experienced_utility, double declared_utility) {
 		int index = (int) service.getService_id();
 		QOSReputation reputation = getOrCreateQOSReputation(index);
-		//if(service.getService_id()==10)
-		//	System.out.println("	addQoSHistoryExperience");
+		// if(service.getService_id()==10)
+		// System.out.println(" addQoSHistoryExperience");
 		reputation.setDeclared_utility(declared_utility);
 		reputation.addExperiencedUtility(experienced_utility);
 	}
@@ -85,25 +88,25 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 		EnergyBatteryPanelReputation reputation = getOrCreateEnergyBPReputation(index);
 		reputation.addDeclaredEnergy(nodeBalance);
 	}
-	
+
 	public void addEnergyPHistoryExperience(GeneralNode generalNode, double nodeBalance) {
 		int index = (int) generalNode.getID();
 		EnergyPanelReputation reputation = getOrCreateEnergyPReputation(index);
 		reputation.addDeclaredEnergy(nodeBalance);
 	}
-	
+
 	public void addEnergyLocalHistoryExperience(Service service, double localEnergy) {
 		int index = (int) service.getService_id();
 		EnergyLocalReputation reputation = getOrCreateEnergyLocalReputation(index);
 		reputation.addDeclaredEnergy(localEnergy);
 	}
-	
-	public void addEnergyOverallHistoryExperience(GeneralNode generalNode, double overallEnergy) {
-		int index = (int) generalNode.getID();
+
+	public void addEnergyOverallHistoryExperience(Service service, double overallEnergy) {
+		int index = (int) service.getService_id();
 		EnergyOverallReputation reputation = getOrCreateEnergyOverallReputation(index);
 		reputation.addDeclaredEnergy(overallEnergy);
 	}
-	
+
 	public void addResidualLifeHistoryExperience(GeneralNode generalNode, double residualLife) {
 		int index = (int) generalNode.getID();
 		ResidualLifeReputation reputation = getOrCreateResidualLifeReputation(index);
@@ -115,8 +118,6 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 		GreenReputation reputation = getOrCreateGreenReputation(index);
 		reputation.addDeclaredEnergy(level);
 	}
-	
-	
 
 	/**
 	 * Makes a copy of this object. Needs to be explicitly defined, since we have
@@ -141,7 +142,6 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 	// returns true if comp > old
 	public Service chooseByStrategy(LinkedList<Service> candidates, GeneralNode node) {
 
-
 		// random strategy
 		if (STRATEGY.equals("random")) {
 			return chooseByRandomStrategy(candidates);
@@ -161,8 +161,15 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 		if (STRATEGY.equals("overall_energy")) {
 			return chooseByOverallEnergyStrategy(candidates);
 		}
+		// overall energy template
+		if (STRATEGY.equals("overall_energy_template")) {
+			return chooseByOverallEnergyTemplate(candidates, node);
+		}
 		if (STRATEGY.equals("residual_life")) {
 			return chooseByResidualLifeStrategy(candidates);
+		}
+		if (STRATEGY.equals("residual_life_template")) {
+			return chooseByResidualLifeTemplateStrategy(candidates, node);
 		}
 		if (STRATEGY.equals("rev_residual_life")) {
 			return chooseByRevResidualLifeStrategy(candidates);
@@ -190,12 +197,12 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 		if (STRATEGY.equals("maxgPanel")) {
 			return chooseByMaxGStrategy(candidates);
 		}
-		
+
 		// future expected utility
 		if (STRATEGY.equals("emergent")) {
 			return chooseByFutureExpectedUtility(candidates, node);
 		}
-		
+
 		// exception is raised if a strategy is not selected
 		else {
 			try {
@@ -208,337 +215,466 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 		}
 	}
 
-	
-	
-	
-
 	// chooses a random component
 	public Service chooseByRandomStrategy(LinkedList<Service> candidates) {
-		
+
 		int index = CommonState.r.nextInt(candidates.size());
-		return candidates.get( index);
+		return candidates.get(index);
 	}
-	
 
-	
 	/*
-	 * Seleziona il servizio in modo probabilistico in base alle vite residue dei nodi
-	 * */
+	 * Seleziona il servizio in modo probabilistico in base alle vite residue dei
+	 * nodi
+	 */
 	private Service chooseByWeightedRandomStrategy(LinkedList<Service> candidates) {
-		
-		if(CDState.getCycle()<7)
-			return chooseByRandomStrategy(candidates);	
-				
-		double sum=0;
-		double finite_sum=0;
-		
+
+		if (CDState.getCycle() < 7)
+			return chooseByRandomStrategy(candidates);
+
+		double sum = 0;
+		double finite_sum = 0;
+
 		ArrayList<Double> array = new ArrayList<Double>();
-		
-		for(int i=0; i<candidates.size(); i++) {
 
-			if(candidates.get(i).getWeight()<Double.POSITIVE_INFINITY) {
-				finite_sum+=candidates.get(i).getWeight();
-			}
-		}	
-		
-		for(int i=0; i<candidates.size(); i++) {
+		for (int i = 0; i < candidates.size(); i++) {
 
-			if(candidates.get(i).getWeight()<Double.POSITIVE_INFINITY) {
-				sum+=candidates.get(i).getWeight();
-				array.add(sum);	
-			}else {
-				sum+=finite_sum;
-				array.add(sum);	
+			if (candidates.get(i).getWeight() < Double.POSITIVE_INFINITY) {
+				finite_sum += candidates.get(i).getWeight();
 			}
 		}
-		
-		
+
+		for (int i = 0; i < candidates.size(); i++) {
+
+			if (candidates.get(i).getWeight() < Double.POSITIVE_INFINITY) {
+				sum += candidates.get(i).getWeight();
+				array.add(sum);
+			} else {
+				sum += finite_sum;
+				array.add(sum);
+			}
+		}
+
 		double max = 0;
 		double min = sum;
-		
+
 		double random_num = min + (max - min) * CommonState.r.nextDouble();
 
-		int index=0;
-		
-		for(int i=0; i<array.size(); i++) {
-			if(array.get(i)>random_num) {
+		int index = 0;
+
+		for (int i = 0; i < array.size(); i++) {
+			if (array.get(i) > random_num) {
 				index = i;
 				break;
 			}
-		}	
-		
+		}
+
 		return candidates.get(index);
 	}
-	
-	
 
 	// local energy strategy
 	private Service chooseByLocalEnergyStrategy(LinkedList<Service> candidates, GeneralNode node) {
 
-		if(CDState.getCycle()<7)
+		if (CDState.getCycle() < 7)
 			return chooseByRandomStrategy(candidates);
-		
+
 		Location thisLoc = node.getLocation();
 
-		double min=Double.MAX_VALUE;
+		double min = Double.MAX_VALUE;
 		Service res = null;
-		
-		
-		for(int i=0; i<candidates.size(); i++) {
-			
+
+		for (int i = 0; i < candidates.size(); i++) {
+
 			GeneralNode other_node = GeneralNode.getNode(candidates.get(i).getNode_id());
 			double energy = 0;
 
 			if (node.getID() == other_node.getID()) {
-				
+
 				energy += candidates.get(i).getL_comp();
 
 				// per il modello energetico adottato ad ECSA L_comm non dipende dal nodo in
 				// ricezione (i.e., node)
 				energy += candidates.get(i).getL_comm();
 			} else {
-				
+
 				Location other_loc = other_node.getLocation();
 				double other_latency = thisLoc.latency(other_loc);
 
 				energy += node.getConsumedIndividualCommEnergySending(1, other_latency);
 			}
-			
-			if(energy<min) {
-				min=energy;
-				res=candidates.get(i);
+
+			if (energy < min) {
+				min = energy;
+				res = candidates.get(i);
 			}
 		}
-		
 
 		return res;
-		
 	}
-	
+
 	// Estende la Local considerando il parametro alfa ed h
 	private Service chooseByLocalEnergyTemplate(LinkedList<Service> candidates, GeneralNode node) {
-		if(CDState.getCycle()<7)
+		if (CDState.getCycle() < 7)
 			return chooseByRandomStrategy(candidates);
-		
-		Double[] probl_array = new Double[candidates.size()]; // Do we need this?
+
+		Double[] probl_array = new Double[candidates.size()];
 		double sigma = 0;
 
-		// tiny translation to avoid 0 as a base of the exponent - Do we need this?	
-		double translation = Math.pow(10,-5);
+		// tiny translation to avoid 0 as a base of the exponent - Do we need this?
+		double translation = Math.pow(10, -5);
 
-		for(int i=0; i<candidates.size(); i++) {
+		for (int i = 0; i < candidates.size(); i++) {
+
+			Service service = candidates.get(i);
+
+			EnergyLocalReputation elr = getOrCreateEnergyLocalReputation((int) service.getService_id());
+
+			double cand_ee = elr.getEe();
+			long k = elr.getK();
+
+			// if no experiences do the average from other services
+			if (k == 0) {
+				int n = 0;
+				double sum = 0;
+
+				for (int j = 0; j < Network.size(); j++) {
+					GeneralNode othernode = (GeneralNode) Network.get(i);
+					OverloadComponentAssembly ca = (OverloadComponentAssembly) othernode
+							.getProtocol(component_assembly_pid);
+					ArrayList<Service> services = ca.getServices();
+
+					for (Service otherService : services) {
+						EnergyLocalReputation other_elr = getOrCreateEnergyLocalReputation(
+								(int) otherService.getService_id());
+						if (other_elr.getK() > 0) {
+							double ee = other_elr.getEe();
+							sum += ee;
+							n++;
+						}
+					}
+				}
+
+				if (n == 0)
+					return chooseByLocalEnergyStrategy(candidates, node);
+				cand_ee = sum / n;
+			}
+
+			cand_ee -= translation; // we must check if this translation is necessary and/or introduces problems
+
+			// local energy consumption -> lower is better --> negative exponent
+			// if the value of cand_ee is greater than 1 the exponent shall be positive?
+			double cand_probl = Math.pow(cand_ee, H);
+			probl_array[i] = cand_probl;
+			sigma += cand_probl;
+		}
+
+		for (int i = 0; i < probl_array.length; i++) {
+			probl_array[i] = probl_array[i] / sigma;
+		}
+
+		// random pesata su probl_array
+		double sum = 0;
+		ArrayList<Double> array = new ArrayList<Double>();
+
+		for (int i = 0; i < probl_array.length; i++) {
+			sum += probl_array[i];
+			array.add(sum);
+		}
+
+		double max = 0;
+		double min = sum;
+		double random_num = min + (max - min) * CommonState.r.nextDouble();
+		int index = 0;
+
+		for (int i = 0; i < array.size(); i++) {
+			if (array.get(i) > random_num) {
+				index = i;
+				break;
+			}
+		}
+
+		return candidates.get(index);
+	}
+
+	// overall energy strategy
+	private Service chooseByOverallEnergyStrategy(LinkedList<Service> candidates) {
+
+		// at round 1 the overall energy is not known
+		if (CDState.getCycle() < 7)
+			return chooseByRandomStrategy(candidates);
+
+		double min = Double.MAX_VALUE;
+		Service res = null;
+
+		for (int i = 0; i < candidates.size(); i++) {
+
+			double energy = candidates.get(i).getE_comp() + candidates.get(i).getE_comm();
+
+			if (energy < min) {
+				min = energy;
+				res = candidates.get(i);
+			}
+		}
+		return res;
+	}
+
+	// Estende la Overall considerando il parametro alfa ed h
+	private Service chooseByOverallEnergyTemplate(LinkedList<Service> candidates, GeneralNode node) {
+		if (CDState.getCycle() < 7)
+			return chooseByRandomStrategy(candidates);
+
+		Double[] probl_array = new Double[candidates.size()];
+		double sigma = 0;
+
+		// tiny translation to avoid 0 as a base of the exponent - Do we need this?
+		double translation = Math.pow(10, -5);
+
+		for (int i = 0; i < candidates.size(); i++) {
+
+			Service service = candidates.get(i);
+
+			EnergyOverallReputation eor = getOrCreateEnergyOverallReputation((int) service.getService_id());
+
+			double cand_ee = eor.getEe();
+			long k = eor.getK();
+
+			// if no experiences do the average from other services
+			if (k == 0) {
+				int n = 0;
+				double sum = 0;
+
+				for (int j = 0; j < Network.size(); j++) {
+					GeneralNode othernode = (GeneralNode) Network.get(i);
+					OverloadComponentAssembly ca = (OverloadComponentAssembly) othernode
+							.getProtocol(component_assembly_pid);
+					ArrayList<Service> services = ca.getServices();
+
+					for (Service otherService : services) {
+						EnergyOverallReputation other_eor = getOrCreateEnergyOverallReputation(
+								(int) otherService.getService_id());
+						if (other_eor.getK() > 0) {
+							double ee = other_eor.getEe();
+							sum += ee;
+							n++;
+						}
+					}
+				}
+
+				if (n == 0)
+					return chooseByLocalEnergyStrategy(candidates, node);
+				cand_ee = sum / n;
+			}
+
+			cand_ee -= translation; // we must check if this translation is necessary and/or introduces problems
+
+			// local energy consumption -> lower is better --> negative exponent
+			// if the value of cand_ee is greater than 1 the exponent shall be positive?
+			double cand_probl = Math.pow(cand_ee, H);
+			probl_array[i] = cand_probl;
+			sigma += cand_probl;
+		}
+
+		for (int i = 0; i < probl_array.length; i++) {
+			probl_array[i] = probl_array[i] / sigma;
+		}
+
+		// random pesata su probl_array
+		double sum = 0;
+		ArrayList<Double> array = new ArrayList<Double>();
+
+		for (int i = 0; i < probl_array.length; i++) {
+			sum += probl_array[i];
+			array.add(sum);
+		}
+
+		double max = 0;
+		double min = sum;
+		double random_num = min + (max - min) * CommonState.r.nextDouble();
+		int index = 0;
+
+		for (int i = 0; i < array.size(); i++) {
+			if (array.get(i) > random_num) {
+				index = i;
+				break;
+			}
+		}
+		return candidates.get(index);
+	}
+
+	/*
+	 * Seleziona il servizio allocato sul nodo con vita residua maggiore
+	 */
+	private Service chooseByResidualLifeStrategy(LinkedList<Service> candidates) {
+
+		if (CDState.getCycle() < 7)
+			return chooseByRandomStrategy(candidates);
+
+		double max = 0;
+		Service res = null;
+		for (int i = 0; i < candidates.size(); i++) {
+			GeneralNode n = GeneralNode.getNode(candidates.get(i).getNode_id());
+			if (n.getResidualLife() > max) {
+				max = n.getResidualLife();
+				res = candidates.get(i);
+			}
+		}
+
+		if (res == null)
+			return chooseByRandomStrategy(candidates);
+
+		return res;
+	}
+	
+	// Residual life template strategy
+	private Service chooseByResidualLifeTemplateStrategy(LinkedList<Service> candidates, GeneralNode node) {
+
+		if (CDState.getCycle() < 7)
+			return chooseByRandomStrategy(candidates);
+
+		Double[] probl_array = new Double[candidates.size()];
+
+		double sigma = 0;
+
+		// tiny translation to avoid 0 as a base of the exponent
+		double translation = Math.pow(10, -5);
+
+		for (int i = 0; i < candidates.size(); i++) {
 
 			GeneralNode nnode = GeneralNode.getNode(candidates.get(i).getNode_id());
-			double cand_ee = nnode.getEeLocalEnergy();
-			int k = nnode.getEeLocalCounter();
+			double cand_ee = nnode.getEeResidualLife();
+			int k = nnode.getEeResidualLifeCounter();
 
 			// if no experiences do the average
 			if (k == 0) {
 				int n = 0;
 				double sum = 0;
 
-				for(int j=0; j<Network.size(); j++) {
+				for (int j = 0; j < Network.size(); j++) {
 					GeneralNode othernode = (GeneralNode) Network.get(i);
-					
-					if (othernode.getEeBPCounter() > 0) {
-						double ee = othernode.getEeBPEnergy();
+
+					if (othernode.getEeResidualLifeCounter() > 0) {
+						double ee = othernode.getEeResidualLife();
 						sum += ee;
 						n++;
 					}
-					
 				}
-				
-
 				if (n == 0)
 					return chooseByLocalEnergyStrategy(candidates, node);
-
 				cand_ee = sum / n;
-
 			}
 
-			cand_ee-=translation;
+			cand_ee -= translation;
 
-			// local energy consumption -> lower is better --> negative exponent (is this H?)
-			// if the value of cand_ee is greater than 1 the exponent shall be positive?
-			double cand_probl = Math.pow(cand_ee, -3); 
+			// energy balance -> higher is better --> negative exponent
+			double cand_probl = Math.pow(cand_ee, H);
 			probl_array[i] = cand_probl;
-			sigma+=cand_probl;
-			
+			sigma += cand_probl;
 		}
-	
-		for(int i=0; i<probl_array.length; i++) {
+
+		for (int i = 0; i < probl_array.length; i++) {
 			probl_array[i] = probl_array[i] / sigma;
 		}
-		
-		
-		// random pesata su probl_array
-		
-		
-		double sum=0;
-		
-		ArrayList<Double> array = new ArrayList<Double>();
-		
-		for(int i=0; i<probl_array.length; i++) {
 
-			sum+=probl_array[i];
+		// random pesata su probl_array
+
+		double sum = 0;
+		ArrayList<Double> array = new ArrayList<Double>();
+
+		for (int i = 0; i < probl_array.length; i++) {
+			sum += probl_array[i];
 			array.add(sum);
-		}	
-		
+		}
+
 		double max = 0;
 		double min = sum;
-		
 		double random_num = min + (max - min) * CommonState.r.nextDouble();
+		int index = 0;
 
-		int index=0;
-		
-		for(int i=0; i<array.size(); i++) {
-			if(array.get(i)>random_num) {
+		for (int i = 0; i < array.size(); i++) {
+			if (array.get(i) > random_num) {
 				index = i;
 				break;
 			}
 		}
-		
-		
 		return candidates.get(index);
 	}
-	
 
-	// overall energy strategy
-	private Service chooseByOverallEnergyStrategy(LinkedList<Service> candidates) {
-
-		// at round 1 the overall energy is not known
-		if(CDState.getCycle()<7)
-			return chooseByRandomStrategy(candidates);
-				
-		double min=Double.MAX_VALUE;
-		Service res = null;
-		
-		for(int i=0; i<candidates.size(); i++) {
-
-			double energy = candidates.get(i).getE_comp() + candidates.get(i).getE_comm();
-
-			if(energy<min) {
-				min=energy;
-				res=candidates.get(i);
-			}	
-		}
-		return res;
-	}
-
-	
-	
-	/*
-	 * Seleziona il servizio allocato sul nodo con vita residua maggiore
-	 * */
-	private Service chooseByResidualLifeStrategy(LinkedList<Service> candidates) {
-		
-		if(CDState.getCycle()<7)
-			return chooseByRandomStrategy(candidates);
-		
-		
-		double max = 0;
-		Service res = null;
-		for(int i=0; i<candidates.size(); i++) {
-			GeneralNode n = GeneralNode.getNode(candidates.get(i).getNode_id());
-			if(n.getResidualLife()>max) {
-				max = n.getResidualLife();
-				res = candidates.get(i);
-			}
-		}
-		
-		
-		if(res==null)
-			return chooseByRandomStrategy(candidates);
-		
-		return res;
-	}
-	
-	
 	/*
 	 * Seleziona il servizio allocato sul nodo con vita residua minore
-	 * */
+	 */
 	private Service chooseByRevResidualLifeStrategy(LinkedList<Service> candidates) {
-		
-		if(CDState.getCycle()<7)
+
+		if (CDState.getCycle() < 7)
 			return chooseByRandomStrategy(candidates);
-		
-		
+
 		double min = Double.MAX_VALUE;
 		Service res = null;
-		for(int i=0; i<candidates.size(); i++) {
+		for (int i = 0; i < candidates.size(); i++) {
 			GeneralNode n = GeneralNode.getNode(candidates.get(i).getNode_id());
-			
-			if(n.getResidualLife()<min) {
+
+			if (n.getResidualLife() < min) {
 				min = n.getResidualLife();
 				res = candidates.get(i);
 			}
 		}
-	
 
-		if(res==null)
+		if (res == null)
 			return chooseByRandomStrategy(candidates);
-				
+
 		return res;
 	}
-	
-	
-	
+
 	private Service chooseByLatencySetStrategy(LinkedList<Service> candidates, GeneralNode node) {
-		
-		if(CDState.getCycle()<7)
+
+		if (CDState.getCycle() < 7)
 			return chooseByRandomStrategy(candidates);
-		
-		
+
 		double max = 0;
 		double max_best = 0;
 		Service res = null;
 		Service res_best = null;
-		for(int i=0; i<candidates.size(); i++) {
+		for (int i = 0; i < candidates.size(); i++) {
 			GeneralNode n = GeneralNode.getNode(candidates.get(i).getNode_id());
-			if(n.getBestNode()) {
+			if (n.getBestNode()) {
 				if (n.inPeerSet(node)) {
-					if(n.getResidualLife()>max_best) {
+					if (n.getResidualLife() > max_best) {
 						max_best = n.getResidualLife();
 						res_best = candidates.get(i);
 					}
 				}
-			}else {
-				if(n.getResidualLife()>max) {
+			} else {
+				if (n.getResidualLife() > max) {
 					max = n.getResidualLife();
 					res = candidates.get(i);
 				}
 			}
-			
-			
 		}
-		
-		if(res==null&&res_best==null)
+
+		if (res == null && res_best == null)
 			return chooseByRandomStrategy(candidates);
-		
-		if(res_best!=null)
+
+		if (res_best != null)
 			return res_best;
 		return res;
 	}
 
-	
-	
-	/* greedy fair energy strategy (using Shaerf) - select the node with the "best" energy balance - problemi con G - R perchè negativo 
-	 * (scenario battery - panel)
-	 * */
+	/*
+	 * greedy fair energy strategy (using Shaerf) - select the node with the "best"
+	 * energy balance - problemi con G - R perchè negativo (scenario battery -
+	 * panel)
+	 */
 	private Service chooseByFairEnergyBatteryPanelStrategy(LinkedList<Service> candidates, GeneralNode node) {
 
-		if(CDState.getCycle()<7)
+		if (CDState.getCycle() < 7)
 			return chooseByRandomStrategy(candidates);
-		
-		
+
 		Double[] probl_array = new Double[candidates.size()];
 
 		double sigma = 0;
 
-		// tiny translation to avoid 0 as a base of the exponent	
-		double translation = Math.pow(10,-5);
+		// tiny translation to avoid 0 as a base of the exponent
+		double translation = Math.pow(10, -5);
 
-		for(int i=0; i<candidates.size(); i++) {
+		for (int i = 0; i < candidates.size(); i++) {
 
 			GeneralNode nnode = GeneralNode.getNode(candidates.get(i).getNode_id());
 			double cand_ee = nnode.getEeBPEnergy();
@@ -549,419 +685,343 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 				int n = 0;
 				double sum = 0;
 
-				for(int j=0; j<Network.size(); j++) {
+				for (int j = 0; j < Network.size(); j++) {
 					GeneralNode othernode = (GeneralNode) Network.get(i);
-					
+
 					if (othernode.getEeBPCounter() > 0) {
 						double ee = othernode.getEeBPEnergy();
 						sum += ee;
 						n++;
 					}
-					
 				}
-				
+				if (n == 0)
+					return chooseByLocalEnergyStrategy(candidates, node);
+				cand_ee = sum / n;
+			}
+
+			cand_ee -= translation;
+
+			// energy balance -> higher is better --> negative exponent
+			double cand_probl = Math.pow(cand_ee, H);
+			probl_array[i] = cand_probl;
+			sigma += cand_probl;
+		}
+
+		for (int i = 0; i < probl_array.length; i++) {
+			probl_array[i] = probl_array[i] / sigma;
+		}
+
+		// random pesata su probl_array
+
+		double sum = 0;
+		ArrayList<Double> array = new ArrayList<Double>();
+
+		for (int i = 0; i < probl_array.length; i++) {
+			sum += probl_array[i];
+			array.add(sum);
+		}
+
+		double max = 0;
+		double min = sum;
+		double random_num = min + (max - min) * CommonState.r.nextDouble();
+		int index = 0;
+
+		for (int i = 0; i < array.size(); i++) {
+			if (array.get(i) > random_num) {
+				index = i;
+				break;
+			}
+		}
+
+		return candidates.get(index);
+	}
+
+	/*
+	 * greedy fair energy strategy (using Shaerf) - select the node with the "best"
+	 * energy balance - problemi con G - R perchè negativo (scenario panel)
+	 */
+	private Service chooseByFairEnergyPanelStrategy(LinkedList<Service> candidates, GeneralNode node) {
+
+		if (CDState.getCycle() < 7)
+			return chooseByRandomStrategy(candidates);
+
+		Double[] probl_array = new Double[candidates.size()];
+
+		double sigma = 0;
+		// tiny translation to avoid 0 as a base of the exponent
+		double translation = Math.pow(10, -5);
+
+		for (int i = 0; i < candidates.size(); i++) {
+
+			GeneralNode nnode = GeneralNode.getNode(candidates.get(i).getNode_id());
+			double cand_ee = nnode.getEePEnergy();
+			int k = nnode.getEePCounter();
+
+			// if no experiences do the average
+			if (k == 0) {
+				int n = 0;
+				double sum = 0;
+				for (int j = 0; j < Network.size(); j++) {
+					GeneralNode othernode = (GeneralNode) Network.get(i);
+
+					if (othernode.getEePCounter() > 0) {
+						double ee = othernode.getEePEnergy();
+						sum += ee;
+						n++;
+					}
+				}
 
 				if (n == 0)
 					return chooseByLocalEnergyStrategy(candidates, node);
 
 				cand_ee = sum / n;
-
 			}
 
-			cand_ee-=translation;
-
+			cand_ee -= translation;
 			// energy balance -> higher is better --> negative exponent
-			double cand_probl = Math.pow(cand_ee, -3);
+			double cand_probl = Math.pow(cand_ee, H);
 			probl_array[i] = cand_probl;
-
-			sigma+=cand_probl;
-			
+			sigma += cand_probl;
 		}
-	
-		for(int i=0; i<probl_array.length; i++) {
+
+		for (int i = 0; i < probl_array.length; i++) {
 			probl_array[i] = probl_array[i] / sigma;
 		}
-		
-		
-		// random pesata su probl_array
-		
-		
-		double sum=0;
-		
-		ArrayList<Double> array = new ArrayList<Double>();
-		
-		for(int i=0; i<probl_array.length; i++) {
 
-			sum+=probl_array[i];
+		// random pesata su probl_array
+
+		double sum = 0;
+		ArrayList<Double> array = new ArrayList<Double>();
+
+		for (int i = 0; i < probl_array.length; i++) {
+			sum += probl_array[i];
 			array.add(sum);
-		}	
-		
+		}
+
 		double max = 0;
 		double min = sum;
-		
 		double random_num = min + (max - min) * CommonState.r.nextDouble();
+		int index = 0;
 
-		int index=0;
-		
-		for(int i=0; i<array.size(); i++) {
-			if(array.get(i)>random_num) {
+		for (int i = 0; i < array.size(); i++) {
+			if (array.get(i) > random_num) {
 				index = i;
 				break;
 			}
 		}
-		
-		
+
 		return candidates.get(index);
-	
 	}
-	
-	
-	
-	
-	/* greedy fair energy strategy (using Shaerf) - select the node with the "best" energy balance - problemi con G - R perchè negativo 
-	 * (scenario panel)
-	 * */		
-	private Service chooseByFairEnergyPanelStrategy(LinkedList<Service> candidates, GeneralNode node) {
 
-			if(CDState.getCycle()<7)
-				return chooseByRandomStrategy(candidates);
-			
-			
-			Double[] probl_array = new Double[candidates.size()];
-
-			double sigma = 0;
-
-			// tiny translation to avoid 0 as a base of the exponent	
-			double translation = Math.pow(10,-5);
-
-			for(int i=0; i<candidates.size(); i++) {
-
-				GeneralNode nnode = GeneralNode.getNode(candidates.get(i).getNode_id());
-				double cand_ee = nnode.getEePEnergy();
-				int k = nnode.getEePCounter();
-
-				// if no experiences do the average
-				if (k == 0) {
-					int n = 0;
-					double sum = 0;
-
-					for(int j=0; j<Network.size(); j++) {
-						GeneralNode othernode = (GeneralNode) Network.get(i);
-						
-						if (othernode.getEePCounter() > 0) {
-							double ee = othernode.getEePEnergy();
-							sum += ee;
-							n++;
-						}
-						
-					}
-					
-
-					if (n == 0)
-						return chooseByLocalEnergyStrategy(candidates, node);
-
-					cand_ee = sum / n;
-
-				}
-
-				cand_ee-=translation;
-
-				// energy balance -> higher is better --> negative exponent
-				double cand_probl = Math.pow(cand_ee, -3);
-				probl_array[i] = cand_probl;
-
-				sigma+=cand_probl;
-				
-			}
-		
-			for(int i=0; i<probl_array.length; i++) {
-				probl_array[i] = probl_array[i] / sigma;
-			}
-			
-			
-			// random pesata su probl_array
-			
-			
-			double sum=0;
-			
-			ArrayList<Double> array = new ArrayList<Double>();
-			
-			for(int i=0; i<probl_array.length; i++) {
-
-				sum+=probl_array[i];
-				array.add(sum);
-			}	
-			
-			double max = 0;
-			double min = sum;
-			
-			double random_num = min + (max - min) * CommonState.r.nextDouble();
-
-			int index=0;
-			
-			for(int i=0; i<array.size(); i++) {
-				if(array.get(i)>random_num) {
-					index = i;
-					break;
-				}
-			}
-			
-			
-			return candidates.get(index);
-		
-		}
-
-	
-	
 	private Service chooseByGreenLearningStrategy(LinkedList<Service> candidates) {
-		
-		if(CDState.getCycle()<287)
+
+		if (CDState.getCycle() < 287) // ?? perch� questo ?
 			return chooseByRandomStrategy(candidates);
-		
+
 		ArrayList<Double> probl_array = new ArrayList<Double>();
 		ArrayList<Double> final_probl_array = new ArrayList<Double>();
 
 		double sigma = 0;
 
-		
-		for(int i=0; i<candidates.size(); i++) {
-			
+		for (int i = 0; i < candidates.size(); i++) {
+
 			GeneralNode node = GeneralNode.getNode(candidates.get(i).getNode_id());
 
-			if(node.getHistoryCounter()>286) {
+			if (node.getHistoryCounter() > 286) {
 				double prevision = node.getPredictedG();
-	
-				double cand_probl = Math.pow(prevision, 3);
-				
+				double cand_probl = Math.pow(prevision, H);
 				probl_array.add(cand_probl);
-				sigma+=cand_probl;
-				
+				sigma += cand_probl;
 			}
 		}
 
-
-		int counter=0;
-		for(int i=0; i<probl_array.size(); i++) {
-			if(probl_array.get(i)==0)
+		int counter = 0;
+		for (int i = 0; i < probl_array.size(); i++) {
+			if (probl_array.get(i) == 0)
 				counter++;
 			final_probl_array.add(probl_array.get(i) / sigma);
 
 		}
-		
-		if(counter==candidates.size())
+
+		if (counter == candidates.size())
 			return chooseByRandomStrategy(candidates);
 
-		
-		double max=0;
+		double max = 0;
 		Service res = null;
-		
-		for(int i=0; i<final_probl_array.size(); i++) {
-			if(final_probl_array.get(i)>max) {
-				max=final_probl_array.get(i);
-				res=candidates.get(i);
-			}
-		}		
-		
-		
-		if(res==null)
-			return chooseByRandomStrategy(candidates);
 
+		for (int i = 0; i < final_probl_array.size(); i++) {
+			if (final_probl_array.get(i) > max) {
+				max = final_probl_array.get(i);
+				res = candidates.get(i);
+			}
+		}
+
+		if (res == null)
+			return chooseByRandomStrategy(candidates);
 		return res;
 	}
-	
-	
-	
+
 	/*
-	 * Seleziona il servizio allocato sul nodo con maggiore bilancio energetico 
+	 * Seleziona il servizio allocato sul nodo con maggiore bilancio energetico
 	 * (scenario batteria + pannello)
-	 * */
+	 */
 	private Service chooseByMaxBalanceSolarPanelStrategy(LinkedList<Service> candidates) {
-		
-		if(CDState.getCycle()<7)
+
+		if (CDState.getCycle() < 7)
 			return chooseByRandomStrategy(candidates);
-		
+
 		double max = 0;
 		Service res = null;
-		for(int i=0; i<candidates.size(); i++) {
+		for (int i = 0; i < candidates.size(); i++) {
 			GeneralNode n = GeneralNode.getNode(candidates.get(i).getNode_id());
-			double balance = n.getBattery() + n.getG()-n.getR();
-			if(balance>max) {
+			double balance = n.getBattery() + n.getG() - n.getR();
+			if (balance > max) {
 				max = balance;
 				res = candidates.get(i);
 			}
 		}
-		
-		//System.out.println(res.getService_id());
-		if(res==null)
+
+		// System.out.println(res.getService_id());
+		if (res == null)
 			return chooseByRandomStrategy(candidates);
-		
+
 		return res;
 	}
-
 
 	/*
-	 * Seleziona il servizio allocato sul nodo con maggiore bilancio energetico 
+	 * Seleziona il servizio allocato sul nodo con maggiore bilancio energetico
 	 * (scenario solo pannello)
-	 * */
+	 */
 	private Service chooseByMaxBalancePanelStrategy(LinkedList<Service> candidates) {
-		
-		if(CDState.getCycle()<7)
+
+		if (CDState.getCycle() < 7)
 			return chooseByRandomStrategy(candidates);
-		
+
 		double max = 0;
 		Service res = null;
-		for(int i=0; i<candidates.size(); i++) {
+		for (int i = 0; i < candidates.size(); i++) {
 			GeneralNode n = GeneralNode.getNode(candidates.get(i).getNode_id());
-			double balance = n.getG()-n.getR();
-			if(balance>max) {
+			double balance = n.getG() - n.getR();
+			if (balance > max) {
 				max = balance;
 				res = candidates.get(i);
 			}
 		}
-		
-		if(res==null)
+
+		if (res == null)
 			return chooseByRandomStrategy(candidates);
-		
+
 		return res;
 	}
-
-
 
 	private Service chooseByMaxGStrategy(LinkedList<Service> candidates) {
-		
-		if(CDState.getCycle()<7)
+
+		if (CDState.getCycle() < 7)
 			return chooseByRandomStrategy(candidates);
-		
+
 		double max = 0;
 		Service res = null;
-		for(int i=0; i<candidates.size(); i++) {
+		for (int i = 0; i < candidates.size(); i++) {
 			GeneralNode n = GeneralNode.getNode(candidates.get(i).getNode_id());
 			double g = n.getG();
-			if(g>max) {
+			if (g > max) {
 				max = g;
 				res = candidates.get(i);
 			}
 		}
-		
-		if(res==null)
+
+		if (res == null)
 			return chooseByRandomStrategy(candidates);
-		
+
 		return res;
 	}
 
+	private Service chooseByFutureExpectedUtility(LinkedList<Service> candidates, GeneralNode node) {
 
+		// at round 1 the overall energy is not known
+		if (CDState.getCycle() < 7)
+			return chooseByRandomStrategy(candidates);
 
-	
+		ArrayList<Double> probl_array = new ArrayList<Double>();
+		ArrayList<Double> quality_probl_array = new ArrayList<Double>();
 
-		
-		
-	
-		private Service chooseByFutureExpectedUtility(LinkedList<Service> candidates, GeneralNode node) {
+		for (int i = 0; i < candidates.size(); i++) {
 
-			// at round 1 the overall energy is not known
-			if(CDState.getCycle()<7)
-				return chooseByRandomStrategy(candidates);
-			
-						
-			ArrayList<Double> probl_array = new ArrayList<Double>();
-			ArrayList<Double> quality_probl_array = new ArrayList<Double>();
+			GeneralNode n = GeneralNode.getNode(candidates.get(i).getNode_id());
 
-			
-			for(int i=0; i<candidates.size(); i++) {
-			
-				GeneralNode n = GeneralNode.getNode(candidates.get(i).getNode_id());
+			// double candidateTrust = quality_candidateReputation.getTk();
+			double candidateTrust = n.getTk((int) candidates.get(i).getService_id());
+			double Qk = n.getQk((int) candidates.get(i).getService_id());
+			int k = (int) n.getQosCounter((int) candidates.get(i).getService_id());
 
-				//double candidateTrust = quality_candidateReputation.getTk();
-				double candidateTrust = n.getTk((int)candidates.get(i).getService_id());
-				double Qk= n.getQk((int)candidates.get(i).getService_id());
-				int k = (int) n.getQosCounter((int)candidates.get(i).getService_id());
-						
-				double candidateFEU = candidateTrust * candidates.get(i).getDeclaredUtility()
-						+ ((1.0 - candidateTrust) * Qk);
-				
-				
-				
-				// if no experiences do the average
-				if (k == 0) {
+			double candidateFEU = candidateTrust * candidates.get(i).getDeclaredUtility()
+					+ ((1.0 - candidateTrust) * Qk);
 
-					int m = 0;
-					double sum = 0;
-					
-					
-					for(int j=0; j<Network.size(); j++) {
-						GeneralNode othernode = (GeneralNode) Network.get(i);
-						
-						for(int l=0; l<5; l++) {
-							int counter = othernode.getQosCounter(othernode.getID()*l);
-							
-							if (counter > 0) {
-								double qk = othernode.getQk(othernode.getID()*l);
-								sum += qk;
-								m++;
-							}
+			// if no experiences do the average
+			if (k == 0) {
+
+				int m = 0;
+				double sum = 0;
+
+				for (int j = 0; j < Network.size(); j++) {
+					GeneralNode othernode = (GeneralNode) Network.get(i);
+
+					for (int l = 0; l < 5; l++) {
+						int counter = othernode.getQosCounter(othernode.getID() * l);
+
+						if (counter > 0) {
+							double qk = othernode.getQk(othernode.getID() * l);
+							sum += qk;
+							m++;
 						}
-						
-							
 					}
-
-
-					if (m == 0)
-						return chooseByLocalEnergyStrategy(candidates, node);
-
-					candidateFEU = sum / m;
 				}
-				
-				double cand_probl = Math.pow(candidateFEU, 40);
-				probl_array.add(cand_probl);
-				
-			}
-			
-			double sigma = 0;
-			
-			for(int i=0; i<probl_array.size(); i++) {
-				sigma += probl_array.get(i);
-			}
-			
-			for(int i=0; i<probl_array.size(); i++) {
-				quality_probl_array.add(probl_array.get(i) / sigma);
-			}
-			
-			
-			// random pesata su probl_array
-			
-			double sum=0;
-			
-			ArrayList<Double> array = new ArrayList<Double>();
-			
-			for(int i=0; i<quality_probl_array.size(); i++) {
 
-				sum+=quality_probl_array.get(i);
-				array.add(sum);
-			}	
-			
-			
-			double max = 0;
-			double min = sum;
-			
-			double random_num = min + (max - min) * CommonState.r.nextDouble();
+				if (m == 0)
+					return chooseByLocalEnergyStrategy(candidates, node);
 
-			int index=0;
-			
-			for(int i=0; i<array.size(); i++) {
-				if(array.get(i)>random_num) {
-					index = i;
-					break;
-				}
+				candidateFEU = sum / m;
 			}
-			
-			
-			return candidates.get(index);
-			
+
+			double cand_probl = Math.pow(candidateFEU, H);
+			probl_array.add(cand_probl);
+
 		}
-		
-	
-	
-	
+
+		double sigma = 0;
+
+		for (int i = 0; i < probl_array.size(); i++) {
+			sigma += probl_array.get(i);
+		}
+
+		for (int i = 0; i < probl_array.size(); i++) {
+			quality_probl_array.add(probl_array.get(i) / sigma);
+		}
+
+		// random pesata su probl_array
+
+		double sum = 0;
+		ArrayList<Double> array = new ArrayList<Double>();
+
+		for (int i = 0; i < quality_probl_array.size(); i++) {
+			sum += quality_probl_array.get(i);
+			array.add(sum);
+		}
+
+		double max = 0;
+		double min = sum;
+		double random_num = min + (max - min) * CommonState.r.nextDouble();
+		int index = 0;
+
+		for (int i = 0; i < array.size(); i++) {
+			if (array.get(i) > random_num) {
+				index = i;
+				break;
+			}
+		}
+		return candidates.get(index);
+
+	}
 
 	@Override
 	public void onKill() {
@@ -993,7 +1053,7 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 		energyBPReputations.add(newReputation);
 		return newReputation;
 	}
-	
+
 	private EnergyPanelReputation getOrCreateEnergyPReputation(int nodeID) {
 		for (EnergyPanelReputation reputation : energyPReputations) {
 			if (reputation.getNodeId() == nodeID) {
@@ -1004,29 +1064,29 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 		energyPReputations.add(newReputation);
 		return newReputation;
 	}
-	
-	private EnergyLocalReputation getOrCreateEnergyLocalReputation(int nodeID) {
+
+	private EnergyLocalReputation getOrCreateEnergyLocalReputation(int serviceId) {
 		for (EnergyLocalReputation reputation : energyLocalReputations) {
-			if (reputation.getNodeId() == nodeID) {
+			if (reputation.getServiceID() == serviceId) {
 				return reputation;
 			}
 		}
-		EnergyLocalReputation newReputation = new EnergyLocalReputation(nodeID);
+		EnergyLocalReputation newReputation = new EnergyLocalReputation(serviceId);
 		energyLocalReputations.add(newReputation);
 		return newReputation;
 	}
-	
-	private EnergyOverallReputation getOrCreateEnergyOverallReputation(int nodeID) {
+
+	private EnergyOverallReputation getOrCreateEnergyOverallReputation(int serviceId) {
 		for (EnergyOverallReputation reputation : energyOverallReputations) {
-			if (reputation.getNodeId() == nodeID) {
+			if (reputation.getServiceID() == serviceId) {
 				return reputation;
 			}
 		}
-		EnergyOverallReputation newReputation = new EnergyOverallReputation(nodeID);
+		EnergyOverallReputation newReputation = new EnergyOverallReputation(serviceId);
 		energyOverallReputations.add(newReputation);
 		return newReputation;
 	}
-	
+
 	private ResidualLifeReputation getOrCreateResidualLifeReputation(int nodeID) {
 		for (ResidualLifeReputation reputation : residualLifeReputations) {
 			if (reputation.getNodeId() == nodeID) {
@@ -1037,7 +1097,7 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 		residualLifeReputations.add(newReputation);
 		return newReputation;
 	}
-	
+
 	public GreenReputation getOrCreateGreenReputation(int nodeID) {
 		for (GreenReputation reputation : greenReputations) {
 			if (reputation.getNodeId() == nodeID) {
@@ -1048,8 +1108,6 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 		greenReputations.add(newReputation);
 		return newReputation;
 	}
-	
-
 
 	public ArrayList<QOSReputation> getQoSReputations() {
 		return qosReputations;
@@ -1057,23 +1115,25 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 
 	public ArrayList<EnergyBatteryPanelReputation> getEnergyBPReputations() {
 		return energyBPReputations;
-		
-	}public ArrayList<EnergyPanelReputation> getEnergyPReputations() {
+
+	}
+
+	public ArrayList<EnergyPanelReputation> getEnergyPReputations() {
 		return energyPReputations;
 	}
-	
+
 	public ArrayList<GreenReputation> getGreenReputations() {
 		return greenReputations;
 	}
-	
-	
-	
+
 	public void reset() {
 		qosReputations = new ArrayList<QOSReputation>();
 		energyBPReputations = new ArrayList<EnergyBatteryPanelReputation>();
 		energyPReputations = new ArrayList<EnergyPanelReputation>();
 		greenReputations = new ArrayList<GreenReputation>();
-
+		energyLocalReputations = new ArrayList<EnergyLocalReputation>();
+		energyOverallReputations = new ArrayList<EnergyOverallReputation>();
+		residualLifeReputations = new ArrayList<ResidualLifeReputation>();
 	}
 
 }

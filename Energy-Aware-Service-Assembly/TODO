@@ -71,8 +71,7 @@ Scenario C:
 - ecc
 
 
-TODO - 1/3
-- parametro alfa in all Reputation entity. Alfa è fisso, ora ci sta W. Mettere alfa in configs
-- per local e overall facciamo learning sui servizi e non sui nodi - modificare OverloadCompositionController
-- overload application per la local ed overall deve prendere ee dal servizio e non dal nodo (modificare GeneralNode).
-Quindi muovere eeLocal ed eeOverall dal nodo al servizio
+MIRKO:
+- Ho implementato così: ee and K li prendo non dal servizio ma dalla reputation direttamente (per local ed overall template)
+- bisogna controllare come si comporta il segno del template per le nostre politiche. Abbiamo detto che lower is better (-) and higher is better (+).
+Però mi ricordo che quando il valore è tra 0 ed 1 l'opposto vale. Dobbiamo vedere la metrica dove applichiamo questo H (in Overload application)

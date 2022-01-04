@@ -220,11 +220,9 @@ public class OverloadComponentInitializer implements Control {
 
 	public static int getRandomType(ArrayList<Integer> list) {
 
-		int rnd = CommonState.r.nextInt(list.size());
-		
+		int rnd = CommonState.r.nextInt(list.size());	
 		if(list.get(rnd)==0)
-			return getRandomType(list);
-		
+			return getRandomType(list);	
 		else
 			list.set(rnd, list.get(rnd)-1);
 	    return rnd;

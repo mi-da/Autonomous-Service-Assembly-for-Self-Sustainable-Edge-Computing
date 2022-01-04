@@ -1,8 +1,5 @@
 package lnu.mida.entity;
 
-import java.io.PrintStream;
-
-import lnu.mida.controller.init.OverloadFileInitializer;
 import peersim.cdsim.CDState;
 
 public class GreenReputation {
@@ -148,9 +145,6 @@ public class GreenReputation {
 		}
 		return result;
 	}
-
-	
-	
 	
 	public int getK() {
 		return counter;

@@ -101,12 +101,9 @@ public class OverloadCompositionController implements Control {
 			if (!Network.get(i).isUp()) {
 				continue;
 			}
-
 			GeneralNode node = (GeneralNode) Network.get(i);
 			OverloadComponentAssembly ca = (OverloadComponentAssembly) node.getProtocol(component_assembly_pid);
 			OverloadApplication appl = (OverloadApplication) node.getProtocol(application_pid);
-			
-			
 			ArrayList<Service> services = ca.getServices();
 			
 			for (Service service : services) {
@@ -180,6 +177,7 @@ public class OverloadCompositionController implements Control {
 							// add local energy
 							appl.addEnergyLocalHistoryExperience(depObj,depObj.getL_comp()+depObj.getL_comm());
 							// add overall energy
+							appl.addEnergyOverallHistoryExperience(depObj,depObj.getE_comp()+depObj.getE_comm());
 							
 							GeneralNode depNode = GeneralNode.getNode(depObj.getNode_id());
 							
@@ -202,16 +200,7 @@ public class OverloadCompositionController implements Control {
 		    for (GeneralNode interactingNode : interactingNodes) {
 		    	appl.addEnergyBPHistoryExperience(interactingNode, Math.min(0,interactingNode.getG()+interactingNode.getBattery()-interactingNode.getR()));
 		    	appl.addEnergyPHistoryExperience(interactingNode, Math.min(0,interactingNode.getG()-interactingNode.getR()));
-		    	// Aggiungere per EnergyAware ee solo consumo
 		    	
-		    	// Local energy consumption added to experience (we need a function calculating the local consumption) - Local energy consumed by interacting node
-		    	appl.addEnergyLocalHistoryExperience(interactingNode,0);
-		    	// Overall energy consumption added to experience (we need a function calculating the local consumption)
-		    	appl.addEnergyOverallHistoryExperience(interactingNode,0);
-		    	
-		    	
-		    	
-		    	// Residual life added to experience (we need a function calculating residual life)
 		    	appl.addResidualLifeHistoryExperience(interactingNode,interactingNode.getResidualLife());
 		    }	
 		    

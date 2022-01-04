@@ -1,5 +1,7 @@
 package lnu.mida.entity;
 
+import peersim.config.Configuration;
+
 public class EnergyBatteryPanelReputation implements Cloneable  {
 	
 	
@@ -8,31 +10,24 @@ public class EnergyBatteryPanelReputation implements Cloneable  {
 	
 	// number of time the experience is done
 	private int k;
-	// window period of the learner
-	private static int M;
 	
 	// approach to challenge
 	private double ee;
+	
+	// history weight
+	private double ALPHA;
 	
 	
 	public EnergyBatteryPanelReputation(long nodeID) {
 		this.setNodeID(nodeID);
 		k=0;
 		ee=0;
+		ALPHA = Configuration.getDouble("ALPHA",0);
 	}
 	
 	public void addDeclaredEnergy(double declaredEnergy) {		
-		
-		
-		double W = 0.1 + (0.9/k);
-		if(k==0)
-			W=1;
-		
-		//double W = 0.7;
-				
-		double ee_new = W*declaredEnergy + ( (1-W)*ee );		
+		double ee_new = ALPHA*declaredEnergy + ( (1-ALPHA)*ee );		
 		ee = ee_new;
-		
 		k++;
 		
 		GeneralNode node = GeneralNode.getNode(nodeID);
@@ -59,14 +54,6 @@ public class EnergyBatteryPanelReputation implements Cloneable  {
 	
 	public void setK(int k) {
 		this.k=k;
-	}
-
-	public static int getM() {
-		return M;
-	}
-
-	public static void setM(int m) {
-		M = m;
 	}
 
 	public double getEe() {

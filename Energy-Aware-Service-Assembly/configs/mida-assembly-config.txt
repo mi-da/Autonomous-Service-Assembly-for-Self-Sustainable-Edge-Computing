@@ -18,6 +18,10 @@ STRATEGY random  # 6 strategies: 1) random, 2) green_learning, 3) local_energy, 
 
 M 5 # period of the learner
 
+H 1 # randomness of service selection for the strategy
+
+ALPHA 0.5 # weight of history for learning strategy
+
 COMPOSITION_STEPS 6 # the system runs a composition step every 6 simulation cycles
 
 SOLAR_STEP 1
