@@ -32,8 +32,7 @@ public class EnergyBatteryPanelReputation implements Cloneable  {
 		
 		GeneralNode node = GeneralNode.getNode(nodeID);
 		node.setEeBPEnergy(ee);
-		node.setEeBPCounter(k);
-		
+		node.setEeBPCounter(k);	
 	}
 	
 	@Override

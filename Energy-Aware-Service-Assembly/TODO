@@ -15,37 +15,33 @@ Random: STRATEGY.equals("random")
 - sng:
 - TODO: Nothing
 
-Local: (STRATEGY.equals("local_energy"))
+Local: (STRATEGY.equals("local_energy_template"))
 - Rank: L  
 - alfa: variabile (1, 0.5)
 - h: variabile --> h=infinito (politica greedy), h=costante (1? oppure 2?)
 - sng: -
-- TODO: estendere per mantenere efficiency estimator ed h?
 
-Overall: (STRATEGY.equals("overall_energy"))
+Overall: (STRATEGY.equals("overall_energy_template"))
 - Rank: O 
 - alfa: variabile (1, 0.5)
 - h: variabile --> h=infinito (politica greedy), h=costante (1? oppure 2?)
 - sng: -
-- TODO: estendere per mantenere efficiency estimator ed h. Sembrava che andasse troppo bene, controllare.
 
 Energy Aware (Learning):
 - Testare al variare come le precedenti
-- TODO: Riscriverla mettendo il suo ee
+- TODO: Riscriverla mettendo il suo ee. Riscriverla uguale a battery panel ma ee prevede solo il learning sul consumo
 
 Residual Life:(STRATEGY.equals("weighted_random"))
 - Rank: rl
 - alfa: variabile come le altre
 - h: variabile come le altre
-- sng: -
-- TODO: ???
+- sng: piu
 
 Energy Balance: (STRATEGY.equals("fair_energyBP"))
-- TODO: Vedere dove sta e se quel progetto contiene cose che non sono nel master
 - Rank: ee
 - alfa: variabile (1, 0.5)
 - h: variabile --> h=infinito (politica greedy), h=costante (1? oppure 2?)
-- sng: -
+- sng: piu
 - TODO: stare attenti a quale chiamare: P (panel) ,BP (battery panel)
 
 
@@ -71,7 +67,9 @@ Scenario C:
 - ecc
 
 
-MIRKO:
-- Ho implementato così: ee and K li prendo non dal servizio ma dalla reputation direttamente (per local ed overall template)
-- bisogna controllare come si comporta il segno del template per le nostre politiche. Abbiamo detto che lower is better (-) and higher is better (+).
-Però mi ricordo che quando il valore è tra 0 ed 1 l'opposto vale. Dobbiamo vedere la metrica dove applichiamo questo H (in Overload application)
+
+TODO:
+- Durante la sperimentatione bisogna controllare come si comporta il segno del template per le nostre politiche (-H ed H in application)
+- Riscrivere EnergyAware
+- Sistemare i segni di H (fatto) - Francesca puoi ricontrollare anche tu?
+- è pronta la residual life per essere testata? greedy vs random

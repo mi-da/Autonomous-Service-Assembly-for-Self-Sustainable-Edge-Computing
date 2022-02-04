@@ -198,7 +198,7 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 			return chooseByMaxGStrategy(candidates);
 		}
 
-		// future expected utility
+		// future expected utility (lavora sulla qualità)
 		if (STRATEGY.equals("emergent")) {
 			return chooseByFutureExpectedUtility(candidates, node);
 		}
@@ -361,8 +361,7 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 			cand_ee -= translation; // we must check if this translation is necessary and/or introduces problems
 
 			// local energy consumption -> lower is better --> negative exponent
-			// if the value of cand_ee is greater than 1 the exponent shall be positive?
-			double cand_probl = Math.pow(cand_ee, H);
+			double cand_probl = Math.pow(cand_ee, -H);
 			probl_array[i] = cand_probl;
 			sigma += cand_probl;
 		}
@@ -467,8 +466,7 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 			cand_ee -= translation; // we must check if this translation is necessary and/or introduces problems
 
 			// local energy consumption -> lower is better --> negative exponent
-			// if the value of cand_ee is greater than 1 the exponent shall be positive?
-			double cand_probl = Math.pow(cand_ee, H);
+			double cand_probl = Math.pow(cand_ee, -H);
 			probl_array[i] = cand_probl;
 			sigma += cand_probl;
 		}
@@ -564,7 +562,7 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 
 			cand_ee -= translation;
 
-			// energy balance -> higher is better --> negative exponent
+			// energy balance -> higher is better --> positive exponent
 			double cand_probl = Math.pow(cand_ee, H);
 			probl_array[i] = cand_probl;
 			sigma += cand_probl;
@@ -701,7 +699,7 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 
 			cand_ee -= translation;
 
-			// energy balance -> higher is better --> negative exponent
+			// energy balance -> higher is better --> positive exponent
 			double cand_probl = Math.pow(cand_ee, H);
 			probl_array[i] = cand_probl;
 			sigma += cand_probl;
@@ -778,7 +776,7 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 			}
 
 			cand_ee -= translation;
-			// energy balance -> higher is better --> negative exponent
+			// energy balance -> higher is better --> positive exponent
 			double cand_probl = Math.pow(cand_ee, H);
 			probl_array[i] = cand_probl;
 			sigma += cand_probl;
@@ -829,6 +827,7 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 
 			if (node.getHistoryCounter() > 286) {
 				double prevision = node.getPredictedG();
+				// energy balance -> higher is better --> positive exponent
 				double cand_probl = Math.pow(prevision, H);
 				probl_array.add(cand_probl);
 				sigma += cand_probl;
@@ -936,6 +935,7 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 		return res;
 	}
 
+	// non usata in Jurnal Energy
 	private Service chooseByFutureExpectedUtility(LinkedList<Service> candidates, GeneralNode node) {
 
 		// at round 1 the overall energy is not known
