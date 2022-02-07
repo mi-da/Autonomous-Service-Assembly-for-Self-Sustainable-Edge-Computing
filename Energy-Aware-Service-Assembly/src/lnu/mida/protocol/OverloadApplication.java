@@ -3,6 +3,8 @@ package lnu.mida.protocol;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import com.lajv.location.Location;
+
+import lnu.mida.entity.EnergyAwareReputation;
 import lnu.mida.entity.EnergyBatteryPanelReputation;
 import lnu.mida.entity.EnergyLocalReputation;
 import lnu.mida.entity.EnergyOverallReputation;
@@ -56,6 +58,7 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 	private ArrayList<EnergyLocalReputation> energyLocalReputations;
 	private ArrayList<EnergyOverallReputation> energyOverallReputations;
 	private ArrayList<ResidualLifeReputation> residualLifeReputations;
+	private ArrayList<EnergyAwareReputation> energyAwareReputations;
 
 	/**
 	 * Initialize this object by reading configuration parameters.
@@ -72,6 +75,7 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 		greenReputations = new ArrayList<GreenReputation>();
 		energyLocalReputations = new ArrayList<EnergyLocalReputation>();
 		energyOverallReputations = new ArrayList<EnergyOverallReputation>();
+		energyAwareReputations = new ArrayList<EnergyAwareReputation>();
 	}
 
 	public void addQoSHistoryExperience(Service service, double experienced_utility, double declared_utility) {
@@ -93,6 +97,12 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 		int index = (int) generalNode.getID();
 		EnergyPanelReputation reputation = getOrCreateEnergyPReputation(index);
 		reputation.addDeclaredEnergy(nodeBalance);
+	}
+	
+	public void addEnergyEnergyAwareExperience(GeneralNode generalNode, double energyConsumed) {
+		int index = (int) generalNode.getID();
+		EnergyAwareReputation reputation = getOrCreateEnergyAwareReputation(index);
+		reputation.addDeclaredEnergy(energyConsumed);
 	}
 
 	public void addEnergyLocalHistoryExperience(Service service, double localEnergy) {
@@ -196,6 +206,9 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 		}
 		if (STRATEGY.equals("maxgPanel")) {
 			return chooseByMaxGStrategy(candidates);
+		}
+		if (STRATEGY.equals("energyAware")) {
+			return chooseByEnergyAwareStrategy(candidates);
 		}
 
 		// future expected utility (lavora sulla qualità)
@@ -733,6 +746,86 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 
 		return candidates.get(index);
 	}
+	
+	
+	/* Energy Aware */
+	private Service chooseByEnergyAwareStrategy(LinkedList<Service> candidates) {
+
+		if (CDState.getCycle() < 7)
+			return chooseByRandomStrategy(candidates);
+
+		Double[] probl_array = new Double[candidates.size()];
+
+		double sigma = 0;
+
+		// tiny translation to avoid 0 as a base of the exponent
+		double translation = Math.pow(10, -5);
+
+		for (int i = 0; i < candidates.size(); i++) {
+			
+			Service service = candidates.get(i);
+			
+			EnergyAwareReputation ear = getOrCreateEnergyAwareReputation((int) service.getNode_id());
+			double cand_ee = ear.getEe();
+			long k = ear.getK();
+
+			// if no experiences do the average
+			if (k == 0) {
+				int n = 0;
+				double sum = 0;
+
+				for (int j = 0; j < Network.size(); j++) {
+					GeneralNode othernode = (GeneralNode) Network.get(i);
+					
+					EnergyAwareReputation otherNodeEAR = getOrCreateEnergyAwareReputation((int) othernode.getID());
+
+					if (othernode.getEeBPCounter() > 0) {
+						double ee = otherNodeEAR.getEe();
+						sum += ee;
+						n++;
+					}
+				}
+				if (n == 0)
+					return chooseByLocalEnergyStrategy(candidates, node);
+				cand_ee = sum / n;
+			}
+
+			cand_ee -= translation;
+
+			// energy aware strategy -> lower is better --> negative exponent
+			double cand_probl = Math.pow(cand_ee, -H);
+			probl_array[i] = cand_probl;
+			sigma += cand_probl;
+		}
+
+		for (int i = 0; i < probl_array.length; i++) {
+			probl_array[i] = probl_array[i] / sigma;
+		}
+
+		// random pesata su probl_array
+
+		double sum = 0;
+		ArrayList<Double> array = new ArrayList<Double>();
+
+		for (int i = 0; i < probl_array.length; i++) {
+			sum += probl_array[i];
+			array.add(sum);
+		}
+
+		double max = 0;
+		double min = sum;
+		double random_num = min + (max - min) * CommonState.r.nextDouble();
+		int index = 0;
+
+		for (int i = 0; i < array.size(); i++) {
+			if (array.get(i) > random_num) {
+				index = i;
+				break;
+			}
+		}
+
+		return candidates.get(index);
+	}
 
 	/*
 	 * greedy fair energy strategy (using Shaerf) - select the node with the "best"
@@ -1064,6 +1157,18 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 		energyPReputations.add(newReputation);
 		return newReputation;
 	}
+	
+	private EnergyAwareReputation getOrCreateEnergyAwareReputation(int nodeID) {
+		for (EnergyAwareReputation reputation : energyAwareReputations) {
+			if (reputation.getNodeId() == nodeID) {
+				return reputation;
+			}
+		}
+		EnergyAwareReputation newReputation = new EnergyAwareReputation(nodeID);
+		energyAwareReputations.add(newReputation);
+		return newReputation;
+	}
+	
 
 	private EnergyLocalReputation getOrCreateEnergyLocalReputation(int serviceId) {
 		for (EnergyLocalReputation reputation : energyLocalReputations) {
@@ -1134,6 +1239,7 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 		energyLocalReputations = new ArrayList<EnergyLocalReputation>();
 		energyOverallReputations = new ArrayList<EnergyOverallReputation>();
 		residualLifeReputations = new ArrayList<ResidualLifeReputation>();
+		energyAwareReputations = new ArrayList<EnergyAwareReputation>();
 	}
 
 }

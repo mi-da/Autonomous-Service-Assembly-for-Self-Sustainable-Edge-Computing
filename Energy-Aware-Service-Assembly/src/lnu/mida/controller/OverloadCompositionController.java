@@ -199,9 +199,9 @@ public class OverloadCompositionController implements Control {
 			
 		    for (GeneralNode interactingNode : interactingNodes) {
 		    	appl.addEnergyBPHistoryExperience(interactingNode, Math.min(0,interactingNode.getG()+interactingNode.getBattery()-interactingNode.getR()));
-		    	appl.addEnergyPHistoryExperience(interactingNode, Math.min(0,interactingNode.getG()-interactingNode.getR()));
-		    	
+		    	appl.addEnergyPHistoryExperience(interactingNode, Math.min(0,interactingNode.getG()-interactingNode.getR()));   	
 		    	appl.addResidualLifeHistoryExperience(interactingNode,interactingNode.getResidualLife());
+		    	appl.addEnergyEnergyAwareExperience(interactingNode, interactingNode.getR());
 		    }	
 		    
 		}	
