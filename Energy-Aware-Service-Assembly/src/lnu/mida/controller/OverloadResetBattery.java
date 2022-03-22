@@ -85,7 +85,7 @@ public class OverloadResetBattery implements Control {
 	@Override
 	public boolean execute() {
 		
-		
+		//System.out.println("°********* Overload Reset Battery ********");
 		
 		ArrayList<Node> to_remove = new ArrayList<Node>();
 		
@@ -98,7 +98,7 @@ public class OverloadResetBattery implements Control {
 			// Nodes with no battery die
 			if((n.getBattery()<0 || n.getBattery()==0) && n.getFailState()==0) {	
 				
-				System.out.println("nodo " + n.getID() + " morto....");
+				//System.out.println("										nodo " + n.getID() + " morto....");
 				n.setBattery(0);
 				n.setR(0); 
 				

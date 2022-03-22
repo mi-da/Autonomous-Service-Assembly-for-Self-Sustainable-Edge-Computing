@@ -136,29 +136,29 @@ public class QualityEnergyObserver implements Control {
 		int index = (int) ((time / Configuration.getInt("COMPOSITION_STEPS", 1)));
 
 		// Quality
-		FinalUtilityObserver.quality.get(index).add(quality.getAverage());
-		IncrementalStats quality_jain_is = FinalUtilityObserver.quality_jain.get(index);
+		//FinalUtilityObserver.quality.get(index).add(quality.getAverage());
+		//IncrementalStats quality_jain_is = FinalUtilityObserver.quality_jain.get(index);
 		// calculates the jain's fairness for quality
-		double quality_jain_fairness =1-(2*quality.getStD()); // double quality_jain_fairness = Math.pow(quality.getSum(), 2) / (quality.getN() * quality.getSqrSum());
+		//double quality_jain_fairness =1-(2*quality.getStD()); // double quality_jain_fairness = Math.pow(quality.getSum(), 2) / (quality.getN() * quality.getSqrSum());
 		
-		quality_jain_is.add(quality_jain_fairness);
+		//quality_jain_is.add(quality_jain_fairness);
 
 		// Energy
-		FinalUtilityObserver.energy.get(index).add(energy.getAverage());
-		IncrementalStats energy_jain_is = FinalUtilityObserver.energy_jain.get(index);
+		//FinalUtilityObserver.energy.get(index).add(energy.getAverage());
+		//IncrementalStats energy_jain_is = FinalUtilityObserver.energy_jain.get(index);
 		
 		// calculates the jain's fairness for energy
-		double energy_jain_fairness =  1 - (2*energy.getStD()/8.5);   // calcola sperimentalmente il minimo che pu� raggiungere
+		//double energy_jain_fairness =  1 - (2*energy.getStD()/8.5);   // calcola sperimentalmente il minimo che pu� raggiungere
 		
 		
 		// double energy_jain_fairness = Math.pow(energy.getSum(), 2) / (energy.getN() * energy.getSqrSum());
-		energy_jain_is.add(energy_jain_fairness);
+		//energy_jain_is.add(energy_jain_fairness);
 		
 		
 		// Network		
-		FinalUtilityObserver.networkSize.get(index).add(Network.size());
-		FinalUtilityObserver.networkUpSize.get(index).add(nodes_up);
-		
+		//FinalUtilityObserver.networkSize.get(index).add(Network.size());
+		//FinalUtilityObserver.networkUpSize.get(index).add(nodes_up);
+				
 		// Availability		
 		double availability = (double) resolvedAssemblies/(double) toResolveAssemblies;
 		double availability_services = (double) fully_resolved_services/to_resolve_services;
@@ -166,6 +166,8 @@ public class QualityEnergyObserver implements Control {
 		
 		FinalUtilityObserver.availability.get(index).add(availability);
 		FinalUtilityObserver.availability_s.get(index).add(availability_services);
+		System.out.println(index);
+		
 		FinalUtilityObserver.availability_n1.get(index).add(availability_n1);
 
 		

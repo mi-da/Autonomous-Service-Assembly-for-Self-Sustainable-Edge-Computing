@@ -55,11 +55,16 @@ public class NewCycleInitController implements Control {
 			// si stabilisce il weight per ogni servizio - Random Select 1
 			for (int i = 0; i < Network.size(); i++) {	
 				
+				if (!Network.get(i).isUp()) {
+					continue;
+				}
+				
 				GeneralNode n = (GeneralNode) Network.get(i);		
 				OverloadComponentAssembly ca = (OverloadComponentAssembly) n.getProtocol(component_assembly_pid);		
 		
+				
 				double residual_life = n.getResidualLife();
-								
+				//System.out.println(n.getResidualLife());				
 		
 				ArrayList<Service> services = ca.getServices();
 				for (Service service : services) {
@@ -77,12 +82,20 @@ public class NewCycleInitController implements Control {
 								if(service.getType()==service2.getType()) {
 									if(((GeneralNode) Network.get(j)).getResidualLife()!=Double.POSITIVE_INFINITY)
 										sum+=((GeneralNode) Network.get(j)).getResidualLife();
+										//System.out.println("				(GeneralNode) Network.get(j)).getResidualLife() : " + ((GeneralNode) Network.get(j)).getResidualLife());				
+
 								}
 							}
 						}
 
 						service.setWeight(residual_life/sum);
+						
+						//System.out.println("		sum : " + sum);				
+
 					}
+					
+					//System.out.println("	service weight : " + service.getWeight());				
+
 										
 				}
 							

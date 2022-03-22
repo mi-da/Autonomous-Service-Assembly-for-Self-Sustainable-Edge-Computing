@@ -92,16 +92,16 @@ public class FinalUtilityObserver implements Control {
 				double finalEnergyFairness = energy_jain_is.getAverage();
 				
 				// Network
-				IncrementalStats nodesAlive_is = networkSize.get(index);	
-				double nodesAlive = nodesAlive_is.getAverage();
+				//IncrementalStats nodesAlive_is = networkSize.get(index);	
+				//double nodesAlive = nodesAlive_is.getAverage();
 				
-				IncrementalStats nodesUp_is = networkUpSize.get(index);	
-				double nodesUp = nodesUp_is.getAverage();
+				//IncrementalStats nodesUp_is = networkUpSize.get(index);	
+				//double nodesUp = nodesUp_is.getAverage();
 				
 				// Availability
 				IncrementalStats avail_is = availability.get(index);	
 				double availability = avail_is.getAverage();
-				
+
 				IncrementalStats avail_s_is = availability_s.get(index);	
 				double availability_s = avail_s_is.getAverage();
 				
@@ -110,14 +110,14 @@ public class FinalUtilityObserver implements Control {
 
 				//System.out.println(finalQuality);
 				/*1*/ps.print(n+" ");
-				/*2*/ps.print(finalQuality+" ");
-				/*3*/ps.print(finalQualityFairness+" ");
-				/*4*/ps.print(finalEnergy+" ");
-				/*5*/ps.print(finalEnergyFairness+" ");
-				/*6*/ps.print(nodesAlive+" ");
-				/*7*/ps.print(nodesUp+" ");
-				/*8*/ps.print(availability+" ");	// assemblies fully resolved
-				/*9*/ps.print(availability_s+" ");	// services fully resolved/tot services
+				/*2*///ps.print(finalQuality+" ");
+				/*3*///ps.print(finalQualityFairness+" ");
+				/*4*///ps.print(finalEnergy+" ");
+				/*5*///ps.print(finalEnergyFairness+" ");
+				/*6*///ps.print(nodesAlive+" ");
+				/*7*///ps.print(nodesUp+" ");
+				/*8*///ps.print(availability+"\n");	// assemblies fully resolved
+				/*9*///ps.print(availability_s+"\n");	// services fully resolved/tot services
 				/*10*/ps.print(availability_n1+"\n");	// nodes up/Network size
 	
 				

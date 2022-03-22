@@ -179,6 +179,9 @@ public class OverloadCompositionController implements Control {
 							// add overall energy
 							appl.addEnergyOverallHistoryExperience(depObj,depObj.getE_comp()+depObj.getE_comm());
 							
+							//if(service.getService_id()==10)
+							//	System.out.println(depObj.getE_comp()+depObj.getE_comm());
+							
 							GeneralNode depNode = GeneralNode.getNode(depObj.getNode_id());
 							
 							if(!interactingNodes.contains(depNode))

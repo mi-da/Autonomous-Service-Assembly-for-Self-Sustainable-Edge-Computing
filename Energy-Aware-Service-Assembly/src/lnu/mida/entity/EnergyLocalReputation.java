@@ -30,7 +30,7 @@ public class EnergyLocalReputation implements Cloneable  {
 		double ee_new = ALPHA*declaredEnergy + ( (1-ALPHA)*ee );		
 		ee = ee_new;
 		k++;
-			
+
 	}
 	
 	@Override
