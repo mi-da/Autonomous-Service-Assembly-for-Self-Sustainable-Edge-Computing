@@ -2,6 +2,9 @@ package lnu.mida.protocol;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
+
+import javax.crypto.NullCipher;
+
 import com.lajv.location.Location;
 
 import lnu.mida.entity.EnergyAwareReputation;
@@ -81,8 +84,6 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 	public void addQoSHistoryExperience(Service service, double experienced_utility, double declared_utility) {
 		int index = (int) service.getService_id();
 		QOSReputation reputation = getOrCreateQOSReputation(index);
-		// if(service.getService_id()==10)
-		// System.out.println(" addQoSHistoryExperience");
 		reputation.setDeclared_utility(declared_utility);
 		reputation.addExperiencedUtility(experienced_utility);
 	}
@@ -101,13 +102,17 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 	
 	public void addEnergyEnergyAwareExperience(GeneralNode generalNode, double energyConsumed) {
 		int index = (int) generalNode.getID();
-		EnergyAwareReputation reputation = getOrCreateEnergyAwareReputation(index);
+		EnergyAwareReputation reputation = getEnergyAwareReputation(index);
+		if(reputation==null)
+			reputation = createEnergyAwareReputation(index);
 		reputation.addDeclaredEnergy(energyConsumed);
 	}
 
 	public void addEnergyLocalHistoryExperience(Service service, double localEnergy) {
 		int index = (int) service.getService_id();
-		EnergyLocalReputation reputation = getOrCreateEnergyLocalReputation(index);
+		EnergyLocalReputation reputation = getEnergyLocalReputation(index);
+		if(reputation==null)
+			reputation = getEnergyLocalReputation(index);
 		reputation.addDeclaredEnergy(localEnergy);
 	}
 
@@ -161,17 +166,9 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 		if (STRATEGY.equals("weighted_random")) {
 			return chooseByWeightedRandomStrategy(candidates);
 		}
-		// individual energy
-		if (STRATEGY.equals("local_energy")) {
-			return chooseByLocalEnergyStrategy(candidates, node);
-		}
 		// individual energy template
 		if (STRATEGY.equals("local_energy_template")) {
 			return chooseByLocalEnergyTemplate(candidates, node);
-		}
-		// overall energy
-		if (STRATEGY.equals("overall_energy")) {
-			return chooseByOverallEnergyStrategy(candidates);
 		}
 		// overall energy template
 		if (STRATEGY.equals("overall_energy_template")) {
@@ -196,7 +193,6 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 		if (STRATEGY.equals("fair_energyP")) {
 			return chooseByFairEnergyPanelStrategy(candidates, node);
 		}
-
 		if (STRATEGY.equals("green_learning")) {
 			return chooseByGreenLearningStrategy(candidates);
 		}
@@ -212,7 +208,6 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 		if (STRATEGY.equals("energyAware")) {
 			return chooseByEnergyAwareStrategy(candidates);
 		}
-
 		// future expected utility (lavora sulla qualit�)
 		if (STRATEGY.equals("emergent")) {
 			return chooseByFutureExpectedUtility(candidates, node);
@@ -232,7 +227,6 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 
 	// chooses a random component
 	public Service chooseByRandomStrategy(LinkedList<Service> candidates) {
-
 		int index = CommonState.r.nextInt(candidates.size());
 		return candidates.get(index);
 	}
@@ -242,13 +236,8 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 	 * nodi
 	 */
 	private Service chooseByWeightedRandomStrategy(LinkedList<Service> candidates) {
-
-		if (CDState.getCycle() < 7)
-			return chooseByRandomStrategy(candidates);
-
 		double sum = 0;
 		double finite_sum = 0;
-
 		ArrayList<Double> array = new ArrayList<Double>();
 
 		for (int i = 0; i < candidates.size(); i++) {
@@ -257,13 +246,10 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 				finite_sum += candidates.get(i).getWeight();
 			}else {
 				//System.out.println("wheight infinite");
-
-			}
-				
+			}				
 		}
 
 		for (int i = 0; i < candidates.size(); i++) {
-
 			if (candidates.get(i).getWeight() < Double.POSITIVE_INFINITY) {
 				sum += candidates.get(i).getWeight();
 				array.add(sum);
@@ -275,9 +261,6 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 
 		double max = 0;
 		double min = sum;
-		//System.out.println(sum);
-
-
 		double random_num = min + (max - min) * CommonState.r.nextDouble();
 
 		int index = 0;
@@ -292,62 +275,19 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 		return candidates.get(index);
 	}
 
-	// local energy strategy
-	private Service chooseByLocalEnergyStrategy(LinkedList<Service> candidates, GeneralNode node) {
 
-		if (CDState.getCycle() < 7)
-			return chooseByRandomStrategy(candidates);
-
-		Location thisLoc = node.getLocation();
-
-		double min = Double.MAX_VALUE;
-		Service res = null;
-
-		for (int i = 0; i < candidates.size(); i++) {
-
-			GeneralNode other_node = GeneralNode.getNode(candidates.get(i).getNode_id());
-			double energy = 0;
-
-			if (node.getID() == other_node.getID()) {
-
-				energy += candidates.get(i).getL_comp();
-
-				// per il modello energetico adottato ad ECSA L_comm non dipende dal nodo in
-				// ricezione (i.e., node)
-				energy += candidates.get(i).getL_comm();
-			} else {
-
-				Location other_loc = other_node.getLocation();
-				double other_latency = thisLoc.latency(other_loc);
-
-				energy += node.getConsumedIndividualCommEnergySending(1, other_latency);
-			}
-
-			if (energy < min) {
-				min = energy;
-				res = candidates.get(i);
-			}
-		}
-
-		return res;
-	}
-
-	// Estende la Local considerando il parametro alfa ed h
 	private Service chooseByLocalEnergyTemplate(LinkedList<Service> candidates, GeneralNode node) {
-		if (CDState.getCycle() < 7)
-			return chooseByRandomStrategy(candidates);
 
 		Double[] probl_array = new Double[candidates.size()];
 		double sigma = 0;
-
-		// tiny translation to avoid 0 as a base of the exponent - Do we need this?
-		double translation = Math.pow(10, -5);
 
 		for (int i = 0; i < candidates.size(); i++) {
 
 			Service service = candidates.get(i);
 
-			EnergyLocalReputation elr = getOrCreateEnergyLocalReputation((int) service.getService_id());
+			EnergyLocalReputation elr = getEnergyLocalReputation((int) service.getService_id());
+			if(elr==null)
+				elr = createEnergyLocalReputation((int) service.getService_id());
 
 			double cand_ee = elr.getEe();
 			long k = elr.getK();
@@ -364,10 +304,11 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 					ArrayList<Service> services = ca.getServices();
 
 					for (Service otherService : services) {
-						EnergyLocalReputation other_elr = getOrCreateEnergyLocalReputation(
+						EnergyLocalReputation other_elr = getEnergyLocalReputation(
 								(int) otherService.getService_id());
-						//if(otherService.getService_id()==10)
-						//	System.out.println("other_elr.getK() " + other_elr.getK());
+						if(other_elr==null)
+							continue;
+
 						if (other_elr.getK() > 0) {
 							double ee = other_elr.getEe();
 							sum += ee;
@@ -377,11 +318,10 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 				}
 
 				if (n == 0)
-					return chooseByLocalEnergyStrategy(candidates, node);
-				cand_ee = sum / n;
+					cand_ee = 1;
+				else
+					cand_ee = sum / n;
 			}
-
-			cand_ee -= translation; // we must check if this translation is necessary and/or introduces problems
 
 			// local energy consumption -> lower is better --> negative exponent
 			double cand_probl = Math.pow(cand_ee, -H);
@@ -417,54 +357,21 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 		return candidates.get(index);
 	}
 
-	// overall energy strategy
-	private Service chooseByOverallEnergyStrategy(LinkedList<Service> candidates) {
-
-		// at round 1 the overall energy is not known
-		if (CDState.getCycle() < 7)
-			return chooseByRandomStrategy(candidates);
-
-		double min = Double.MAX_VALUE;
-		Service res = null;
-
-		for (int i = 0; i < candidates.size(); i++) {
-
-			double energy = candidates.get(i).getE_comp() + candidates.get(i).getE_comm();
-
-			if (energy < min) {
-				min = energy;
-				res = candidates.get(i);
-			}
-		}
-		return res;
-	}
-
-	// Estende la Overall considerando il parametro alfa ed h
 	private Service chooseByOverallEnergyTemplate(LinkedList<Service> candidates, GeneralNode node) {
-		//if (CDState.getCycle() < 7)
-		//	return chooseByRandomStrategy(candidates);
 
 		Double[] probl_array = new Double[candidates.size()];
 		double sigma = 0;
 
-		// tiny translation to avoid 0 as a base of the exponent - Do we need this?
-		//double translation = Math.pow(10, -5);
-
 		for (int i = 0; i < candidates.size(); i++) {
 
 			Service service = candidates.get(i);
-
 			EnergyOverallReputation eor = getEnergyOverallReputation((int) service.getService_id());
 			if(eor==null)
 				eor = createEnergyOverallReputation((int) service.getService_id());
-				
-
+			
 			double cand_ee = eor.getEe();
 			long k = eor.getK();
 			
-			//if(service.getService_id()==10)
-			//	System.out.println(cand_ee);
-
 			// if no experiences do the average from other services
 			if (k == 0) {
 				int n = 0;
@@ -489,18 +396,11 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 					}
 				}
 				
-				//System.out.println("n: " + n);
-
-
-				//if (n == 0)
-				//	return chooseByLocalEnergyTemplate(candidates, node);
 				if (n == 0)
 					cand_ee = 1;
 				else
 					cand_ee = sum / n;
 			}
-
-			//cand_ee -= translation; // we must check if this translation is necessary and/or introduces problems
 
 			// local energy consumption -> lower is better --> negative exponent
 			double cand_probl = Math.pow(cand_ee, -H);
@@ -521,8 +421,6 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 			array.add(sum);
 		}
 		
-		//System.out.println("sum: " + sum);
-		
 		double max = 0;
 		double min = sum;
 		double random_num = min + (max - min) * CommonState.r.nextDouble();
@@ -541,9 +439,6 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 	 * Seleziona il servizio allocato sul nodo con vita residua maggiore
 	 */
 	private Service chooseByResidualLifeStrategy(LinkedList<Service> candidates) {
-
-		if (CDState.getCycle() < 7)
-			return chooseByRandomStrategy(candidates);
 
 		double max = 0;
 		Service res = null;
@@ -564,15 +459,8 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 	// Residual life template strategy
 	private Service chooseByResidualLifeTemplateStrategy(LinkedList<Service> candidates, GeneralNode node) {
 
-		if (CDState.getCycle() < 7)
-			return chooseByRandomStrategy(candidates);
-
 		Double[] probl_array = new Double[candidates.size()];
-
 		double sigma = 0;
-
-		// tiny translation to avoid 0 as a base of the exponent
-		double translation = Math.pow(10, -5);
 
 		for (int i = 0; i < candidates.size(); i++) {
 
@@ -595,15 +483,11 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 					}
 				}
 				
-				System.out.println("nnnnnnnnnn " + n);
-				
 				if (n == 0)
-					return chooseByLocalEnergyStrategy(candidates, node);
-				cand_ee = sum / n;
+					cand_ee = 1;
+				else
+					cand_ee = sum / n;
 			}
-
-			cand_ee -= translation;
-
 			// energy balance -> higher is better --> positive exponent
 			double cand_probl = Math.pow(cand_ee, H);
 			probl_array[i] = cand_probl;
@@ -615,7 +499,6 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 		}
 
 		// random pesata su probl_array
-
 		double sum = 0;
 		ArrayList<Double> array = new ArrayList<Double>();
 
@@ -642,10 +525,6 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 	 * Seleziona il servizio allocato sul nodo con vita residua minore
 	 */
 	private Service chooseByRevResidualLifeStrategy(LinkedList<Service> candidates) {
-
-		if (CDState.getCycle() < 7)
-			return chooseByRandomStrategy(candidates);
-
 		double min = Double.MAX_VALUE;
 		Service res = null;
 		for (int i = 0; i < candidates.size(); i++) {
@@ -656,18 +535,12 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 				res = candidates.get(i);
 			}
 		}
-
 		if (res == null)
 			return chooseByRandomStrategy(candidates);
-
 		return res;
 	}
 
 	private Service chooseByLatencySetStrategy(LinkedList<Service> candidates, GeneralNode node) {
-
-		if (CDState.getCycle() < 7)
-			return chooseByRandomStrategy(candidates);
-
 		double max = 0;
 		double max_best = 0;
 		Service res = null;
@@ -688,10 +561,8 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 				}
 			}
 		}
-
 		if (res == null && res_best == null)
 			return chooseByRandomStrategy(candidates);
-
 		if (res_best != null)
 			return res_best;
 		return res;
@@ -704,15 +575,8 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 	 */
 	private Service chooseByFairEnergyBatteryPanelStrategy(LinkedList<Service> candidates, GeneralNode node) {
 
-		if (CDState.getCycle() < 7)
-			return chooseByRandomStrategy(candidates);
-
 		Double[] probl_array = new Double[candidates.size()];
-
 		double sigma = 0;
-
-		// tiny translation to avoid 0 as a base of the exponent
-		double translation = Math.pow(10, -5);
 
 		for (int i = 0; i < candidates.size(); i++) {
 
@@ -724,10 +588,8 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 			if (k == 0) {
 				int n = 0;
 				double sum = 0;
-
 				for (int j = 0; j < Network.size(); j++) {
 					GeneralNode othernode = (GeneralNode) Network.get(i);
-
 					if (othernode.getEeBPCounter() > 0) {
 						double ee = othernode.getEeBPEnergy();
 						sum += ee;
@@ -735,11 +597,10 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 					}
 				}
 				if (n == 0)
-					return chooseByLocalEnergyStrategy(candidates, node);
-				cand_ee = sum / n;
+					cand_ee = 1;
+				else	
+					cand_ee = sum / n;
 			}
-
-			cand_ee -= translation;
 
 			// energy balance -> higher is better --> positive exponent
 			double cand_probl = Math.pow(cand_ee, H);
@@ -752,10 +613,8 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 		}
 
 		// random pesata su probl_array
-
 		double sum = 0;
 		ArrayList<Double> array = new ArrayList<Double>();
-
 		for (int i = 0; i < probl_array.length; i++) {
 			sum += probl_array[i];
 			array.add(sum);
@@ -772,7 +631,6 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 				break;
 			}
 		}
-
 		return candidates.get(index);
 	}
 	
@@ -780,25 +638,17 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 	/* Energy Aware */
 	private Service chooseByEnergyAwareStrategy(LinkedList<Service> candidates) {
 
-		if (CDState.getCycle() < 7)
-			return chooseByRandomStrategy(candidates);
-
 		Double[] probl_array = new Double[candidates.size()];
-
 		double sigma = 0;
-
-		// tiny translation to avoid 0 as a base of the exponent
-		double translation = Math.pow(10, -5);
 
 		for (int i = 0; i < candidates.size(); i++) {
 			
 			Service service = candidates.get(i);
-			
-			EnergyAwareReputation ear = getOrCreateEnergyAwareReputation((int) service.getNode_id());
+			EnergyAwareReputation ear = getEnergyAwareReputation((int) service.getNode_id());
+			if(ear==null)
+				ear= createEnergyAwareReputation((int) service.getNode_id());
 			double cand_ee = ear.getEe();
 			long k = ear.getK();
-
-			//System.out.println(cand_ee);
 
 			// if no experiences do the average
 			if (k == 0) {
@@ -807,8 +657,9 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 
 				for (int j = 0; j < Network.size(); j++) {
 					GeneralNode othernode = (GeneralNode) Network.get(i);
-					
-					EnergyAwareReputation otherNodeEAR = getOrCreateEnergyAwareReputation((int) othernode.getID());
+					EnergyAwareReputation otherNodeEAR = getEnergyAwareReputation((int) othernode.getID());
+					if(otherNodeEAR==null)
+						continue;
 
 					if (othernode.getEeBPCounter() > 0) {
 						double ee = otherNodeEAR.getEe();
@@ -816,12 +667,12 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 						n++;
 					}
 				}
-				//if (n == 0)
-				//	return chooseByLocalEnergyStrategy(candidates, node);
-				cand_ee = sum / n;
-			}
 
-			cand_ee -= translation;
+				if (n == 0)
+					cand_ee = 1;
+				else
+					cand_ee = sum / n;
+			}
 
 			// energy aware strategy -> lower is better --> negative exponent
 			double cand_probl = Math.pow(cand_ee, -H);
@@ -834,7 +685,6 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 		}
 
 		// random pesata su probl_array
-
 		double sum = 0;
 		ArrayList<Double> array = new ArrayList<Double>();
 
@@ -864,14 +714,8 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 	 */
 	private Service chooseByFairEnergyPanelStrategy(LinkedList<Service> candidates, GeneralNode node) {
 
-		if (CDState.getCycle() < 7)
-			return chooseByRandomStrategy(candidates);
-
 		Double[] probl_array = new Double[candidates.size()];
-
 		double sigma = 0;
-		// tiny translation to avoid 0 as a base of the exponent
-		double translation = Math.pow(10, -5);
 
 		for (int i = 0; i < candidates.size(); i++) {
 
@@ -894,12 +738,11 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 				}
 
 				if (n == 0)
-					return chooseByLocalEnergyStrategy(candidates, node);
-
-				cand_ee = sum / n;
+					cand_ee = 1;
+				else
+					cand_ee = sum / n;
 			}
-
-			cand_ee -= translation;
+		
 			// energy balance -> higher is better --> positive exponent
 			double cand_probl = Math.pow(cand_ee, H);
 			probl_array[i] = cand_probl;
@@ -911,7 +754,6 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 		}
 
 		// random pesata su probl_array
-
 		double sum = 0;
 		ArrayList<Double> array = new ArrayList<Double>();
 
@@ -931,13 +773,12 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 				break;
 			}
 		}
-
 		return candidates.get(index);
 	}
 
 	private Service chooseByGreenLearningStrategy(LinkedList<Service> candidates) {
 
-		if (CDState.getCycle() < 287) // ?? perch� questo ?
+		if (CDState.getCycle() < 287) // ?? Francesca perche' questo ?
 			return chooseByRandomStrategy(candidates);
 
 		ArrayList<Double> probl_array = new ArrayList<Double>();
@@ -989,10 +830,6 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 	 * (scenario batteria + pannello)
 	 */
 	private Service chooseByMaxBalanceSolarPanelStrategy(LinkedList<Service> candidates) {
-
-		if (CDState.getCycle() < 7)
-			return chooseByRandomStrategy(candidates);
-
 		double max = 0;
 		Service res = null;
 		for (int i = 0; i < candidates.size(); i++) {
@@ -1003,11 +840,9 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 				res = candidates.get(i);
 			}
 		}
-
 		// System.out.println(res.getService_id());
 		if (res == null)
 			return chooseByRandomStrategy(candidates);
-
 		return res;
 	}
 
@@ -1016,10 +851,6 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 	 * (scenario solo pannello)
 	 */
 	private Service chooseByMaxBalancePanelStrategy(LinkedList<Service> candidates) {
-
-		if (CDState.getCycle() < 7)
-			return chooseByRandomStrategy(candidates);
-
 		double max = 0;
 		Service res = null;
 		for (int i = 0; i < candidates.size(); i++) {
@@ -1030,18 +861,12 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 				res = candidates.get(i);
 			}
 		}
-
 		if (res == null)
 			return chooseByRandomStrategy(candidates);
-
 		return res;
 	}
 
 	private Service chooseByMaxGStrategy(LinkedList<Service> candidates) {
-
-		if (CDState.getCycle() < 7)
-			return chooseByRandomStrategy(candidates);
-
 		double max = 0;
 		Service res = null;
 		for (int i = 0; i < candidates.size(); i++) {
@@ -1052,100 +877,90 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 				res = candidates.get(i);
 			}
 		}
-
 		if (res == null)
 			return chooseByRandomStrategy(candidates);
-
 		return res;
 	}
 
-	// non usata in Jurnal Energy
-	private Service chooseByFutureExpectedUtility(LinkedList<Service> candidates, GeneralNode node) {
+	// non usata in Journal Energy (to be fixed if ever used again)
+	// private Service chooseByFutureExpectedUtility(LinkedList<Service> candidates, GeneralNode node) {
 
-		// at round 1 the overall energy is not known
-		if (CDState.getCycle() < 7)
-			return chooseByRandomStrategy(candidates);
+	// 	// at round 1 the overall energy is not known
+	// 	if (CDState.getCycle() < 7)
+	// 		return chooseByRandomStrategy(candidates);
 
-		ArrayList<Double> probl_array = new ArrayList<Double>();
-		ArrayList<Double> quality_probl_array = new ArrayList<Double>();
+	// 	ArrayList<Double> probl_array = new ArrayList<Double>();
+	// 	ArrayList<Double> quality_probl_array = new ArrayList<Double>();
 
-		for (int i = 0; i < candidates.size(); i++) {
+	// 	for (int i = 0; i < candidates.size(); i++) {
 
-			GeneralNode n = GeneralNode.getNode(candidates.get(i).getNode_id());
+	// 		GeneralNode n = GeneralNode.getNode(candidates.get(i).getNode_id());
+	// 		// double candidateTrust = quality_candidateReputation.getTk();
+	// 		double candidateTrust = n.getTk((int) candidates.get(i).getService_id());
+	// 		double Qk = n.getQk((int) candidates.get(i).getService_id());
+	// 		int k = (int) n.getQosCounter((int) candidates.get(i).getService_id());
+	// 		double candidateFEU = candidateTrust * candidates.get(i).getDeclaredUtility()
+	// 				+ ((1.0 - candidateTrust) * Qk);
 
-			// double candidateTrust = quality_candidateReputation.getTk();
-			double candidateTrust = n.getTk((int) candidates.get(i).getService_id());
-			double Qk = n.getQk((int) candidates.get(i).getService_id());
-			int k = (int) n.getQosCounter((int) candidates.get(i).getService_id());
+	// 		// if no experiences do the average
+	// 		if (k == 0) {
 
-			double candidateFEU = candidateTrust * candidates.get(i).getDeclaredUtility()
-					+ ((1.0 - candidateTrust) * Qk);
+	// 			int m = 0;
+	// 			double sum = 0;
+	// 			for (int j = 0; j < Network.size(); j++) {
+	// 				GeneralNode othernode = (GeneralNode) Network.get(i);
+	// 				for (int l = 0; l < 5; l++) {
+	// 					int counter = othernode.getQosCounter(othernode.getID() * l);
 
-			// if no experiences do the average
-			if (k == 0) {
+	// 					if (counter > 0) {
+	// 						double qk = othernode.getQk(othernode.getID() * l);
+	// 						sum += qk;
+	// 						m++;
+	// 					}
+	// 				}
+	// 			}
+	// 			if (m == 0)
+	// 				return chooseByLocalEnergyStrategy(candidates, node);
 
-				int m = 0;
-				double sum = 0;
+	// 			candidateFEU = sum / m;
+	// 		}
 
-				for (int j = 0; j < Network.size(); j++) {
-					GeneralNode othernode = (GeneralNode) Network.get(i);
+	// 		double cand_probl = Math.pow(candidateFEU, H);
+	// 		probl_array.add(cand_probl);
+	// 	}
 
-					for (int l = 0; l < 5; l++) {
-						int counter = othernode.getQosCounter(othernode.getID() * l);
+	// 	double sigma = 0;
 
-						if (counter > 0) {
-							double qk = othernode.getQk(othernode.getID() * l);
-							sum += qk;
-							m++;
-						}
-					}
-				}
+	// 	for (int i = 0; i < probl_array.size(); i++) {
+	// 		sigma += probl_array.get(i);
+	// 	}
 
-				if (m == 0)
-					return chooseByLocalEnergyStrategy(candidates, node);
+	// 	for (int i = 0; i < probl_array.size(); i++) {
+	// 		quality_probl_array.add(probl_array.get(i) / sigma);
+	// 	}
 
-				candidateFEU = sum / m;
-			}
+	// 	// random pesata su probl_array
 
-			double cand_probl = Math.pow(candidateFEU, H);
-			probl_array.add(cand_probl);
+	// 	double sum = 0;
+	// 	ArrayList<Double> array = new ArrayList<Double>();
+	// 	for (int i = 0; i < quality_probl_array.size(); i++) {
+	// 		sum += quality_probl_array.get(i);
+	// 		array.add(sum);
+	// 	}
 
-		}
+	// 	double max = 0;
+	// 	double min = sum;
+	// 	double random_num = min + (max - min) * CommonState.r.nextDouble();
+	// 	int index = 0;
 
-		double sigma = 0;
-
-		for (int i = 0; i < probl_array.size(); i++) {
-			sigma += probl_array.get(i);
-		}
-
-		for (int i = 0; i < probl_array.size(); i++) {
-			quality_probl_array.add(probl_array.get(i) / sigma);
-		}
-
-		// random pesata su probl_array
-
-		double sum = 0;
-		ArrayList<Double> array = new ArrayList<Double>();
-
-		for (int i = 0; i < quality_probl_array.size(); i++) {
-			sum += quality_probl_array.get(i);
-			array.add(sum);
-		}
-
-		double max = 0;
-		double min = sum;
-		double random_num = min + (max - min) * CommonState.r.nextDouble();
-		int index = 0;
-
-		for (int i = 0; i < array.size(); i++) {
-			if (array.get(i) > random_num) {
-				index = i;
-				break;
-			}
-		}
-		return candidates.get(index);
-
-	}
+	// 	for (int i = 0; i < array.size(); i++) {
+	// 		if (array.get(i) > random_num) {
+	// 			index = i;
+	// 			break;
+	// 		}
+	// 	}
+	// 	return candidates.get(index);
+	// }
 
 	@Override
 	public void onKill() {
@@ -1188,44 +1003,37 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 		energyPReputations.add(newReputation);
 		return newReputation;
 	}
-	
-	private EnergyAwareReputation getOrCreateEnergyAwareReputation(int nodeID) {
+
+	private EnergyAwareReputation getEnergyAwareReputation(int nodeID) {
 		for (EnergyAwareReputation reputation : energyAwareReputations) {
 			if (reputation.getNodeId() == nodeID) {
 				return reputation;
 			}
 		}
+		return null;
+	}
+
+	private EnergyAwareReputation createEnergyAwareReputation(int nodeID) {
 		EnergyAwareReputation newReputation = new EnergyAwareReputation(nodeID);
 		energyAwareReputations.add(newReputation);
 		return newReputation;
 	}
-	
 
-	private EnergyLocalReputation getOrCreateEnergyLocalReputation(int serviceId) {
+	private EnergyLocalReputation getEnergyLocalReputation(int serviceId) {
 		for (EnergyLocalReputation reputation : energyLocalReputations) {
 			if (reputation.getServiceID() == serviceId) {
 				return reputation;
 			}
 		}
-		//System.out.println(" getOrCreateEnergyLocalReputation ");
+		return null;
+	}
+
+	private EnergyLocalReputation createEnergyLocalReputation(int serviceId) {
 		EnergyLocalReputation newReputation = new EnergyLocalReputation(serviceId);
 		energyLocalReputations.add(newReputation);
 		return newReputation;
 	}
-/*
-	private EnergyOverallReputation getOrCreateEnergyOverallReputation(int serviceId) {
-		for (EnergyOverallReputation reputation : energyOverallReputations) {
-			if (reputation.getServiceID() == serviceId) {
-				return reputation;
-			}
-		}
-		EnergyOverallReputation newReputation = new EnergyOverallReputation(serviceId);
-		//if(serviceId==10)
-		//	System.out.println("		new reputation created");
-		energyOverallReputations.add(newReputation);
-		return newReputation;
-	}
-*/	
+
 	private EnergyOverallReputation getEnergyOverallReputation(int serviceId) {
 		for (EnergyOverallReputation reputation : energyOverallReputations) {
 			if (reputation.getServiceID() == serviceId) {
@@ -1234,16 +1042,12 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 		}
 		return null;
 	}
-	
-	
+		
 	private EnergyOverallReputation createEnergyOverallReputation(int serviceId) {
 		EnergyOverallReputation newReputation = new EnergyOverallReputation(serviceId);
 		energyOverallReputations.add(newReputation);
 		return newReputation;
 	}
-	
-	
-	
 
 	private ResidualLifeReputation getOrCreateResidualLifeReputation(int nodeID) {
 		for (ResidualLifeReputation reputation : residualLifeReputations) {

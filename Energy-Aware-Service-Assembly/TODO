@@ -66,10 +66,5 @@ Scenario C:
 - ecc
 - ecc
 
-
-
 TODO:
 - Durante la sperimentatione bisogna controllare come si comporta il segno del template per le nostre politiche (-H ed H in application)
-- Riscrivere EnergyAware
-- Sistemare i segni di H (fatto) - Francesca puoi ricontrollare anche tu?
-- è pronta la residual life per essere testata? greedy vs random
