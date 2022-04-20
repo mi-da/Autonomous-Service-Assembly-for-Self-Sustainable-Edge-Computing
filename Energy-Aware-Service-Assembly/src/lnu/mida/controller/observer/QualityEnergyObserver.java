@@ -163,6 +163,10 @@ public class QualityEnergyObserver implements Control {
 		double availability = (double) resolvedAssemblies/(double) toResolveAssemblies;
 		double availability_services = (double) fully_resolved_services/to_resolve_services;
 		double availability_n1 = (double) nodes_up/Network.size();
+
+		double availability_product = 1.0;
+		if(nodes_up!=Network.size())
+			availability_product=0;
 		
 		FinalUtilityObserver.availability.get(index).add(availability);
 		FinalUtilityObserver.availability_s.get(index).add(availability_services);
@@ -170,6 +174,7 @@ public class QualityEnergyObserver implements Control {
 		
 		FinalUtilityObserver.availability_n1.get(index).add(availability_n1);
 
+		FinalUtilityObserver.availability_product.get(index).add(availability_product);
 		
 		return false;
 	}

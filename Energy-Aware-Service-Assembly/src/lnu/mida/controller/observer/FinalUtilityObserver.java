@@ -40,7 +40,7 @@ public class FinalUtilityObserver implements Control {
 	public static ArrayList<IncrementalStats> availability;	// in relazione alle assemblies completamente risolte
 	public static ArrayList<IncrementalStats> availability_s;	// in relazione ai servizi completamente risolti
 	public static ArrayList<IncrementalStats> availability_n1;	// in relazione al numero di nodi attivi
-
+	public static ArrayList<IncrementalStats> availability_product;	// intermediate product for calculating nodes steady state availability
 
 	// ///////////////////////////////////////////////////////////////////////
 	// Constructor
@@ -67,6 +67,7 @@ public class FinalUtilityObserver implements Control {
 		int exp_number = OverloadFileInitializer.experiment_number;
 		int total_exps = Configuration.getInt("simulation.experiments",1);
 
+		double total_availability_product_sum = 0;
 		
 		// print data from last experiment
 		if(exp_number==total_exps) {
@@ -108,6 +109,9 @@ public class FinalUtilityObserver implements Control {
 				IncrementalStats avail_n1_is = availability_n1.get(index);	
 				double availability_n1 = avail_n1_is.getAverage();
 
+				IncrementalStats avail_product_is = availability_product.get(index);	
+				availability_product = avail_n1_is.getSum();
+
 				//System.out.println(finalQuality);
 				/*1*/ps.print(n+" ");
 				/*2*///ps.print(finalQuality+" ");
@@ -125,6 +129,10 @@ public class FinalUtilityObserver implements Control {
 
 			}						
 		}
+
+		int t_steps = Configuration.getInt("COMPOSITION_STEPS", 1);
+		double ss_nodes_availability = (total_availability_product_sum/t_steps)/total_exps;
+		ps.print("ss_nodes_availability="+ss_nodes_availability+"\n");
 		
 		return false;
 	}	
