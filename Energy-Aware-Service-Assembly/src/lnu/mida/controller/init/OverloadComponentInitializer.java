@@ -181,8 +181,14 @@ public class OverloadComponentInitializer implements Control {
 			
 	        // set the Battery 
 			
-			int max = 6480; // batteria AAA da 1200 mAh
-			int min = 6480;
+			//int max = 6480; // batteria AAA da 1200 mAh
+			//int min = 6480;
+			
+			// raddoppiamo la capacità della batteria
+			
+			int max = 13000; 
+			int min = 13000;
+			
 			
 			double capacity = min + (max - min) * CommonState.r.nextDouble();
 			n.setBattery(capacity);

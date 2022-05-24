@@ -86,6 +86,9 @@ private int history_counter;
 private double ee_BPenergy;
 private int ee_BPcounter;
 
+private double ee_energy;
+private int ee_counter;
+
 private double ee_Penergy;
 private int ee_Pcounter;
 
@@ -472,6 +475,14 @@ public void setEePEnergy(double val) {
 	ee_Penergy=val;
 }
 
+public double getEeEnergy() {
+	return ee_energy;
+}
+
+public void setEeEnergy(double val) {
+	ee_energy=val;
+}
+
 public double getEeResidualLife() {
 	return ee_ResidualLife;
 }
@@ -486,6 +497,14 @@ public int getEePCounter() {
 
 public void setEePCounter(int val) {
 	ee_Pcounter=val;
+}
+
+public int getEeCounter() {
+	return ee_counter;
+}
+
+public void setEeCounter(int val) {
+	ee_counter=val;
 }
 
 public int getEeResidualLifeCounter() {

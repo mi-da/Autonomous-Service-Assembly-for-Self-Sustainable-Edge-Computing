@@ -29,6 +29,10 @@ public class EnergyAwareReputation implements Cloneable  {
 		double ee_new = ALPHA*declaredEnergy + ( (1-ALPHA)*ee );		
 		ee = ee_new;
 		k++;
+		
+		GeneralNode node = GeneralNode.getNode(nodeID);
+		node.setEeEnergy(ee);
+		node.setEeCounter(k);	
 	}
 	
 	@Override

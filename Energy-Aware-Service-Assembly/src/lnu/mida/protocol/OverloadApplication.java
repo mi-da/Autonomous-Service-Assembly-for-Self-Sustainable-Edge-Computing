@@ -83,26 +83,20 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 
 	public void addQoSHistoryExperience(Service service, double experienced_utility, double declared_utility) {
 		int index = (int) service.getService_id();
-		QOSReputation reputation = getQOSReputation(index);
-		if(reputation == null)
-			reputation = createQOSReputation(index);
+		QOSReputation reputation = getOrCreateQOSReputation(index);
 		reputation.setDeclared_utility(declared_utility);
 		reputation.addExperiencedUtility(experienced_utility);
 	}
 
 	public void addEnergyBPHistoryExperience(GeneralNode generalNode, double nodeBalance) {
 		int index = (int) generalNode.getID();
-		EnergyBatteryPanelReputation reputation = getEnergyBPReputation(index);
-		if(reputation == null)
-			reputation = createEnergyBPReputation(index);
+		EnergyBatteryPanelReputation reputation = getOrCreateEnergyBPReputation(index);
 		reputation.addDeclaredEnergy(nodeBalance);
 	}
 
 	public void addEnergyPHistoryExperience(GeneralNode generalNode, double nodeBalance) {
 		int index = (int) generalNode.getID();
-		EnergyPanelReputation reputation = getEnergyPReputation(index);
-		if(reputation == null)
-			reputation = createEnergyPReputation(index);
+		EnergyPanelReputation reputation = getOrCreateEnergyPReputation(index);
 		reputation.addDeclaredEnergy(nodeBalance);
 	}
 	
@@ -118,7 +112,7 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 		int index = (int) service.getService_id();
 		EnergyLocalReputation reputation = getEnergyLocalReputation(index);
 		if(reputation==null)
-			reputation = getEnergyLocalReputation(index);
+			reputation = createEnergyLocalReputation(index);
 		reputation.addDeclaredEnergy(localEnergy);
 	}
 
@@ -132,17 +126,13 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 
 	public void addResidualLifeHistoryExperience(GeneralNode generalNode, double residualLife) {
 		int index = (int) generalNode.getID();
-		ResidualLifeReputation reputation = getResidualLifeReputation(index);
-		if(reputation == null)
-			reputation = createResidualLifeReputation(index);
+		ResidualLifeReputation reputation = getOrCreateResidualLifeReputation(index);
 		reputation.addDeclaredEnergy(residualLife);
 	}
 
 	public void addGreenHistoryExperience(GeneralNode generalNode, double level) {
 		int index = (int) generalNode.getID();
-		GreenReputation reputation = getGreenReputation(index);
-		if(reputation == null)
-			reputation = createGreenReputation(index);
+		GreenReputation reputation = getOrCreateGreenReputation(index);
 		reputation.addDeclaredEnergy(level);
 	}
 
@@ -219,9 +209,9 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 			return chooseByEnergyAwareStrategy(candidates);
 		}
 		// future expected utility (lavora sulla qualit�)
-		if (STRATEGY.equals("emergent")) {
-			return chooseByFutureExpectedUtility(candidates, node);
-		}
+		//if (STRATEGY.equals("emergent")) {
+		//	return chooseByFutureExpectedUtility(candidates, node);
+		//}
 
 		// exception is raised if a strategy is not selected
 		else {
@@ -671,7 +661,7 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 					if(otherNodeEAR==null)
 						continue;
 
-					if (othernode.getEeBPCounter() > 0) {
+					if (othernode.getEeCounter() > 0) {
 						double ee = otherNodeEAR.getEe();
 						sum += ee;
 						n++;
@@ -980,47 +970,35 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 	@Override
 	public void nextCycle(Node node, int protocolID) {
 	}
-	
-	private QOSReputation getQOSReputation(int serviceId) {
+
+	private QOSReputation getOrCreateQOSReputation(int serviceId) {
 		for (QOSReputation reputation : qosReputations) {
 			if (reputation.getServiceID() == serviceId) {
 				return reputation;
 			}
 		}
-		return null;
-	}
-
-	private QOSReputation createQOSReputation(int serviceId) {
 		QOSReputation newReputation = new QOSReputation(serviceId);
 		qosReputations.add(newReputation);
 		return newReputation;
 	}
 
-	private EnergyBatteryPanelReputation getEnergyBPReputation(int nodeID) {
+	private EnergyBatteryPanelReputation getOrCreateEnergyBPReputation(int nodeID) {
 		for (EnergyBatteryPanelReputation reputation : energyBPReputations) {
 			if (reputation.getNodeId() == nodeID) {
 				return reputation;
 			}
 		}
-		return null;
-	}
-
-	private EnergyBatteryPanelReputation createEnergyBPReputation(int nodeID) {
 		EnergyBatteryPanelReputation newReputation = new EnergyBatteryPanelReputation(nodeID);
 		energyBPReputations.add(newReputation);
 		return newReputation;
 	}
 
-	private EnergyPanelReputation getEnergyPReputation(int nodeID) {
+	private EnergyPanelReputation getOrCreateEnergyPReputation(int nodeID) {
 		for (EnergyPanelReputation reputation : energyPReputations) {
 			if (reputation.getNodeId() == nodeID) {
 				return reputation;
 			}
 		}
-		return null;
-	}
-
-	private EnergyPanelReputation createEnergyPReputation(int nodeID) {
 		EnergyPanelReputation newReputation = new EnergyPanelReputation(nodeID);
 		energyPReputations.add(newReputation);
 		return newReputation;
@@ -1071,31 +1049,23 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 		return newReputation;
 	}
 
-	private ResidualLifeReputation getResidualLifeReputation(int nodeID) {
+	private ResidualLifeReputation getOrCreateResidualLifeReputation(int nodeID) {
 		for (ResidualLifeReputation reputation : residualLifeReputations) {
 			if (reputation.getNodeId() == nodeID) {
 				return reputation;
 			}
 		}
-		return null;
-	}
-
-	private ResidualLifeReputation createResidualLifeReputation(int nodeID) {
 		ResidualLifeReputation newReputation = new ResidualLifeReputation(nodeID);
 		residualLifeReputations.add(newReputation);
 		return newReputation;
 	}
 
-	public GreenReputation getGreenReputation(int nodeID) {
+	public GreenReputation getOrCreateGreenReputation(int nodeID) {
 		for (GreenReputation reputation : greenReputations) {
 			if (reputation.getNodeId() == nodeID) {
 				return reputation;
 			}
 		}
-		return null;
-	}
-
-	public GreenReputation createGreenReputation(int nodeID) {
 		GreenReputation newReputation = new GreenReputation(nodeID);
 		greenReputations.add(newReputation);
 		return newReputation;
