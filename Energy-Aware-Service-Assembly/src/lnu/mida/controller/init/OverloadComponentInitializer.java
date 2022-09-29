@@ -185,8 +185,8 @@ public class OverloadComponentInitializer implements Control {
 			//int min = 6480;
 			
 			
-			int max = 25 *100000;  // 5
-			int min = 10 *100000;  //  2
+			int max = 25 *100000;  // 5 batteria piccola, 25 batteria grande
+			int min = 10 *100000;  //  2 batteria piccola, 10 batteria grande
 			
 			
 			double capacity = min + (max - min) * CommonState.r.nextDouble();
