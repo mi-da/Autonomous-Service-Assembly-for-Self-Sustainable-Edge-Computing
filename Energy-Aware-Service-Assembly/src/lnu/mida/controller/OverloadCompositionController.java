@@ -144,8 +144,7 @@ public class OverloadCompositionController implements Control {
 					
 					Service[] listDepObj = service.getDependencies_obj();
 					boolean[] listDep = service.getDependencies();
-
-					double consumption=0;					
+				
 					
 					for (int j = 0; j < listDep.length; j++) {
 
@@ -170,8 +169,7 @@ public class OverloadCompositionController implements Control {
 							// updates lambda
 							depObj.updateLambdaTot();
 
-							double experienced_utility = depObj.getRealUtility(service);
-							
+							double experienced_utility = depObj.getRealUtility(service);					
 							appl.addQoSHistoryExperience(depObj, experienced_utility, depObj.getDeclaredUtility());
 							
 							// add local energy
