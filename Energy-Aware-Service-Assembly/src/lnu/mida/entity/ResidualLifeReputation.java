@@ -22,9 +22,14 @@ public class ResidualLifeReputation implements Cloneable  {
 		ee=0;
 	}
 	
-	public void addDeclaredEnergy(double declaredEnergy) {		
+	public void addDeclaredEnergy(double declaredEnergy) {	
 		
-		double ee_new = ALPHA*declaredEnergy + ( (1-ALPHA)*ee );		
+		double W=1;
+		if(k>0) {
+			W = ALPHA + (1-ALPHA)/k;
+		}
+		
+		double ee_new = W*declaredEnergy + ( (1-W)*ee );		
 		ee = ee_new;
 		k++;
 		
