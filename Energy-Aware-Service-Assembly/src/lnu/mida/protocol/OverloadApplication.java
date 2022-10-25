@@ -83,7 +83,9 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 
 	public void addQoSHistoryExperience(Service service, double experienced_utility, double declared_utility) {
 		int index = (int) service.getService_id();
-		QOSReputation reputation = getOrCreateQOSReputation(index);
+		QOSReputation reputation = getQoSReputation(index);
+		if(reputation==null)
+			reputation = createQoSReputation(index);
 		reputation.setDeclared_utility(declared_utility);
 		reputation.addExperiencedUtility(experienced_utility);
 	}
@@ -208,10 +210,10 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 		if (STRATEGY.equals("energyAware")) {
 			return chooseByEnergyAwareStrategy(candidates);
 		}
-		// future expected utility (lavora sulla qualit�)
-		//if (STRATEGY.equals("emergent")) {
-		//	return chooseByFutureExpectedUtility(candidates, node);
-		//}
+		// future expected utility (lavora sulla qualita)
+		if (STRATEGY.equals("QoS")) {
+			return chooseByQoSAware(candidates, node);
+		}
 
 		// exception is raised if a strategy is not selected
 		else {
@@ -883,84 +885,78 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 	}
 
 	// non usata in Journal Energy (to be fixed if ever used again)
-	// private Service chooseByFutureExpectedUtility(LinkedList<Service> candidates, GeneralNode node) {
+	 private Service chooseByQoSAware(LinkedList<Service> candidates, GeneralNode node) {
 
-	// 	// at round 1 the overall energy is not known
-	// 	if (CDState.getCycle() < 7)
-	// 		return chooseByRandomStrategy(candidates);
+	 	ArrayList<Double> probl_array = new ArrayList<Double>();
+	 	ArrayList<Double> quality_probl_array = new ArrayList<Double>();
 
-	// 	ArrayList<Double> probl_array = new ArrayList<Double>();
-	// 	ArrayList<Double> quality_probl_array = new ArrayList<Double>();
+	 	for (int i = 0; i < candidates.size(); i++) {
 
-	// 	for (int i = 0; i < candidates.size(); i++) {
+	 		GeneralNode n = GeneralNode.getNode(candidates.get(i).getNode_id());
+	 		//double candidateTrust = quality_candidateReputation.getTk();
+	 		double candidateTrust = n.getTk((int) candidates.get(i).getService_id());
+	 		double Qk = n.getQk((int) candidates.get(i).getService_id());
+	 		int k = (int) n.getQosCounter((int) candidates.get(i).getService_id());
+	 		double candidateFEU = candidateTrust * candidates.get(i).getDeclaredUtility() + ((1.0 - candidateTrust) * Qk);
 
-	// 		GeneralNode n = GeneralNode.getNode(candidates.get(i).getNode_id());
-	// 		// double candidateTrust = quality_candidateReputation.getTk();
-	// 		double candidateTrust = n.getTk((int) candidates.get(i).getService_id());
-	// 		double Qk = n.getQk((int) candidates.get(i).getService_id());
-	// 		int k = (int) n.getQosCounter((int) candidates.get(i).getService_id());
-	// 		double candidateFEU = candidateTrust * candidates.get(i).getDeclaredUtility()
-	// 				+ ((1.0 - candidateTrust) * Qk);
+	 		// if no experiences do the average
+	 		if (k == 0) {
 
-	// 		// if no experiences do the average
-	// 		if (k == 0) {
+	 			int m = 0;
+	 			double sum = 0;
+	 			for (int j = 0; j < Network.size(); j++) {
+	 				GeneralNode othernode = (GeneralNode) Network.get(i);
+	 				for (int l = 0; l < 5; l++) {
+	 					int counter = othernode.getQosCounter(othernode.getID() * l);
 
-	// 			int m = 0;
-	// 			double sum = 0;
-	// 			for (int j = 0; j < Network.size(); j++) {
-	// 				GeneralNode othernode = (GeneralNode) Network.get(i);
-	// 				for (int l = 0; l < 5; l++) {
-	// 					int counter = othernode.getQosCounter(othernode.getID() * l);
+	 					if (counter > 0) {
+	 						double qk = othernode.getQk(othernode.getID() * l);
+	 						sum += qk;
+	 						m++;
+	 					}
+	 				}
+	 			}
+	 			if (m == 0)
+	 				return chooseByLocalEnergyTemplate(candidates, node);
+	 			candidateFEU = sum / m;
+	 		}
 
-	// 					if (counter > 0) {
-	// 						double qk = othernode.getQk(othernode.getID() * l);
-	// 						sum += qk;
-	// 						m++;
-	// 					}
-	// 				}
-	// 			}
-	// 			if (m == 0)
-	// 				return chooseByLocalEnergyStrategy(candidates, node);
+	 		double cand_probl = Math.pow(candidateFEU, H);
+	 		probl_array.add(cand_probl);
+	 	}
 
-	// 			candidateFEU = sum / m;
-	// 		}
+	 	double sigma = 0;
 
-	// 		double cand_probl = Math.pow(candidateFEU, H);
-	// 		probl_array.add(cand_probl);
-	// 	}
+	 	for (int i = 0; i < probl_array.size(); i++) {
+	 		sigma += probl_array.get(i);
+	 	}
 
-	// 	double sigma = 0;
+	 	for (int i = 0; i < probl_array.size(); i++) {
+	 		quality_probl_array.add(probl_array.get(i) / sigma);
+	 	}
 
-	// 	for (int i = 0; i < probl_array.size(); i++) {
-	// 		sigma += probl_array.get(i);
-	// 	}
+	 	// random pesata su probl_array
 
-	// 	for (int i = 0; i < probl_array.size(); i++) {
-	// 		quality_probl_array.add(probl_array.get(i) / sigma);
-	// 	}
+	 	double sum = 0;
+	 	ArrayList<Double> array = new ArrayList<Double>();
+	 	for (int i = 0; i < quality_probl_array.size(); i++) {
+	 		sum += quality_probl_array.get(i);
+	 		array.add(sum);
+	 	}
 
-	// 	// random pesata su probl_array
+	 	double max = 0;
+	 	double min = sum;
+	 	double random_num = min + (max - min) * CommonState.r.nextDouble();
+	 	int index = 0;
 
-	// 	double sum = 0;
-	// 	ArrayList<Double> array = new ArrayList<Double>();
-	// 	for (int i = 0; i < quality_probl_array.size(); i++) {
-	// 		sum += quality_probl_array.get(i);
-	// 		array.add(sum);
-	// 	}
-
-	// 	double max = 0;
-	// 	double min = sum;
-	// 	double random_num = min + (max - min) * CommonState.r.nextDouble();
-	// 	int index = 0;
-
-	// 	for (int i = 0; i < array.size(); i++) {
-	// 		if (array.get(i) > random_num) {
-	// 			index = i;
-	// 			break;
-	// 		}
-	// 	}
-	// 	return candidates.get(index);
-	// }
+	 	for (int i = 0; i < array.size(); i++) {
+	 		if (array.get(i) > random_num) {
+	 			index = i;
+	 			break;
+	 		}
+	 	}
+	 	return candidates.get(index);
+	}
 
 	@Override
 	public void onKill() {
@@ -971,16 +967,21 @@ public class OverloadApplication implements CDProtocol, Cleanable {
 	public void nextCycle(Node node, int protocolID) {
 	}
 
-	private QOSReputation getOrCreateQOSReputation(int serviceId) {
+	private QOSReputation getQoSReputation(int serviceId) {
 		for (QOSReputation reputation : qosReputations) {
 			if (reputation.getServiceID() == serviceId) {
 				return reputation;
 			}
 		}
+		return null;
+	}
+
+	private QOSReputation createQoSReputation(int serviceId) {
 		QOSReputation newReputation = new QOSReputation(serviceId);
 		qosReputations.add(newReputation);
 		return newReputation;
 	}
+
 
 	private EnergyBatteryPanelReputation getOrCreateEnergyBPReputation(int nodeID) {
 		for (EnergyBatteryPanelReputation reputation : energyBPReputations) {

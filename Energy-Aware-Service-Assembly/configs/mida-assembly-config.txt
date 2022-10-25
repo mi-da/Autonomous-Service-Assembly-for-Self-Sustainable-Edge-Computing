@@ -8,13 +8,13 @@ simulation.cycles COMPOSITION_STEPS*1000
 simulation.experiments 10 
 NETWORK_SIZE 50  										
 
-SERVICES_PER_NODE 5    #number of services per node provare 1 servizio?
+SERVICES_PER_NODE 5
 
 TYPES 10   
 
 DEGREE 6 # must be less than cache size
 
-STRATEGY overall_energy_template  # 6 strategies: 1) random, 2) residual_life_template, 3) overall_energy_template, 4) local_energy_template, 5) energyAware 6) fair_energyP
+STRATEGY QoS  # 7 strategies: 1) random, 2) residual_life_template, 3) overall_energy_template, 4) local_energy_template, 5) energyAware 6) fair_energyP, 7) QoS
 
 M 5 # period of the learner
 
