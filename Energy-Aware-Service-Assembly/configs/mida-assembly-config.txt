@@ -4,7 +4,7 @@
 
 ## For battery discharge: N=100 Ty=10 SperNode = 3 Exp=50
 
-simulation.cycles 60*100  
+simulation.cycles COMPOSITION_STEPS*1000  
 simulation.experiments 10 
 NETWORK_SIZE 50  										
 
@@ -14,13 +14,13 @@ TYPES 10
 
 DEGREE 6 # must be less than cache size
 
-STRATEGY residual_life_template  # 6 strategies: 1) random, 2) residual_life_template, 3) overall_energy_template, 4) local_energy_template, 5) energyAware 6) fair_energyP
+STRATEGY overall_energy_template  # 6 strategies: 1) random, 2) residual_life_template, 3) overall_energy_template, 4) local_energy_template, 5) energyAware 6) fair_energyP
 
 M 5 # period of the learner
 
 H 50 # randomness of service selection for the strategy
 
-ALPHA 0.5 # weight of history for learning strategy
+ALPHA 0.5 # weight of history for learning strategy (the higher ALPHA the more it considers new values)
 
 COMPOSITION_STEPS 6 # the system runs a composition step every 6 simulation cycles
 
