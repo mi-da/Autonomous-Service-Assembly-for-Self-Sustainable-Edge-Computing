@@ -1,0 +1,19 @@
+- metriche di ranking: considerare le 4 metriche definite da: (11), (12), (13), (14) (global energy, local energy,  energy balance, residual lifetime) e infine random e QoS aware
+
+- chiamiamo la energy balance = (energia prodotta - consumo). Cioè G - R
+- Quindi nel caso di sola batteria è pure consumo (i.e., vecchia energy aware)
+
+- h:  considerare 3 valori: 1, 50, 10 (weighted fair, greedy, biased to best)
+- alfa: considerare 2 valori: 1, 0.5 (myopic, “past-aware”)
+ 
+- batteria: considerare due capacità diverse. 
+- In OverloadComponentInitialized: batteria grande (max=25, min=10), batteria piccola (max=5,min=2)
+
+
+---- Other settings ----
+
+simulation.cycles COMPOSITION_STEPS*1000  
+simulation.experiments 10 
+NETWORK_SIZE 50  										
+SERVICES_PER_NODE 5
+TYPES 10   
