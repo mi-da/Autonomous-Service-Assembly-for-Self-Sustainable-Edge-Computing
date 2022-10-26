@@ -67,7 +67,7 @@ ggplot(data=local, aes(x=overall_x, col = group)) +
   labs(x = "Learning cycle",
        y = "Instantaneous infrastructure availability",
        color = "Legend",
-       title = "Instantaneous infrastructure availability - Big battery, alpha=1, H=1", 
+       title = "Instantaneous infrastructure availability - Big battery, alpha=0.5, H=1", 
        caption = "Learning cycles=1000, Simulation experiments=10, Network size=50, services per node=5, types=10") +
   
   scale_color_manual(values = colors)
