@@ -14,7 +14,7 @@ TYPES 10
 
 DEGREE 6 # must be less than cache size
 
-STRATEGY QoS  # 7 strategies: 1) random, 2) residual_life_template, 3) overall_energy_template, 4) local_energy_template, 5) energyAware 6) fair_energyP, 7) QoS
+STRATEGY QoS  # 7 strategies: 1) random, 2) residual_life_template, 3) overall_energy_template, 4) local_energy_template, 5) energyAware 6) fair_energyP, 7) QoS, 8) fair_energyBP
 
 M 5 # period of the learner
 
@@ -224,14 +224,14 @@ include.init wire loci vivs ci pdi fi
 
 
 # scenario "Battery"
-include.control shf linkctr battery enectr compctr qeC FinalutilC resetServices resetBattery newcycle idctr
+#include.control shf linkctr battery enectr compctr qeC FinalutilC resetServices resetBattery newcycle idctr
 
 # scenario "Battery" con dinamicità
 #include.control shf linkctr battery enectr compctr qeC FinalutilC resetServices resetBattery newcycle idctr failures dynpeer
 
 
 # scenario "Battery Panel"
-#include.control shf linkctr solar batteryPanel enectr compctr qeC FinalutilC resetServices resetBattery idctr
+include.control shf linkctr solar batteryPanel enectr compctr qeC FinalutilC resetServices resetBattery idctr
 
 # scenario "Battery Panel" con dinamicità
 #include.control shf linkctr solar batteryPanel enectr compctr qeC FinalutilC resetServices resetBattery idctr failures dynpeer
