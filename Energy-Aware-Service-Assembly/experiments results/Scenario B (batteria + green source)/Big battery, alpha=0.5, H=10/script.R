@@ -29,7 +29,7 @@ local <- read.table("exp_assembly_local_energy_template.txt",
                     col.names= c("locx","locy")
 )
 
-learning <- read.table("exp_assembly_energyAware.txt", 
+learning <- read.table("exp_assembly_fair_energyBP.txt", 
                           header = F,
                           sep = " ",
                           col.names= c("enx","eny")
