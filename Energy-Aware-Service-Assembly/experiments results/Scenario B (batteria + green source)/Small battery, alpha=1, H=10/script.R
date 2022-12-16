@@ -29,7 +29,7 @@ local <- read.table("exp_assembly_local_energy_template.txt",
                     col.names= c("locx","locy")
 )
 
-learning <- read.table("exp_assembly_energyAware.txt", 
+learning <- read.table("exp_assembly_fair_energyBP.txt", 
                           header = F,
                           sep = " ",
                           col.names= c("enx","eny")
@@ -67,7 +67,7 @@ ggplot(data=local, aes(x=overall_x, col = group)) +
   labs(x = "Learning cycle",
        y = "Instantaneous infrastructure availability",
        color = "Legend",
-       title = "Instantaneous infrastructure availability - Big battery, alpha=1, H=10", 
-       caption = "Learning cycles=1000, Simulation experiments=10, Network size=50, services per node=5, types=10") +
+       title = "Instantaneous infrastructure availability - Small battery, alpha=1, H=10", 
+       caption = "Learning cycles=1000, Simulation experiments=50, Network size=50, services per node=5, types=10") +
   
   scale_color_manual(values = colors)
