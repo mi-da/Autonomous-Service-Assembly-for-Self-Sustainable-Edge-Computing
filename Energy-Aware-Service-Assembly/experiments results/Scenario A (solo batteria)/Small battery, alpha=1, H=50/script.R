@@ -62,7 +62,8 @@ ggplot(data=local, aes(x=overall_x, col = group)) +
   geom_line(aes(y = random_y, color = "random"), size = 1) +
   geom_line(aes(y = local_y, color = "local"), size = 1) +
   geom_line(aes(y = energyAware_y, color = "energy balance"), size = 1) +
-  geom_line(aes(y = qos_y, color = "qos"), size = 1) +
+  geom_line(aes(y = qos_y, color = "qos"), size = 1)  +
+  ylim(0, 1.0) +
   
   labs(x = "Learning cycle",
        y = "Instantaneous infrastructure availability",

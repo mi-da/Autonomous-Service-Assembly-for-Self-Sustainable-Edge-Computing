@@ -26,13 +26,10 @@ ggplot(data=local, aes(x=local_x, col = group),) +
   geom_line(aes(y = local_y, color = "local"), size = 1) +
 
   labs(x = "round",
-       y = "nodes availability",
+       y = "FQoS",
        color = "Legend",
-       title = "FQoS (B, small battery) -  alpha 0.5, H 50", 
+       title = "FQoS - Small battery, alpha=0.5, H=50", 
        caption = "Learning cycles=2000, Simulation experiments=50, Network size=50, services per node=5, types=10") +
   
   scale_color_manual(values = colors)  +
-
-  ylim(0,1)
-
-
+  ylim(0.85, 1.0)
