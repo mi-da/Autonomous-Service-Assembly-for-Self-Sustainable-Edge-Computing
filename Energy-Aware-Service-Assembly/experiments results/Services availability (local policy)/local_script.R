@@ -25,12 +25,12 @@ ggplot(data=local, aes(x=local_x, col = group)) +
   geom_line(aes(y = local_y, color = "local"), size = 1) +
   
   labs(x = "round",
-       y = "services fully resolved",
+       y = "Services fully resolved (total/solved)",
        color = "Legend",
-       title = "Services fully resolved (B, small battery) -  alpha 0.5, H 50", 
-       caption = "simulation.cycles 12000, simulation.experiments 50, Network size 50, services per node 5, types 10") +
+       title = "Services fully resolved (total/solved) - Small battery, alpha=0.5, H=50", 
+       caption = "Learning cycles=2000, Simulation experiments=50, Network size=50, services per node=5, types=10") +
   
   scale_color_manual(values = colors) +
-  ylim(0.9, 1)
+  ylim(0.85, 1)
 
 
