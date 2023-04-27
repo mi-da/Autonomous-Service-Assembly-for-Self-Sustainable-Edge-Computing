@@ -1,16 +1,11 @@
 package lnu.mida.controller.observer;
 
 import java.util.ArrayList;
-
-import java.util.List;
-
 import lnu.mida.entity.GeneralNode;
 import lnu.mida.entity.Service;
 import lnu.mida.protocol.OverloadComponentAssembly;
-import peersim.cdsim.CDState;
 import peersim.config.*;
 import peersim.core.Control;
-import peersim.core.Fallible;
 import peersim.core.Network;
 import peersim.util.*;
 
@@ -136,23 +131,23 @@ public class QualityEnergyObserver implements Control {
 		int index = (int) ((time / Configuration.getInt("COMPOSITION_STEPS", 1)));
 
 		// Quality
-		//FinalUtilityObserver.quality.get(index).add(quality.getAverage());
-		//IncrementalStats quality_jain_is = FinalUtilityObserver.quality_jain.get(index);
+		FinalUtilityObserver.quality.get(index).add(quality.getAverage());
+		IncrementalStats quality_jain_is = FinalUtilityObserver.quality_jain.get(index);
 		// calculates the jain's fairness for quality
-		//double quality_jain_fairness =1-(2*quality.getStD()); // double quality_jain_fairness = Math.pow(quality.getSum(), 2) / (quality.getN() * quality.getSqrSum());
+		double quality_jain_fairness =1-(2*quality.getStD()); // double quality_jain_fairness = Math.pow(quality.getSum(), 2) / (quality.getN() * quality.getSqrSum());
 		
-		//quality_jain_is.add(quality_jain_fairness);
+		quality_jain_is.add(quality_jain_fairness);
 
 		// Energy
-		//FinalUtilityObserver.energy.get(index).add(energy.getAverage());
-		//IncrementalStats energy_jain_is = FinalUtilityObserver.energy_jain.get(index);
+		FinalUtilityObserver.energy.get(index).add(energy.getAverage());
+		IncrementalStats energy_jain_is = FinalUtilityObserver.energy_jain.get(index);
 		
 		// calculates the jain's fairness for energy
 		//double energy_jain_fairness =  1 - (2*energy.getStD()/8.5);   // calcola sperimentalmente il minimo che pu� raggiungere
 		
 		
-		// double energy_jain_fairness = Math.pow(energy.getSum(), 2) / (energy.getN() * energy.getSqrSum());
-		//energy_jain_is.add(energy_jain_fairness);
+		double energy_jain_fairness = Math.pow(energy.getSum(), 2) / (energy.getN() * energy.getSqrSum());
+		energy_jain_is.add(energy_jain_fairness);
 		
 		
 		// Network		

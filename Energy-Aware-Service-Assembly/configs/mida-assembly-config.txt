@@ -4,8 +4,8 @@
 
 ## For battery discharge: N=100 Ty=10 SperNode = 3 Exp=50
 
-simulation.cycles COMPOSITION_STEPS*1000  
-simulation.experiments 10 
+simulation.cycles 6*2000  
+simulation.experiments 50 
 NETWORK_SIZE 50  										
 
 SERVICES_PER_NODE 5
@@ -14,7 +14,7 @@ TYPES 10
 
 DEGREE 6 # must be less than cache size
 
-STRATEGY QoS  # 7 strategies: 1) random, 2) residual_life_template, 3) overall_energy_template, 4) local_energy_template, 5) energyAware 6) fair_energyP, 7) QoS, 8) fair_energyBP
+STRATEGY local_energy_template  # 7 strategies: 1) random, 2) residual_life_template, 3) overall_energy_template, 4) local_energy_template, 5) energyAware 6) fair_energyP, 7) QoS, 8) fair_energyBP
 
 M 5 # period of the learner
 
@@ -26,7 +26,7 @@ COMPOSITION_STEPS 6 # the system runs a composition step every 6 simulation cycl
 
 SOLAR_STEP 1
 
-random.seed 1234554324
+random.seed 1208574314
 
 simulation.logtime 1000
 
@@ -224,14 +224,14 @@ include.init wire loci vivs ci pdi fi
 
 
 # scenario "Battery"
-#include.control shf linkctr battery enectr compctr qeC FinalutilC resetServices resetBattery newcycle idctr
+include.control shf linkctr battery enectr compctr qeC FinalutilC resetServices resetBattery newcycle idctr
 
 # scenario "Battery" con dinamicità
 #include.control shf linkctr battery enectr compctr qeC FinalutilC resetServices resetBattery newcycle idctr failures dynpeer
 
 
 # scenario "Battery Panel"
-include.control shf linkctr solar batteryPanel enectr compctr qeC FinalutilC resetServices resetBattery idctr
+#include.control shf linkctr solar batteryPanel enectr compctr qeC FinalutilC resetServices resetBattery idctr
 
 # scenario "Battery Panel" con dinamicità
 #include.control shf linkctr solar batteryPanel enectr compctr qeC FinalutilC resetServices resetBattery idctr failures dynpeer

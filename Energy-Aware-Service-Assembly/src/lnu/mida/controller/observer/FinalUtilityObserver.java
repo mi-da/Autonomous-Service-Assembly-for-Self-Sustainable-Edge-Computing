@@ -108,15 +108,15 @@ public class FinalUtilityObserver implements Control {
 
 				//System.out.println(finalQuality);
 				/*1*/ps.print(n+" ");
-				/*2*///ps.print(finalQuality+" ");
-				/*3*///ps.print(finalQualityFairness+" ");
+				/*2*///ps.print(finalQuality+"\n");
+				/*3*///ps.print(finalQualityFairness+"\n");
 				/*4*///ps.print(finalEnergy+" ");
 				/*5*///ps.print(finalEnergyFairness+" ");
 				/*6*///ps.print(nodesAlive+" ");
 				/*7*///ps.print(nodesUp+" ");
 				/*8*///ps.print(availability+"\n");	// assemblies fully resolved
-				/*9*///ps.print(availability_s+"\n");	// services fully resolved/tot services
-				/*10*/ps.print(availability_n1+"\n");	// nodes up/Network size
+				/*9*/ps.print(availability_s+"\n");	// services fully resolved/tot services
+				/*10*///ps.print(availability_n1+"\n");	// nodes up/Network size
 	
 				
 				n+=1; // learning step
