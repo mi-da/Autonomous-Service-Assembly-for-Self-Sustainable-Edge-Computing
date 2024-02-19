@@ -21,4 +21,4 @@ The file configs/mida-assembly-config.txt contains the configuration parameters 
 [2] A. Schaerf, Y. Shoham, and M. Tennenholtz. 1995. Adaptive load balancing: a study in multi-agent learning. J. Artif. Int. Res. 2, 1 (August 1994), 475–500.
 
 ### Contact 
-If you have additional questions do not hesitate to contact me: https://lnu.se/en/staff/mirko.dangelo/
+If you have additional questions do not hesitate to contact the authors.
