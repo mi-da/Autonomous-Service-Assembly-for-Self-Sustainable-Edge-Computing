@@ -17,6 +17,7 @@ The file configs/mida-assembly-config.txt contains the configuration parameters 
   
 ### References 
 [1] M. D’Angelo, M. Caporuscio, V. Grassi, and R. Mirandola, ‘Decentralized learning for self-adaptive QoS-aware service assembly’, Future generations computer systems, vol. 108, pp. 210–227, 2020. https://doi.org/10.1016/j.future.2020.02.027.
+
 [2] A. Schaerf, Y. Shoham, and M. Tennenholtz. 1995. Adaptive load balancing: a study in multi-agent learning. J. Artif. Int. Res. 2, 1 (August 1994), 475–500.
 
 ### Contact 
