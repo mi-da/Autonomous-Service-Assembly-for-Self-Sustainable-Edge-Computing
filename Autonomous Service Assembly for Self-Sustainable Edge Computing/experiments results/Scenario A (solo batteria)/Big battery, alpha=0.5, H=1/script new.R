@@ -53,7 +53,7 @@ qos_y <- qos$qosy
 
 head(overall)
 
-colors <- c("overall" = "#EEA236", "residual life" = "#5CB85C", "random" = "#46B8DA", "local"="gray64", "energy balance"="deeppink3", "qos"="#FF0000")
+colors <- c("global energy" = "#EEA236", "residual life" = "#5CB85C", "random" = "#46B8DA", "local energy"="gray64", "node energy"="deeppink3", "QoS-aware"="#FF0000")
 
 g = ggplot(data=local, aes(x=overall_x, col = group)) + 
   
@@ -76,4 +76,7 @@ g = ggplot(data=local, aes(x=overall_x, col = group)) +
           plot.background = element_rect(fill="white"),
           axis.text=element_text(size=30),
           axis.title=element_text(size=35),
-          legend.position = "none") 
+          legend.position = "bottom",
+          legend.justification = "left",
+          legend.direction = "horizontal",
+          legend.title = element_text(size=20)) + guides(colour = guide_legend(nrow = 1))
