@@ -1,5 +1,5 @@
-# Autonomous Service Assembly for Self-Sustainable Edge Computing
-This repository contains the simulation code to replicate the results of the experimantation of the paper "Autonomous Service Assembly for Self-Sustainable Edge Computing" .
+# Self-Sustainable Service Assembly
+This repository contains the simulation code to replicate the results of the experimantation of the paper.
 
 ### Instructions
 1. Download the Java Project "Energy-Aware-Service-Assembly" and import it in your IDE as a Java project
